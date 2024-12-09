@@ -1,5 +1,4 @@
-export class User {
-    userId: number;
+export declare class UserSignInDto {
     username: string;
     password: string;
 }
