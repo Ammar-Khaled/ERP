@@ -9,19 +9,25 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserSignInDto = void 0;
+exports.CreateClientDto = void 0;
 const class_validator_1 = require("class-validator");
-class UserSignInDto {
+class CreateClientDto {
 }
-exports.UserSignInDto = UserSignInDto;
+exports.CreateClientDto = CreateClientDto;
 __decorate([
     (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
-], UserSignInDto.prototype, "username", void 0);
+], CreateClientDto.prototype, "name", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsEmail)(),
     __metadata("design:type", String)
-], UserSignInDto.prototype, "password", void 0);
-//# sourceMappingURL=user-sign-in.dto.js.map
+], CreateClientDto.prototype, "email", void 0);
+__decorate([
+    (0, class_validator_1.IsPhoneNumber)(),
+    __metadata("design:type", String)
+], CreateClientDto.prototype, "phone_number", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    __metadata("design:type", Number)
+], CreateClientDto.prototype, "address_id", void 0);
+//# sourceMappingURL=create-client.dto.js.map
