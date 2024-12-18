@@ -26,7 +26,7 @@ export class ClientsService {
     return newClient;
   }
 
-  // Find all clients 
+  // Find all clients
   findAll(): object {
     return {
       Clients: this.clients, // Return the clients array with the label "Clients"
@@ -35,20 +35,20 @@ export class ClientsService {
 
   // Find one client by ID
   findOne(id: number): object {
-    const client = this.clients.find(client => client.id === id);
+    const client = this.clients.find((client) => client.id === id);
     if (!client) {
       return {
         message: `Client with ID ${id} not found`,
       };
     }
     return {
-      Client: client, 
+      Client: client,
     };
   }
 
   // Find a client by email
   findByEmail(email: string): object {
-    const client = this.clients.find(client => client.email === email);
+    const client = this.clients.find((client) => client.email === email);
     if (!client) {
       return {
         message: `Client with email ${email} not found`,
@@ -61,7 +61,9 @@ export class ClientsService {
 
   // Find a client by phone number
   findByPhone(phoneNumber: string): object {
-    const client = this.clients.find(client => client.phone_number === phoneNumber);
+    const client = this.clients.find(
+      (client) => client.phone_number === phoneNumber,
+    );
     if (!client) {
       return {
         message: `Client with phone number ${phoneNumber} not found`,
@@ -74,7 +76,7 @@ export class ClientsService {
 
   // Update a client by ID
   update(id: number, updateClientDto: UpdateClientDto): Client | undefined {
-    const clientIndex = this.clients.findIndex(client => client.id === id);
+    const clientIndex = this.clients.findIndex((client) => client.id === id);
     if (clientIndex === -1) {
       throw new Error(`Client with ID ${id} not found`);
     }
@@ -85,7 +87,7 @@ export class ClientsService {
 
   // Remove a client by ID
   remove(id: number): string {
-    const clientIndex = this.clients.findIndex(client => client.id === id);
+    const clientIndex = this.clients.findIndex((client) => client.id === id);
     if (clientIndex === -1) {
       throw new Error(`Client with ID ${id} not found`);
     }

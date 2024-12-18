@@ -6,16 +6,17 @@ import { SupplierModule } from './supplier/supplier.module';
 import { UsersModule } from './users/users.module';
 import { ClientsModule } from './clients/clients.module';
 import { dataSourceOptions } from 'db/data-source';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(dataSourceOptions),    
+    TypeOrmModule.forRoot(dataSourceOptions),
     SupplierModule,
     UsersModule,
-    ClientsModule
+    ClientsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-
 export class AppModule {}

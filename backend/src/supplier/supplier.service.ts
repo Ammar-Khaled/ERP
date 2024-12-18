@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
@@ -12,13 +16,13 @@ export class SupplierService {
     @InjectRepository(Supplier)
     private supplierRepository: Repository<Supplier>,
     @InjectRepository(Address)
-    private addressRepository: Repository<Address>
-  ) { }
+    private addressRepository: Repository<Address>,
+  ) {}
 
   async create(createSupplierDto: CreateSupplierDto) {
     // check if the supplier is already exist
     const existingSupplier = await this.supplierRepository.findOne({
-      where: {email: createSupplierDto.email}
+      where: { email: createSupplierDto.email },
     });
     if (existingSupplier)
       throw new ConflictException('The Supplier is already exist');
@@ -33,7 +37,7 @@ export class SupplierService {
 
     // save and return
     console.log('Supplier created.');
-    return await this.supplierRepository.save(supplier);   
+    return await this.supplierRepository.save(supplier);
   }
 
   async findAll() {
@@ -41,27 +45,26 @@ export class SupplierService {
   }
 
   async findOne(id: number) {
-    const supplier = await this.supplierRepository.findOneBy({id});
-    if (!supplier)
-      throw new NotFoundException('This supplier is not found');
+    const supplier = await this.supplierRepository.findOneBy({ id });
+    if (!supplier) throw new NotFoundException('This supplier is not found');
 
     return supplier;
   }
 
   async update(id: number, updateSupplierDto: UpdateSupplierDto) {
     const supplier = await this.findOne(id);
-    
+
     Object.assign(supplier, updateSupplierDto);
     if (updateSupplierDto.address)
       Object.assign(supplier.address, updateSupplierDto.address);
-    
+
     await this.addressRepository.save(updateSupplierDto.address);
     return await this.supplierRepository.save(supplier);
   }
 
   async remove(id: number) {
     const supplier = await this.findOne(id);
-    await this.supplierRepository.delete({id});
+    await this.supplierRepository.delete({ id });
     console.log('Deleted a supplier.');
     return supplier;
   }
