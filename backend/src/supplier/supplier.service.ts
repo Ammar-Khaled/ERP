@@ -1,9 +1,9 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
@@ -13,9 +13,9 @@ import { Address } from 'src/common/entities/address.entity';
 @Injectable()
 export class SupplierService {
   constructor(
-    @InjectRepository(Supplier)
+    @Inject('SUPPLIER_REPOSITORY')
     private supplierRepository: Repository<Supplier>,
-    @InjectRepository(Address)
+    @Inject('ADDRESS_REPOSITORY')
     private addressRepository: Repository<Address>,
   ) {}
 

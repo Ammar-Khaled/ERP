@@ -1,5 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { Supplier } from '../../supplier/entities/supplier.entity';
+import { User } from '../../users/entities/user.entity';
+import { Branch } from './branch.entity';
 
 @Entity('addresses')
 export class Address {
@@ -24,5 +32,10 @@ export class Address {
   @OneToMany(() => Supplier, (supplier) => supplier.address)
   suppliers: Supplier[];
 
+  @OneToMany(() => Supplier, (supplier) => supplier.address)
+  users: User[];
+
+  @OneToOne(() => Branch, (branch) => branch.address)
+  branch: Branch;
   // #todo: add longitude & latitude
 }
