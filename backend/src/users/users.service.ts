@@ -8,7 +8,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Address } from '../common/entities/address.entity';
 import { hash } from 'bcrypt';
 
@@ -37,8 +36,13 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const existingUser = await this.userRepository.findOne({
+    let existingUser = await this.userRepository.findOne({
       where: { email: createUserDto.email },
+    });
+    if (existingUser) throw new ConflictException('User already exists');
+
+    existingUser = await this.userRepository.findOne({
+      where: { username: createUserDto.username },
     });
     if (existingUser) throw new ConflictException('User already exists');
 
@@ -61,7 +65,10 @@ export class UsersService {
     if (updateUserDto.address)
       Object.assign(user.address, updateUserDto.address);
 
-    await this.addressRepository.save(updateUserDto.address);
+    if (updateUserDto.address) {
+      await this.addressRepository.save(updateUserDto.address);
+    }
+
     return await this.userRepository.save(user);
   }
 

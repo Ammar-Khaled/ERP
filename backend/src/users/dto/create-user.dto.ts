@@ -5,6 +5,7 @@ import {
   IsBoolean,
   IsOptional,
   ValidateNested,
+  IsPhoneNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateAddressDto } from '../../common/dtos/create-address.dto';
@@ -28,6 +29,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
+  @IsPhoneNumber()
   phone: string;
 
   @IsBoolean()
