@@ -49,9 +49,17 @@ export class UsersService {
     createUserDto.password = await hash(createUserDto.password, 10);
     const new_user = this.userRepository.create(createUserDto);
     if (createUserDto.address) {
-      const address = this.addressRepository.create(createUserDto.address);
-      await this.addressRepository.save(address);
-      new_user.address = address;
+      // check if address is already in the database
+      const existingAddress = await this.addressRepository.findOne({
+        where: createUserDto.address,
+      });
+      if (existingAddress) {
+        new_user.address = existingAddress;
+      } else {
+        const address = this.addressRepository.create(createUserDto.address);
+        await this.addressRepository.save(address);
+        new_user.address = address;
+      }
     }
 
     console.log('User is successfully created.');
