@@ -32,7 +32,7 @@ export class Address {
   @OneToMany(() => Supplier, (supplier) => supplier.address)
   suppliers: Supplier[];
 
-  @OneToMany(() => Supplier, (supplier) => supplier.address)
+  @OneToMany(() => User, (user) => user.address)
   users: User[];
 
   @OneToOne(() => Branch, (branch) => branch.address)
