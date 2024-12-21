@@ -6,6 +6,8 @@ import { UsersModule } from './users/users.module';
 import { ClientsModule } from './clients/clients.module';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './common/database.module';
+import { RoleModule } from './roles/role.module';
+import { PermissionModule } from './permissions/permission.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { DatabaseModule } from './common/database.module';
     UsersModule,
     ClientsModule,
     AuthModule,
+    RoleModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -6,7 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
-import { Role } from '../../common/entities/role.entity';
+import { Role } from '../../roles/role.entity';
 import { Branch } from '../../common/entities/branch.entity';
 
 @Entity('users')
