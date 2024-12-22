@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './common/database.module';
 import { RoleModule } from './roles/role.module';
 import { PermissionModule } from './permissions/permission.module';
+import { BranchesModule } from './branches/branches.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PermissionModule } from './permissions/permission.module';
     AuthModule,
     RoleModule,
     PermissionModule,
+    BranchesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
