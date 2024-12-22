@@ -1,12 +1,14 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
-import { Role } from '../../roles/role.entity';
+import { Role } from '../../roles/entities/role.entity';
 import { Branch } from '../../branches/entities/branch.entity';
 
 @Entity('users')
@@ -45,12 +47,15 @@ export class User {
   @JoinColumn({ name: 'address_id' })
   address: Address;
 
-  @ManyToOne(() => Role, (role) => role.users, {
+  @ManyToMany(() => Role, (role) => role.users, {
     eager: true,
-    nullable: true,
   })
-  @JoinColumn({ name: 'role_id' })
-  role: Role;
+  @JoinTable({
+    name: 'user_roles',
+    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
+  })
+  roles: Role[];
 
   @ManyToOne(() => Branch, (branch) => branch.users, {
     eager: true,

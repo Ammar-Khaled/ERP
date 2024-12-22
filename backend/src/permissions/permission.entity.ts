@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
-import { Role } from '../roles/role.entity';
-import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Role } from '../roles/entities/role.entity';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 @Entity('permissions')
 export class Permission {
