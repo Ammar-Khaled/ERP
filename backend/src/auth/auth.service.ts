@@ -17,9 +17,13 @@ export class AuthService {
     const user = await this.usersService.findOneByUsername(username);
     const match = await compare(password, user.password);
     if (!match) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Invalid username or password');
     }
-    const payload = { sub: user.id, username: user.username };
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      roles: user.roles,
+    };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };

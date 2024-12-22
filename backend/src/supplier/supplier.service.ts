@@ -27,7 +27,7 @@ export class SupplierService {
     if (existingSupplier)
       throw new ConflictException('The Supplier is already exist');
 
-    // create an entity
+    // create an entities
     const supplier = this.supplierRepository.create(createSupplierDto);
     if (createSupplierDto.address) {
       const address = this.addressRepository.create(createSupplierDto.address);

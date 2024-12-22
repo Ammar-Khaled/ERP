@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { Supplier } from '../../supplier/entities/supplier.entity';
 import { User } from '../../users/entities/user.entity';
-import { Branch } from './branch.entity';
+import { Branch } from '../../branches/entities/branch.entity';
 
 @Entity('addresses')
 export class Address {
