@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
 import { Role } from '../../roles/role.entity';
-import { Branch } from '../../common/entities/branch.entity';
+import { Branch } from '../../branches/entities/branch.entity';
 
 @Entity('users')
 export class User {
