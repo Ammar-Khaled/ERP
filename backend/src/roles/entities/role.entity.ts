@@ -1,13 +1,12 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  OneToMany,
-  ManyToMany,
+  Entity,
   JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '../users/entities/user.entity';
-import { Permission } from '../permissions/permission.entity';
+import { User } from '../../users/entities/user.entity';
+import { Permission } from '../../permissions/permission.entity';
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 @Entity('roles')
@@ -30,7 +29,7 @@ export class Role {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
-  @OneToMany(() => User, (user) => user.role)
+  @ManyToMany(() => User, (user) => user.roles)
   users: User[];
 
   @ManyToMany(() => Permission, (permission) => permission.roles)
