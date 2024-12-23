@@ -6,26 +6,19 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { Permission } from '../../permissions/permission.entity';
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Permission } from '../../permissions/entities/permission.entity';
 
 @Entity('roles')
 export class Role {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @IsNotEmpty()
-  @IsString()
   @Column({ type: 'varchar', length: 255, nullable: false })
   name: string;
 
-  @IsOptional()
-  @IsString()
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @IsOptional()
-  @IsBoolean()
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
