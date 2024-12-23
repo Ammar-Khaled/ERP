@@ -1,19 +1,19 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  OneToOne,
+  Entity,
   JoinColumn,
   OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Address } from '../../common/entities/address.entity';
 import {
-  IsString,
-  IsNotEmpty,
   IsBoolean,
+  IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
+  IsString,
 } from 'class-validator';
 
 @Entity('branches')
@@ -23,7 +23,7 @@ export class Branch {
 
   @IsString()
   @IsNotEmpty()
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   name: string;
 
   @IsString()
