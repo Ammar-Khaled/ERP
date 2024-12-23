@@ -1,5 +1,6 @@
 import { Address } from 'src/common/entities/address.entity';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
+import { Client } from 'src/clients/entities/client.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
 
@@ -12,7 +13,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  entities: [Supplier, Address],
+  entities: [Supplier, Address, Client],
   synchronize: true,
 };
 
