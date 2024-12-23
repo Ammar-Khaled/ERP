@@ -1,11 +1,11 @@
 import {
-  IsString,
+  IsBoolean,
   IsEmail,
   IsNotEmpty,
-  IsBoolean,
   IsOptional,
-  ValidateNested,
   IsPhoneNumber,
+  IsString,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateAddressDto } from '../../common/dtos/create-address.dto';
@@ -30,28 +30,27 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   @IsPhoneNumber()
-  phone: string;
+  phone?: string;
 
   @IsBoolean()
   @IsOptional()
-  isActive: boolean;
+  isActive?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  isBlocked: boolean;
+  isBlocked?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  isDeleted: boolean;
+  isDeleted?: boolean;
 
   @IsNotEmpty()
-  address_id: number;
+  @IsOptional()
+  role_id?: number;
 
   @IsNotEmpty()
-  role_id: number;
-
-  @IsNotEmpty()
-  branch_id: number;
+  @IsOptional()
+  branch_id?: number;
 
   @IsOptional()
   @ValidateNested()
