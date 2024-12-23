@@ -1,14 +1,14 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  Param,
   Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
   Patch,
+  Post,
 } from '@nestjs/common';
 import { PermissionService } from './permission.service';
-import { Permission } from './permission.entity';
+import { Permission } from './entities/permission.entity';
 
 @Controller('permissions')
 export class PermissionController {

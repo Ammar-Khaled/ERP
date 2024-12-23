@@ -1,21 +1,12 @@
 import { Module } from '@nestjs/common';
-import { Permission } from './permission.entity';
 import { PermissionService } from './permission.service';
 import { PermissionController } from './permission.controller';
-import { DataSource } from 'typeorm';
 import { DatabaseModule } from '../common/database.module';
+import { permissionProviders } from './permissions.providers';
 
 @Module({
   imports: [DatabaseModule],
-  providers: [
-    PermissionService,
-    {
-      provide: 'PERMISSION_REPOSITORY',
-      useFactory: (dataSource: DataSource) =>
-        dataSource.getRepository(Permission),
-      inject: ['DATA_SOURCE'],
-    },
-  ],
+  providers: [PermissionService, ...permissionProviders],
   controllers: [PermissionController],
 })
 export class PermissionModule {}
