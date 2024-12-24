@@ -1,6 +1,8 @@
 import {
+  IsArray,
   IsBoolean,
   IsEmail,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsPhoneNumber,
@@ -44,9 +46,10 @@ export class CreateUserDto {
   @IsOptional()
   isDeleted?: boolean;
 
-  @IsNotEmpty()
   @IsOptional()
-  role_id?: number;
+  @IsArray()
+  @IsInt({ each: true })
+  roleIds?: number[];
 
   @IsNotEmpty()
   @IsOptional()

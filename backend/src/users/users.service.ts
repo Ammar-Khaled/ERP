@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -7,9 +8,12 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Address } from '../common/entities/address.entity';
 import { hash } from 'bcrypt';
+import { error, success } from 'jsend';
+import { Role } from '../roles/entities/role.entity';
+import { Branch } from '../branches/entities/branch.entity';
 
 @Injectable()
 export class UsersService {
@@ -17,57 +21,83 @@ export class UsersService {
     @Inject('USER_REPOSITORY') private userRepository: Repository<User>,
     @Inject('ADDRESS_REPOSITORY')
     private addressRepository: Repository<Address>,
+    @Inject('ROLE_REPOSITORY') private roleRepository: Repository<Role>,
+    @Inject('BRANCH_REPOSITORY') private branchRepository: Repository<Branch>,
   ) {}
 
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find();
+  async findAll() {
+    return success(await this.userRepository.find());
   }
 
-  async findOne(id: number): Promise<User> {
-    const user = this.userRepository.findOneBy({ id });
-    if (!user) throw new NotFoundException('This supplier is not found');
-    return user;
+  async findOne(id: number) {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user)
+      throw new NotFoundException(
+        error({
+          message: 'User not found',
+          code: HttpStatus.NOT_FOUND,
+          data: null,
+        }),
+      );
+    return success(user);
   }
 
-  async findOneByUsername(username: string): Promise<User> {
-    const user = this.userRepository.findOne({ where: { username } });
-    if (!user) throw new NotFoundException('This user is not found');
-    return user;
+  async findOneByUsername(username: string) {
+    const user = this.userRepository.findOneBy({ username });
+    if (!user)
+      throw new NotFoundException(
+        error({
+          message: 'User not found',
+          code: HttpStatus.NOT_FOUND,
+          data: null,
+        }),
+      );
+    return success(user);
   }
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    let existingUser = await this.userRepository.findOne({
-      where: { email: createUserDto.email },
+  async create(createUserDto: CreateUserDto) {
+    const existingUser =
+      (await this.userRepository.findOneBy({
+        email: createUserDto.email,
+      })) ||
+      (await this.userRepository.findOneBy({
+        username: createUserDto.username,
+      }));
+    if (existingUser)
+      throw new ConflictException(
+        error({
+          message: 'User already exists',
+          code: HttpStatus.CONFLICT,
+          data: existingUser,
+        }),
+      );
+
+    const roles = await this.roleRepository.findBy({
+      id: In(createUserDto.roleIds || []),
     });
-    if (existingUser) throw new ConflictException('User already exists');
 
-    existingUser = await this.userRepository.findOne({
-      where: { username: createUserDto.username },
+    const branch = await this.branchRepository.findOneBy({
+      id: createUserDto.branch_id,
     });
-    if (existingUser) throw new ConflictException('User already exists');
 
     createUserDto.password = await hash(createUserDto.password, 10);
-    const new_user = this.userRepository.create(createUserDto);
+
     if (createUserDto.address) {
-      // check if address is already in the database
-      const existingAddress = await this.addressRepository.findOne({
-        where: createUserDto.address,
-      });
-      if (existingAddress) {
-        new_user.address = existingAddress;
-      } else {
-        const address = this.addressRepository.create(createUserDto.address);
-        await this.addressRepository.save(address);
-        new_user.address = address;
-      }
+      const address = this.addressRepository.create(createUserDto.address);
+      await this.addressRepository.save(address);
     }
 
-    console.log('User is successfully created.');
-    return await this.userRepository.save(new_user);
+    const new_user = this.userRepository.create({
+      ...createUserDto,
+      roles,
+      branch,
+    });
+    console.log('User is successfully created:', new_user);
+    return success(await this.userRepository.save(new_user));
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.findOne(id);
+    const user = await this.findOne(id)['data'];
 
     Object.assign(user, updateUserDto);
     if (updateUserDto.address)
