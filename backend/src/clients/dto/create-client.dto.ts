@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEmail, IsOptional, IsInt, ValidateNested } from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail, IsOptional, IsInt, ValidateNested, IsPositive } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateAddressDto } from 'src/common/dtos/create-address.dto'; // Assuming you have a CreateAddressDto
 
@@ -13,14 +13,15 @@ export class CreateClientDto {
 
   @IsOptional()
   @IsString({ message: 'The phone must be a string.' })
-  phone?: string;
+  phone_number?: string;
 
   @IsOptional()
   @ValidateNested()
   @Type(() => CreateAddressDto)
-  address?: CreateAddressDto;
+  address?: CreateAddressDto; // Allow for an embedded address object, optional
 
   @IsOptional()
   @IsInt({ message: 'The address_id must be an integer.' })
-  address_id?: number;  // This is the new property for address_id
+  @IsPositive({ message: 'The address_id must be a positive integer.' }) // Ensure it's a positive integer
+  address_id?: number;  // Optionally pass address_id for the foreign key
 }

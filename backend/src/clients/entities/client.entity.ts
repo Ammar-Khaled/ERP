@@ -6,19 +6,20 @@ export class Client {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255, nullable: false })
   name: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   email: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 20, nullable: true })
   phone_number: string;
 
-  @Column({ unique: true }) // Ensure address_id is unique
-  address_id: number;
 
-  @OneToOne(() => Address, { cascade: false, eager: true })
-  @JoinColumn({ name: 'address_id' })
-  address: Address;
+  @Column({ unique: true, nullable: true }) // Make address_id nullable so it's optional
+  address_id?: number; // This will store the foreign key to the Address table
+
+  @OneToOne(() => Address, { cascade: false, eager: true })  // The 'address' relation
+  @JoinColumn({ name: 'address_id' })  // This links the foreign key 'address_id' to the Address table
+  address?: Address;  // Make address optional as well, in case the address_id is not provided
 }
