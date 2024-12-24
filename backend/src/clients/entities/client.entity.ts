@@ -16,9 +16,6 @@ export class Client {
   phone_number: string;
 
 
-  @Column({ unique: true, nullable: true }) // Make address_id nullable so it's optional
-  address_id?: number; // This will store the foreign key to the Address table
-
   @OneToOne(() => Address, { cascade: false, eager: true })  // The 'address' relation
   @JoinColumn({ name: 'address_id' })  // This links the foreign key 'address_id' to the Address table
   address?: Address;  // Make address optional as well, in case the address_id is not provided
