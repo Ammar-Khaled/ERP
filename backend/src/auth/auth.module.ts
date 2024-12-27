@@ -6,9 +6,12 @@ import { AuthController } from './auth.controller';
 import { jwtConstants } from './constants';
 import { AuthGuard } from './auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { userProviders } from '../users/users.providers';
+import { DatabaseModule } from '../common/database.module';
 
 @Module({
   imports: [
+    DatabaseModule,
     UsersModule,
     JwtModule.register({
       global: true,
@@ -22,6 +25,7 @@ import { APP_GUARD } from '@nestjs/core';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    ...userProviders,
   ],
   controllers: [AuthController],
   exports: [AuthService],
