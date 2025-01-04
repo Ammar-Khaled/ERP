@@ -1,97 +1,151 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { Client } from './entities/client.entity';
+import { Address } from 'src/common/entities/address.entity';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
-
-// Define the Client type as an interface and export it for usage across files
-export interface Client {
-  id: number;
-  name: string;
-  email: string;
-  phone_number: string;
-  address_id: number;
-}
+import * as jsend from 'jsend';
 
 @Injectable()
 export class ClientsService {
-  private clients: Client[] = []; // In-memory array to store clients
-  private nextId = 1; // To simulate auto-incrementing IDs
+  constructor(
+    @Inject('CLIENT_REPOSITORY')
+    private clientRepository: Repository<Client>,
+    @Inject('ADDRESS_REPOSITORY')
+    private addressRepository: Repository<Address>,
+  ) {}
 
-  // Create a new client
-  create(createClientDto: CreateClientDto): Client {
-    const newClient: Client = {
-      id: this.nextId++, // Auto-increment client ID
-      ...createClientDto, // Assign other client data from DTO
-    };
-    this.clients.push(newClient); // Add the new client to the array
-    return newClient;
-  }
-
-  // Find all clients
-  findAll(): object {
-    return {
-      Clients: this.clients, // Return the clients array with the label "Clients"
-    };
-  }
-
-  // Find one client by ID
-  findOne(id: number): object {
-    const client = this.clients.find((client) => client.id === id);
-    if (!client) {
-      return {
-        message: `Client with ID ${id} not found`,
-      };
+  async create(createClientDto: CreateClientDto) {
+    const existingClient = await this.clientRepository.findOne({
+      where: { email: createClientDto.email },
+    });
+    if (existingClient) {
+      throw new ConflictException(
+        jsend.fail({ message: 'The Client already exists.' }),
+      );
     }
-    return {
-      Client: client,
-    };
-  }
 
-  // Find a client by email
-  findByEmail(email: string): object {
-    const client = this.clients.find((client) => client.email === email);
-    if (!client) {
-      return {
-        message: `Client with email ${email} not found`,
-      };
+    const client = this.clientRepository.create(createClientDto);
+
+    if (createClientDto.address) {
+      // Create and save a new address if provided
+      const newAddress = this.addressRepository.create(createClientDto.address);
+      client.address = await this.addressRepository.save(newAddress);
     }
-    return {
-      Client: client, // Return the client with the label "Client"
-    };
+
+    try {
+      const newClient = await this.clientRepository.save(client);
+      return jsend.success(newClient);
+    } catch (err) {
+      throw new HttpException(
+        jsend.error({
+          message:
+            'An unexpected error occurred while creating the client. Please try again later.',
+          data: err,
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  // Find a client by phone number
-  findByPhone(phoneNumber: string): object {
-    const client = this.clients.find(
-      (client) => client.phone_number === phoneNumber,
+  async update(id: number, updateClientDto: UpdateClientDto) {
+    // Retrieve the client with relations
+    const client = await this.findClientByCondition({ id }, 'Client not found');
+
+    // Check and handle address updates
+    if (updateClientDto.address) {
+      if (client.address) {
+        // Update the existing address
+        Object.assign(client.address, updateClientDto.address);
+        await this.addressRepository.save(client.address);
+      } else {
+        // Create and associate a new address
+        const newAddress = this.addressRepository.create(
+          updateClientDto.address,
+        );
+        client.address = await this.addressRepository.save(newAddress);
+      }
+    }
+
+    // Remove `address` from `updateClientDto` to avoid redundant updates
+    const { address, ...clientUpdates } = updateClientDto;
+    console.log('Removed Client Address:', address);
+
+    // Ensure there are fields to update
+    if (Object.keys(clientUpdates).length > 0) {
+      // Update the client fields
+      Object.assign(client, clientUpdates);
+
+      // Check for email conflict if email is being updated
+      if (clientUpdates.email && clientUpdates.email !== client.email) {
+        const existingClient = await this.clientRepository.findOne({
+          where: { email: clientUpdates.email },
+        });
+        if (existingClient && existingClient.id !== id) {
+          throw new ConflictException(
+            jsend.fail({
+              message: `Email ${clientUpdates.email} is already in use.`,
+            }),
+          );
+        }
+      }
+
+      // Save the client
+      await this.clientRepository.save(client);
+    }
+
+    return jsend.success(client);
+  }
+
+  async findAll() {
+    const clients = await this.clientRepository.find({
+      relations: ['address'],
+    });
+    return jsend.success(clients);
+  }
+
+  async findOne(id: number) {
+    const client = await this.findClientByCondition({ id }, 'Client not found');
+    return jsend.success(client);
+  }
+
+  async remove(id: number) {
+    const client = await this.findClientByCondition({ id }, 'Client not found');
+    await this.clientRepository.delete({ id });
+    return jsend.success(client);
+  }
+
+  async findByEmail(email: string) {
+    const client = await this.findClientByCondition(
+      { email },
+      'Client not found',
     );
+    return jsend.success(client);
+  }
+
+  async findByPhone(phoneNumber: string) {
+    const client = await this.findClientByCondition(
+      { phone_number: phoneNumber },
+      'Client not found',
+    );
+    return jsend.success(client);
+  }
+
+  private async findClientByCondition(condition: object, errorMessage: string) {
+    const client = await this.clientRepository.findOne({
+      where: condition,
+      relations: ['address'],
+    });
     if (!client) {
-      return {
-        message: `Client with phone number ${phoneNumber} not found`,
-      };
+      throw new NotFoundException(jsend.fail({ message: errorMessage }));
     }
-    return {
-      Client: client, // Return the client with the label "Client"
-    };
-  }
-
-  // Update a client by ID
-  update(id: number, updateClientDto: UpdateClientDto): Client | undefined {
-    const clientIndex = this.clients.findIndex((client) => client.id === id);
-    if (clientIndex === -1) {
-      throw new Error(`Client with ID ${id} not found`);
-    }
-    const updatedClient = { ...this.clients[clientIndex], ...updateClientDto };
-    this.clients[clientIndex] = updatedClient;
-    return updatedClient;
-  }
-
-  // Remove a client by ID
-  remove(id: number): string {
-    const clientIndex = this.clients.findIndex((client) => client.id === id);
-    if (clientIndex === -1) {
-      throw new Error(`Client with ID ${id} not found`);
-    }
-    this.clients.splice(clientIndex, 1); // Remove the client from the array
-    return `Client with ID ${id} has been removed`;
+    return client;
   }
 }
