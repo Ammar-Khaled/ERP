@@ -1,0 +1,30 @@
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Address } from '../../common/entities/address.entity';
+import { Branch } from '../../branches/entities/branch.entity';
+
+@Entity('inventories')
+export class Inventory {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'varchar', length: 255, unique: true })
+  name: string;
+
+  @Column({ type: 'bool', default: true })
+  isActive: boolean;
+
+  @OneToOne(() => Address)
+  @JoinColumn({ name: 'address_id' })
+  address: Address;
+
+  @ManyToOne(() => Branch, (branch) => branch.inventories)
+  @JoinColumn({ name: 'branch_id' })
+  branch: Branch;
+}

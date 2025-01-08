@@ -1,0 +1,35 @@
+import { IsNotEmpty, IsString, IsNumber, IsBoolean, IsOptional } from 'class-validator';
+
+export class CreateProductDto {
+  @IsNotEmpty()
+  @IsString()
+  name: string; // Product name
+
+  @IsNotEmpty()
+  @IsString()
+  type: string; // Product type
+
+  @IsNotEmpty()
+  @IsNumber()
+  quantity: number; // Product quantity
+
+  @IsNotEmpty()
+  @IsString()
+  mainPhoto: string; // Main photo URL or path
+
+  @IsNotEmpty()
+  @IsNumber()
+  branch_id: number; // Foreign key for branch
+
+  @IsOptional() // Optional because not all products might have a brand
+  @IsString()
+  brand?: string; // Brand of the product (optional)
+
+  @IsNotEmpty()
+  @IsNumber()
+  category_id: number; // Foreign key for category
+
+  @IsOptional() // Optional because it might default to true
+  @IsBoolean()
+  isActive?: boolean = true; // Whether the product is active (optional, default is true)
+}

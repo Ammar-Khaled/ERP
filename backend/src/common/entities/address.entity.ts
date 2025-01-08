@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { Supplier } from '../../supplier/entities/supplier.entity';
 import { User } from '../../users/entities/user.entity';
-import { Branch } from './branch.entity';
+import { Branch } from '../../branches/entities/branch.entity';
 
 @Entity('addresses')
 export class Address {
@@ -32,7 +32,7 @@ export class Address {
   @OneToMany(() => Supplier, (supplier) => supplier.address)
   suppliers: Supplier[];
 
-  @OneToMany(() => Supplier, (supplier) => supplier.address)
+  @OneToMany(() => User, (user) => user.address)
   users: User[];
 
   @OneToOne(() => Branch, (branch) => branch.address)

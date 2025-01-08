@@ -1,9 +1,12 @@
 import {
-  IsString,
-  IsEmail,
-  IsNotEmpty,
+  IsArray,
   IsBoolean,
+  IsEmail,
+  IsInt,
+  IsNotEmpty,
   IsOptional,
+  IsPhoneNumber,
+  IsString,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -28,28 +31,29 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
-  phone: string;
+  @IsPhoneNumber()
+  phone?: string;
 
   @IsBoolean()
   @IsOptional()
-  isActive: boolean;
+  isActive?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  isBlocked: boolean;
+  isBlocked?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  isDeleted: boolean;
+  isDeleted?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  roleIds?: number[];
 
   @IsNotEmpty()
-  address_id: number;
-
-  @IsNotEmpty()
-  role_id: number;
-
-  @IsNotEmpty()
-  branch_id: number;
+  @IsOptional()
+  branch_id?: number;
 
   @IsOptional()
   @ValidateNested()
