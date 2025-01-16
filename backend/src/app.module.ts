@@ -10,6 +10,9 @@ import { RoleModule } from './roles/role.module';
 import { PermissionModule } from './permissions/permission.module';
 import { BranchesModule } from './branches/branches.module';
 import { InventoriesModule } from './inventories/inventories.module';
+import { ProductsModule } from './products/products.module';
+import { CategoriesModule } from './categories/categories.module';
+
 
 @Module({
   imports: [
@@ -22,6 +25,9 @@ import { InventoriesModule } from './inventories/inventories.module';
     PermissionModule,
     BranchesModule,
     InventoriesModule,
+    ProductsModule,
+    CategoriesModule,
+
   ],
   controllers: [AppController],
   providers: [AppService],
