@@ -13,6 +13,7 @@ import { InventoriesModule } from './inventories/inventories.module';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
 
+
 @Module({
   imports: [
     DatabaseModule,
@@ -26,6 +27,7 @@ import { CategoriesModule } from './categories/categories.module';
     InventoriesModule,
     ProductsModule,
     CategoriesModule,
+
   ],
   controllers: [AppController],
   providers: [AppService],
