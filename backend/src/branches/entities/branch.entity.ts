@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Address } from '../../common/entities/address.entity';
+import { Inventory } from '../../inventories/entities/inventory.entity';
 import {
   IsBoolean,
   IsNotEmpty,
@@ -48,4 +49,7 @@ export class Branch {
 
   @OneToMany(() => User, (user) => user.branch)
   users: User[];
+
+  @OneToMany(() => Inventory, (inventory) => inventory.branch)
+  inventories: Inventory[];
 }
