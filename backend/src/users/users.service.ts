@@ -43,7 +43,7 @@ export class UsersService {
   }
 
   async findOneByUsername(username: string) {
-    const user = this.userRepository.findOneBy({ username });
+    const user = await this.userRepository.findOneBy({ username });
     if (!user)
       throw new NotFoundException(
         error({
@@ -52,7 +52,7 @@ export class UsersService {
           data: null,
         }),
       );
-    return success(user);
+    return user;
   }
 
   async create(createUserDto: CreateUserDto) {
