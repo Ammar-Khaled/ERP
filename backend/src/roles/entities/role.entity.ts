@@ -13,7 +13,7 @@ export class Role {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   name: string;
 
   @Column({ type: 'text', nullable: true })
@@ -25,7 +25,9 @@ export class Role {
   @ManyToMany(() => User, (user) => user.roles)
   users: User[];
 
-  @ManyToMany(() => Permission, (permission) => permission.roles)
+  @ManyToMany(() => Permission, (permission) => permission.roles, {
+    eager: true,
+  })
   @JoinTable({
     name: 'role_permissions', // name of the join table
     joinColumn: { name: 'role_id', referencedColumnName: 'id' },
