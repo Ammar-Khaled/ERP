@@ -12,7 +12,9 @@ import { BranchesModule } from './branches/branches.module';
 import { InventoriesModule } from './inventories/inventories.module';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
-
+import { RolesGuard } from './auth/roles.guard';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
 
 @Module({
   imports: [
@@ -27,9 +29,18 @@ import { CategoriesModule } from './categories/categories.module';
     InventoriesModule,
     ProductsModule,
     CategoriesModule,
-
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: 'APP_GUARD',
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}
