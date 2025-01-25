@@ -19,7 +19,6 @@ export class InventoriesService {
   ) {}
 
   async create(createInventoryDto: CreateInventoryDto) {
-    // TODO: Fix bug in one of the save functions
     if (
       await this.inventoryRepository.findOneBy({
         name: createInventoryDto.name,
@@ -41,29 +40,53 @@ export class InventoriesService {
     // create the address
     const address = this.addressRepository.create(createInventoryDto.address);
     await this.addressRepository.save(address);
+    // remove the address from the inventory dto
+    delete createInventoryDto.address;
 
     // create the inventory
     const inventory = this.inventoryRepository.create({
       ...createInventoryDto,
+      address,
       branch,
     });
     await this.inventoryRepository.save(inventory);
     return jsend.success(inventory);
   }
 
-  findAll() {
-    return `This action returns all inventories`;
+  async findAll() {
+    return await this.inventoryRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} inventory`;
+  async findOne(id: number) {
+    return await this.inventoryRepository.findOneBy({ id });
   }
 
-  update(id: number, updateInventoryDto: UpdateInventoryDto) {
-    return `This action updates a #${id} inventory`;
+  async update(id: number, updateInventoryDto: UpdateInventoryDto) {
+    const inventory = await this.inventoryRepository.findOneBy({ id });
+    if (!inventory) {
+      throw new ConflictException(
+        jsend.error('Inventory not found with id: ' + id),
+      );
+    }
+
+    // TODO: update the address and branch
+    // get the branch
+    // const branch = await this.branchRepository.findOneBy({
+    //   id: updateInventoryDto.branchId,
+    // });
+    // if (!branch) {
+    //   throw new ConflictException(
+    //     jsend.error('Branch not found with id: ' + updateInventoryDto.branchId),
+    //   );
+    // }
+
+    await this.inventoryRepository.update({ id }, { ...updateInventoryDto });
+    return jsend.success(await this.inventoryRepository.findOneBy({ id }));
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} inventory`;
+  async remove(id: number) {
+    const inventory = await this.inventoryRepository.findOneBy({ id });
+    await this.inventoryRepository.delete({ id });
+    return jsend.success(inventory);
   }
 }
