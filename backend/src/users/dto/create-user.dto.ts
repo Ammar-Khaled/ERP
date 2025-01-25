@@ -53,7 +53,7 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   @IsOptional()
-  branch_id?: number;
+  branchId?: number;
 
   @IsOptional()
   @ValidateNested()

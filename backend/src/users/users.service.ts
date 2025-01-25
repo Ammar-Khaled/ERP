@@ -81,7 +81,7 @@ export class UsersService {
     });
 
     const branch = await this.branchRepository.findOneBy({
-      id: createUserDto.branch_id,
+      id: createUserDto.branchId,
     });
 
     createUserDto.password = await hash(
@@ -119,11 +119,16 @@ export class UsersService {
       });
     }
 
-    if (updateUserDto.branch_id) {
-      user.branch = await this.branchRepository.findOneBy({
-        id: updateUserDto.branch_id,
-      });
+    // get the branch
+    const branch = await this.branchRepository.findOneBy({
+      id: updateUserDto.branchId,
+    });
+    if (!branch) {
+      throw new ConflictException(
+        error('Branch not found with id: ' + updateUserDto.branchId),
+      );
     }
+    user.branch = branch;
 
     if (updateUserDto.address) {
       const address = this.addressRepository.create(updateUserDto.address);
