@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsNumber, IsBoolean, IsOptional } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -32,4 +38,12 @@ export class CreateProductDto {
   @IsOptional() // Optional because it might default to true
   @IsBoolean()
   isActive?: boolean = true; // Whether the product is active (optional, default is true)
+
+  @IsNotEmpty()
+  @IsNumber()
+  unit_id: number; // Foreign key for unit
+
+  @IsNotEmpty()
+  @IsNumber()
+  currency_id: number; // Foreign key for currency
 }

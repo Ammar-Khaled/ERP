@@ -13,6 +13,8 @@ import { Category } from 'src/categories/entities/category.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import * as jsend from 'jsend';
+import { Unit } from 'src/units/entities/unit.entity';
+import { Currency } from 'src/currency/entities/currency.entity';
 
 @Injectable()
 export class ProductsService {
@@ -23,6 +25,10 @@ export class ProductsService {
     private branchRepository: Repository<Branch>,
     @Inject('CATEGORY_REPOSITORY')
     private categoryRepository: Repository<Category>,
+    @Inject('UNIT_REPOSITORY')
+    private unitRepository: Repository<Unit>,
+    @Inject('CURRENCY_REPOSITORY')
+    private currencyRepository: Repository<Currency>,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -41,9 +47,7 @@ export class ProductsService {
       where: { id: createProductDto.branch_id },
     });
     if (!branch) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Branch not found.' }),
-      );
+      throw new NotFoundException(jsend.fail({ message: 'Branch not found.' }));
     }
 
     // Validate category_id
@@ -53,6 +57,22 @@ export class ProductsService {
     if (!category) {
       throw new NotFoundException(
         jsend.fail({ message: 'Category not found.' }),
+      );
+    }
+    // validate unit_id
+    const unit = await this.unitRepository.findOne({
+      where: { id: createProductDto.unit_id },
+    });
+    if (!unit) {
+      throw new NotFoundException(jsend.fail({ message: 'Unit not found.' }));
+    }
+    // validate currency
+    const currency = await this.currencyRepository.findOne({
+      where: { id: createProductDto.currency_id },
+    });
+    if (!currency) {
+      throw new NotFoundException(
+        jsend.fail({ message: 'Currency not found.' }),
       );
     }
 
@@ -76,7 +96,7 @@ export class ProductsService {
 
   async findAll() {
     const products = await this.productRepository.find({
-      relations: ['branch', 'category'], // Include branch and category relations
+      relations: ['branch', 'category', 'unit', 'currency'], // Include branch and category relations
     });
     return jsend.success(products);
   }
@@ -95,7 +115,7 @@ export class ProductsService {
       { id },
       'Product not found',
     );
-  
+
     // Validate and link branch_id if provided
     if (updateProductDto.branch_id) {
       const branch = await this.branchRepository.findOne({
@@ -108,7 +128,7 @@ export class ProductsService {
       }
       product.branch = branch; // Associate the Branch entity
     }
-  
+
     // Validate and link category_id if provided
     if (updateProductDto.category_id) {
       const category = await this.categoryRepository.findOne({
@@ -121,14 +141,38 @@ export class ProductsService {
       }
       product.category = category; // Associate the Category entity
     }
-  
+
+    // Validate and link unit_id if provided
+    if (updateProductDto.unit_id) {
+      const unit = await this.unitRepository.findOne({
+        where: { id: updateProductDto.unit_id },
+      });
+      if (!unit) {
+        throw new NotFoundException(jsend.fail({ message: 'unit not found.' }));
+      }
+      product.unit = unit; // Associate the Category entity
+    }
+
+    // Validate and link currency_id if provided
+    if (updateProductDto.currency_id) {
+      const currency = await this.currencyRepository.findOne({
+        where: { id: updateProductDto.currency_id },
+      });
+      if (!currency) {
+        throw new NotFoundException(
+          jsend.fail({ message: 'currency not found.' }),
+        );
+      }
+      product.currency = currency; // Associate the Category entity
+    }
+
     // Update other fields from the DTO
     const { branch_id, category_id, ...productUpdates } = updateProductDto;
     Object.assign(product, productUpdates);
-  
+
     // Save the updated product with relations
     await this.productRepository.save(product);
-  
+
     return jsend.success(product);
   }
 
@@ -141,7 +185,10 @@ export class ProductsService {
     return jsend.success(product);
   }
 
-  private async findProductByCondition(condition: object, errorMessage: string) {
+  private async findProductByCondition(
+    condition: object,
+    errorMessage: string,
+  ) {
     const product = await this.productRepository.findOne({
       where: condition,
       relations: ['branch', 'category'], // Include relations for completeness

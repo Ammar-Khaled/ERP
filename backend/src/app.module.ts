@@ -12,6 +12,10 @@ import { BranchesModule } from './branches/branches.module';
 import { InventoriesModule } from './inventories/inventories.module';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
+import { ProductItemModule } from './product_item/product_item.module';
+import { ProductItemInventoryModule } from './product_item_inventory/product_item_inventory.module';
+import { UnitsModule } from './units/units.module';
+import { CurrencyModule } from './currency/currency.module';
 
 
 @Module({
@@ -27,6 +31,10 @@ import { CategoriesModule } from './categories/categories.module';
     InventoriesModule,
     ProductsModule,
     CategoriesModule,
+    ProductItemModule,
+    ProductItemInventoryModule,
+    UnitsModule,
+    CurrencyModule,
 
   ],
   controllers: [AppController],
