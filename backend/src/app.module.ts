@@ -16,6 +16,9 @@ import { ProductItemModule } from './product_item/product_item.module';
 import { ProductItemInventoryModule } from './product_item_inventory/product_item_inventory.module';
 import { UnitsModule } from './units/units.module';
 import { CurrencyModule } from './currency/currency.module';
+import { RolesGuard } from './auth/roles.guard';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
 
 
 @Module({
@@ -35,9 +38,18 @@ import { CurrencyModule } from './currency/currency.module';
     ProductItemInventoryModule,
     UnitsModule,
     CurrencyModule,
-
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: 'APP_GUARD',
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}

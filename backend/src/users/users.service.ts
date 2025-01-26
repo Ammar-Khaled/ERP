@@ -14,6 +14,10 @@ import { hash } from 'bcrypt';
 import { error, success } from 'jsend';
 import { Role } from '../roles/entities/role.entity';
 import { Branch } from '../branches/entities/branch.entity';
+import { config } from 'dotenv';
+import * as process from 'node:process';
+
+config();
 
 @Injectable()
 export class UsersService {
@@ -77,10 +81,13 @@ export class UsersService {
     });
 
     const branch = await this.branchRepository.findOneBy({
-      id: createUserDto.branch_id,
+      id: createUserDto.branchId,
     });
 
-    createUserDto.password = await hash(createUserDto.password, 10);
+    createUserDto.password = await hash(
+      createUserDto.password,
+      Number(process.env.BCRYPT_SALT_ROUNDS),
+    );
 
     if (createUserDto.address) {
       const address = this.addressRepository.create(createUserDto.address);
@@ -99,14 +106,39 @@ export class UsersService {
   async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.findOne(id)['data'];
 
-    Object.assign(user, updateUserDto);
-    if (updateUserDto.address)
-      Object.assign(user.address, updateUserDto.address);
-
-    if (updateUserDto.address) {
-      await this.addressRepository.save(updateUserDto.address);
+    if (updateUserDto.password) {
+      updateUserDto.password = await hash(
+        updateUserDto.password,
+        process.env.BYCRYPT_SALT_ROUNDS,
+      );
     }
 
+    if (updateUserDto.roleIds) {
+      user.roles = await this.roleRepository.findBy({
+        id: In(updateUserDto.roleIds),
+      });
+    }
+
+    // get the branch
+    const branch = await this.branchRepository.findOneBy({
+      id: updateUserDto.branchId,
+    });
+    if (!branch) {
+      throw new ConflictException(
+        error('Branch not found with id: ' + updateUserDto.branchId),
+      );
+    }
+    user.branch = branch;
+
+    if (updateUserDto.address) {
+      const address = this.addressRepository.create(updateUserDto.address);
+      await this.addressRepository.save(address);
+      // Object.assign(user.address, updateUserDto.address);
+    } else {
+      user.address = null;
+    }
+
+    Object.assign(user, updateUserDto);
     return await this.userRepository.save(user);
   }
 
