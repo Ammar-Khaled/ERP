@@ -12,9 +12,14 @@ import { BranchesModule } from './branches/branches.module';
 import { InventoriesModule } from './inventories/inventories.module';
 import { ProductsModule } from './products/products.module';
 import { CategoriesModule } from './categories/categories.module';
+import { ProductItemModule } from './product_item/product_item.module';
+import { ProductItemInventoryModule } from './product_item_inventory/product_item_inventory.module';
+import { UnitsModule } from './units/units.module';
+import { CurrencyModule } from './currency/currency.module';
 import { RolesGuard } from './auth/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
+
 
 @Module({
   imports: [
@@ -29,6 +34,10 @@ import { AuthGuard } from './auth/auth.guard';
     InventoriesModule,
     ProductsModule,
     CategoriesModule,
+    ProductItemModule,
+    ProductItemInventoryModule,
+    UnitsModule,
+    CurrencyModule,
   ],
   controllers: [AppController],
   providers: [
