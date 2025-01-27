@@ -13,6 +13,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
+import { Public } from '../auth/auth.guard';
 
 @Controller('users')
 @UseGuards(RolesGuard)
@@ -21,6 +22,7 @@ export class UsersController {
 
   @Roles(['admin'])
   @Post()
+  @Public()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
