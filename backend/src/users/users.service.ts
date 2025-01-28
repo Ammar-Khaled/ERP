@@ -99,7 +99,6 @@ export class UsersService {
       roles,
       branch,
     });
-    console.log('User is successfully created:', new_user);
     return success(await this.userRepository.save(new_user));
   }
 

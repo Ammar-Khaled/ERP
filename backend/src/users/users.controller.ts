@@ -20,7 +20,6 @@ import { Public } from '../auth/auth.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Roles(['admin'])
   @Post()
   @Public()
   create(@Body() createUserDto: CreateUserDto) {
