@@ -28,20 +28,28 @@ export class InventoriesService {
     }
 
     // get the branch
-    const branch = await this.branchRepository.findOneBy({
-      id: createInventoryDto.branchId,
-    });
-    if (!branch) {
-      throw new ConflictException(
-        jsend.error('Branch not found with id: ' + createInventoryDto.branchId),
-      );
+    let branch: Branch = null;
+    if (createInventoryDto.branchId) {
+      branch = await this.branchRepository.findOneBy({
+        id: createInventoryDto.branchId,
+      });
+      if (!branch) {
+        throw new ConflictException(
+          jsend.error(
+            'Branch not found with id: ' + createInventoryDto.branchId,
+          ),
+        );
+      }
     }
 
     // create the address
-    const address = this.addressRepository.create(createInventoryDto.address);
-    await this.addressRepository.save(address);
-    // remove the address from the inventory dto
-    delete createInventoryDto.address;
+    let address: Address = null;
+    if (createInventoryDto.address) {
+      address = this.addressRepository.create(createInventoryDto.address);
+      await this.addressRepository.save(address);
+      // remove the address from the inventory dto
+      delete createInventoryDto.address;
+    }
 
     // create the inventory
     const inventory = this.inventoryRepository.create({
@@ -54,38 +62,68 @@ export class InventoriesService {
   }
 
   async findAll() {
-    return await this.inventoryRepository.find();
+    return jsend.success(
+      await this.inventoryRepository.find({ relations: ['address', 'branch'] }),
+    );
   }
 
   async findOne(id: number) {
-    return await this.inventoryRepository.findOneBy({ id });
+    const inventory = await this.inventoryRepository.findOne({
+      where: { id },
+      relations: ['address', 'branch'],
+    });
+    return jsend.success(inventory);
   }
 
   async update(id: number, updateInventoryDto: UpdateInventoryDto) {
-    const inventory = await this.inventoryRepository.findOneBy({ id });
+    const inventory = await this.inventoryRepository.findOne({
+      where: { id },
+      relations: ['address'],
+    });
     if (!inventory) {
       throw new ConflictException(
         jsend.error('Inventory not found with id: ' + id),
       );
     }
 
-    // TODO: update the address and branch
-    // get the branch
-    // const branch = await this.branchRepository.findOneBy({
-    //   id: updateInventoryDto.branchId,
-    // });
-    // if (!branch) {
-    //   throw new ConflictException(
-    //     jsend.error('Branch not found with id: ' + updateInventoryDto.branchId),
-    //   );
-    // }
+    // update the branch
+    let branch: Branch = null;
+    if (updateInventoryDto.branchId) {
+      branch = await this.branchRepository.findOneBy({
+        id: updateInventoryDto.branchId,
+      });
+      if (!branch) {
+        throw new ConflictException(
+          jsend.error(
+            'Branch not found with id: ' + updateInventoryDto.branchId,
+          ),
+        );
+      }
+      delete updateInventoryDto.branchId;
+    }
 
-    await this.inventoryRepository.update({ id }, { ...updateInventoryDto });
+    // update the address
+    let address: Address = null;
+    if (updateInventoryDto.address) {
+      await this.addressRepository.delete(inventory.address.id);
+      address = this.addressRepository.create(updateInventoryDto.address);
+      await this.addressRepository.save(address);
+      delete updateInventoryDto.address;
+    }
+
+    await this.inventoryRepository.update(
+      { id },
+      { ...updateInventoryDto, branch, address },
+    );
     return jsend.success(await this.inventoryRepository.findOneBy({ id }));
   }
 
   async remove(id: number) {
-    const inventory = await this.inventoryRepository.findOneBy({ id });
+    const inventory = await this.inventoryRepository.findOne({
+      where: { id },
+      relations: ['address'],
+    });
+    await this.addressRepository.delete(inventory.address.id);
     await this.inventoryRepository.delete({ id });
     return jsend.success(inventory);
   }
