@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsArray } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateProductItemDto {
   @IsNotEmpty()
@@ -21,6 +27,9 @@ export class CreateProductItemDto {
   @IsNotEmpty()
   @IsNumber()
   total_items: number; // Total items in stock for this product item
+
+  @IsOptional()
+  number_of_damaged: number;
 
   @IsNotEmpty()
   @IsString()

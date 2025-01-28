@@ -1,9 +1,9 @@
 import {
-  IsNotEmpty,
-  IsString,
-  IsNumber,
   IsBoolean,
+  IsNotEmpty,
+  IsNumber,
   IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class CreateProductDto {

@@ -10,9 +10,9 @@ import { inventoriesProviders } from '../inventories/inventories.providers'; // 
   imports: [DatabaseModule], // Include the DatabaseModule for DataSource injection
   controllers: [ProductItemInventoryController],
   providers: [
-    ...productItemInventoryProviders, 
-    ...productItemProviders, 
-    ...inventoriesProviders, 
+    ...productItemInventoryProviders,
+    ...productItemProviders,
+    ...inventoriesProviders,
     ProductItemInventoryService,
   ], // Add providers for ProductItemInventory, ProductItem, and Inventory
   exports: [ProductItemInventoryService], // Export ProductItemInventoryService if other modules need it
