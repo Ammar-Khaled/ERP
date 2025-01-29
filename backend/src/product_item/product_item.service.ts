@@ -12,6 +12,7 @@ import { Product } from '../products/entities/product.entity';
 import { CreateProductItemDto } from './dto/create-product_item.dto';
 import { UpdateProductItemDto } from './dto/update-product_item.dto';
 import * as jsend from 'jsend';
+import { UpdateDamagedDto } from './dto/update-damaged.dto';
 
 @Injectable()
 export class ProductItemService {
@@ -115,7 +116,10 @@ export class ProductItemService {
     return jsend.success(productItem);
   }
 
-  private async findProductItemByCondition(condition: object, errorMessage: string) {
+  private async findProductItemByCondition(
+    condition: object,
+    errorMessage: string,
+  ) {
     const productItem = await this.productItemRepository.findOne({
       where: condition,
       relations: ['product'], // Include the parent product relation
@@ -124,5 +128,49 @@ export class ProductItemService {
       throw new NotFoundException(jsend.fail({ message: errorMessage }));
     }
     return productItem;
+  }
+  async updateDamaged(updateDamagedDto: UpdateDamagedDto) {
+  
+    const { product_item_id, numberOfDamaged } = updateDamagedDto;
+
+    // Validate inputs
+    if (!product_item_id || isNaN(product_item_id)) {
+      throw new HttpException(
+        jsend.fail({ message: 'Invalid product_item_id.' }),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (!numberOfDamaged || isNaN(numberOfDamaged)) {
+      throw new HttpException(
+        jsend.fail({ message: 'Invalid numberOfDamaged.' }),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Find the product item by ID
+    const productItem = await this.findProductItemByCondition(
+      { id: product_item_id },
+      'Product item not found.',
+    );
+
+    // Update the number_of_damaged
+    productItem.number_of_damaged =
+      (productItem.number_of_damaged || 0) + Number(numberOfDamaged);
+
+    try {
+      // Save the updated product item
+      const updatedProductItem =
+        await this.productItemRepository.save(productItem);
+      return jsend.success(updatedProductItem);
+    } catch (err) {
+      throw new HttpException(
+        jsend.error({
+          message: 'An error occurred while updating the damaged count.',
+          data: err,
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
