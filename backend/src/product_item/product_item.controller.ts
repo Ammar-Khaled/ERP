@@ -25,6 +25,10 @@ export class ProductItemController {
     return this.productItemService.findAll();
   }
 
+  @Get('/damaged')
+  getDamaged() {
+    return this.productItemService.getDamaged();  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.productItemService.findOne(+id);
