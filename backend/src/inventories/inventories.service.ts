@@ -6,6 +6,10 @@ import { Inventory } from './entities/inventory.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { Address } from '../common/entities/address.entity';
 import * as jsend from 'jsend';
+import { success } from 'jsend';
+import { ProductItemInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
+import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
+import { ProductItem } from '../product_item/entities/product_item.entity';
 
 @Injectable()
 export class InventoriesService {
@@ -16,6 +20,10 @@ export class InventoriesService {
     private branchRepository: Repository<Branch>,
     @Inject('ADDRESS_REPOSITORY')
     private addressRepository: Repository<Address>,
+    @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
+    private productItemInventoryRepository: Repository<ProductItemInventory>,
+    @Inject('PRODUCT_ITEM_REPOSITORY')
+    private productItemRepository: Repository<ProductItem>,
   ) {}
 
   async create(createInventoryDto: CreateInventoryDto) {
@@ -62,9 +70,21 @@ export class InventoriesService {
   }
 
   async findAll() {
-    return jsend.success(
-      await this.inventoryRepository.find({ relations: ['address', 'branch'] }),
-    );
+    const inventories = await this.inventoryRepository.find({
+      relations: ['address', 'branch'],
+    });
+    for (let i = 0; i < inventories.length; i++) {
+      const piis = await this.productItemInventoryRepository.find({
+        where: { inventory_id: inventories[i].id },
+      });
+      inventories[i].total_product_items = 0;
+      inventories[i].total_damaged_items = 0;
+      for (const pii of piis) {
+        inventories[i].total_product_items += pii.number_of_items;
+        inventories[i].total_damaged_items += pii.number_of_damaged;
+      }
+    }
+    return success(inventories);
   }
 
   async findOne(id: number) {
@@ -126,5 +146,89 @@ export class InventoriesService {
     await this.addressRepository.delete(inventory.address.id);
     await this.inventoryRepository.delete({ id });
     return jsend.success(inventory);
+  }
+
+  async transferProductItems(transferProductItemsDto: TransferProductItemsDto) {
+    // get the source inventory
+    const sourceInventory = await this.inventoryRepository.findOneBy({
+      id: transferProductItemsDto.sourceInventoryId,
+    });
+    if (!sourceInventory) {
+      throw new ConflictException(
+        jsend.error(
+          'Source inventory not found with id: ' +
+            transferProductItemsDto.sourceInventoryId,
+        ),
+      );
+    }
+
+    // get the target inventory
+    const targetInventory = await this.inventoryRepository.findOneBy({
+      id: transferProductItemsDto.targetInventoryId,
+    });
+    if (!targetInventory) {
+      throw new ConflictException(
+        jsend.error(
+          'Target inventory not found with id: ' +
+            transferProductItemsDto.targetInventoryId,
+        ),
+      );
+    }
+
+    // get the source product item inventory
+    const sourceProductItemInventory =
+      await this.productItemInventoryRepository.findOneBy({
+        inventory_id: transferProductItemsDto.sourceInventoryId,
+        product_item_id: transferProductItemsDto.productItemId,
+      });
+
+    if (!sourceProductItemInventory) {
+      throw new ConflictException(
+        jsend.error(
+          'Product item not found with id: ' +
+            transferProductItemsDto.productItemId +
+            'in inventory with id: ' +
+            transferProductItemsDto.sourceInventoryId,
+        ),
+      );
+    }
+
+    if (
+      sourceProductItemInventory.number_of_items <
+      transferProductItemsDto.quantity
+    ) {
+      throw new ConflictException(
+        jsend.error('Not enough items in source inventory'),
+      );
+    }
+    sourceProductItemInventory.number_of_items -=
+      transferProductItemsDto.quantity;
+    await this.productItemInventoryRepository.save(sourceProductItemInventory);
+
+    // get the target product item inventory
+    const targetProductItemInventory =
+      await this.productItemInventoryRepository.findOneBy({
+        inventory_id: transferProductItemsDto.targetInventoryId,
+        product_item_id: transferProductItemsDto.productItemId,
+      });
+
+    if (targetProductItemInventory) {
+      targetProductItemInventory.number_of_items +=
+        transferProductItemsDto.quantity;
+      return await this.productItemInventoryRepository.save(
+        targetProductItemInventory,
+      );
+    } else {
+      const newProductItemInventory =
+        this.productItemInventoryRepository.create({
+          inventory_id: transferProductItemsDto.targetInventoryId,
+          product_item_id: transferProductItemsDto.productItemId,
+          number_of_items: transferProductItemsDto.quantity,
+          number_of_damaged: 0,
+        });
+      return await this.productItemInventoryRepository.save(
+        newProductItemInventory,
+      );
+    }
   }
 }

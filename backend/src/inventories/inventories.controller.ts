@@ -10,11 +10,12 @@ import {
 import { InventoriesService } from './inventories.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
-import { Public } from 'src/auth/auth.guard';
+import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
+
 @Controller('inventories')
 export class InventoriesController {
   constructor(private readonly inventoriesService: InventoriesService) {}
-  @Public()
+
   @Post()
   create(@Body() createInventoryDto: CreateInventoryDto) {
     return this.inventoriesService.create(createInventoryDto);
@@ -41,5 +42,14 @@ export class InventoriesController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.inventoriesService.remove(+id);
+  }
+
+  @Post('transfer')
+  async transferProducts(
+    @Body() transferProductItemsDto: TransferProductItemsDto,
+  ) {
+    return this.inventoriesService.transferProductItems(
+      transferProductItemsDto,
+    );
   }
 }

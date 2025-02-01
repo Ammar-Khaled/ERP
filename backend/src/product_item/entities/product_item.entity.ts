@@ -25,7 +25,7 @@ export class ProductItem {
   total_items: number; // Total quantity of this product item in stock
 
   @Column('int')
-  number_of_damaged: number; // Number of damaged items in stock
+  number_of_damaged: number = 0; // Number of damaged items in stock
 
   @Column()
   name: string; // Name of the product item (e.g., variant name)

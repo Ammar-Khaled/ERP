@@ -20,6 +20,10 @@ export class Inventory {
   @Column({ type: 'bool', default: true })
   isActive: boolean;
 
+  total_product_items: number;
+
+  total_damaged_items: number;
+
   @OneToOne(() => Address)
   @JoinColumn({ name: 'address_id' })
   address: Address;
