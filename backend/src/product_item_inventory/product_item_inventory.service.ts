@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   HttpException,
   HttpStatus,
   Inject,
@@ -7,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { ProductItemInventory } from './entities/product_item_inventory.entity';
+import { ProductItemToInventory } from './entities/product_item_inventory.entity';
 import { ProductItem } from '../product_item/entities/product_item.entity';
 import { Inventory } from '../inventories/entities/inventory.entity';
 import { CreateProductItemInventoryDto } from './dto/create-product_item_inventory.dto';
@@ -18,7 +17,7 @@ import * as jsend from 'jsend';
 export class ProductItemInventoryService {
   constructor(
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
-    private productItemInventoryRepository: Repository<ProductItemInventory>,
+    private productItemInventoryRepository: Repository<ProductItemToInventory>,
     @Inject('PRODUCT_ITEM_REPOSITORY')
     private productItemRepository: Repository<ProductItem>,
     @Inject('INVENTORY_REPOSITORY')
@@ -49,14 +48,15 @@ export class ProductItemInventoryService {
     }
 
     // Create and save the new ProductItemInventory
-    const productItemInventory = this.productItemInventoryRepository.create(
-      createProductItemInventoryDto,
-    );
+    const productItemInventory = this.productItemInventoryRepository.create({
+      ...createProductItemInventoryDto,
+      productItem,
+      inventory,
+    });
 
     try {
-      const newProductItemInventory = await this.productItemInventoryRepository.save(
-        productItemInventory,
-      );
+      const newProductItemInventory =
+        await this.productItemInventoryRepository.save(productItemInventory);
       return jsend.success(newProductItemInventory);
     } catch (err) {
       throw new HttpException(
@@ -147,10 +147,11 @@ export class ProductItemInventoryService {
     condition: object,
     errorMessage: string,
   ) {
-    const productItemInventory = await this.productItemInventoryRepository.findOne({
-      where: condition,
-      relations: ['productItem', 'inventory'], // Include related entities
-    });
+    const productItemInventory =
+      await this.productItemInventoryRepository.findOne({
+        where: condition,
+        relations: ['productItem', 'inventory'], // Include related entities
+      });
     if (!productItemInventory) {
       throw new NotFoundException(jsend.fail({ message: errorMessage }));
     }

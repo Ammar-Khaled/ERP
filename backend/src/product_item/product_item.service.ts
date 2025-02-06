@@ -6,8 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
-import { MoreThan } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { ProductItem } from './entities/product_item.entity';
 import { Product } from '../products/entities/product.entity';
 import { CreateProductItemDto } from './dto/create-product_item.dto';
@@ -65,7 +64,7 @@ export class ProductItemService {
 
   async findAll() {
     const productItems = await this.productItemRepository.find({
-      relations: ['product'], // Include the parent product relation
+      relations: ['product', 'productItemToInventories'], // Include the parent product relation
     });
     return jsend.success(productItems);
   }
@@ -177,10 +176,7 @@ export class ProductItemService {
     // Query all product items where number_of_damaged is greater than 0
     const damagedItems = await this.productItemRepository.find({
       where: { number_of_damaged: MoreThan(0) }, // Filter by number_of_damaged > 0
-     
     });
-  
     return jsend.success(damagedItems);
   }
-
 }

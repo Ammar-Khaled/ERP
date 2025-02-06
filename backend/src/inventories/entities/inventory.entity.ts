@@ -3,11 +3,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
 import { Branch } from '../../branches/entities/branch.entity';
+import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity';
 
 @Entity('inventories')
 export class Inventory {
@@ -31,4 +33,10 @@ export class Inventory {
   @ManyToOne(() => Branch, (branch) => branch.inventories)
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
+
+  @OneToMany(
+    () => ProductItemToInventory,
+    (productItemToInventory) => productItemToInventory.inventory,
+  )
+  productItemToInventories: ProductItemToInventory[];
 }

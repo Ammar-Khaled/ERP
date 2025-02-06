@@ -3,9 +3,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Product } from '../../products/entities/product.entity'; // Assuming a Product entity exists
+import { Product } from '../../products/entities/product.entity';
+import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity'; // Assuming a Product entity exists
 
 @Entity()
 export class ProductItem {
@@ -39,4 +41,10 @@ export class ProductItem {
 
   @Column('simple-array', { nullable: true })
   photos?: string[]; // Array of photo URLs (optional)
+
+  @OneToMany(
+    () => ProductItemToInventory,
+    (productItemToInventory) => productItemToInventory.productItem,
+  )
+  productItemToInventories: ProductItemToInventory[]; // One-to-many relationship with ProductItemInventory
 }

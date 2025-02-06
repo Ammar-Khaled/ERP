@@ -1,15 +1,9 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ProductItem } from '../../product_item/entities/product_item.entity'; // Adjust path as needed
 import { Inventory } from '../../inventories/entities/inventory.entity'; // Adjust path as needed
 
 @Entity()
-export class ProductItemInventory {
+export class ProductItemToInventory {
   @PrimaryGeneratedColumn()
   id: number; // Primary key
 
@@ -22,14 +16,15 @@ export class ProductItemInventory {
   @Column()
   product_item_id: number; // Foreign key for ProductItem
 
-  @ManyToOne(() => ProductItem) // Define relationship with ProductItem
-  @JoinColumn({ name: 'product_item_id' }) // Join column for the product_item_id foreign key
-  productItem: ProductItem;
-
   @Column()
   inventory_id: number; // Foreign key for Inventory
 
-  @ManyToOne(() => Inventory) // Define relationship with Inventory
-  @JoinColumn({ name: 'inventory_id' }) // Join column for the inventory_id foreign key
+  @ManyToOne(
+    () => ProductItem,
+    (productItem) => productItem.productItemToInventories,
+  )
+  productItem: ProductItem;
+
+  @ManyToOne(() => Inventory, (inventory) => inventory.productItemToInventories)
   inventory: Inventory;
 }

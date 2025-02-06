@@ -7,7 +7,7 @@ import { Branch } from '../branches/entities/branch.entity';
 import { Address } from '../common/entities/address.entity';
 import * as jsend from 'jsend';
 import { success } from 'jsend';
-import { ProductItemInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
+import { ProductItemToInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
 import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
 import { ProductItem } from '../product_item/entities/product_item.entity';
 
@@ -21,7 +21,7 @@ export class InventoriesService {
     @Inject('ADDRESS_REPOSITORY')
     private addressRepository: Repository<Address>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
-    private productItemInventoryRepository: Repository<ProductItemInventory>,
+    private productItemInventoryRepository: Repository<ProductItemToInventory>,
     @Inject('PRODUCT_ITEM_REPOSITORY')
     private productItemRepository: Repository<ProductItem>,
   ) {}
@@ -71,12 +71,10 @@ export class InventoriesService {
 
   async findAll() {
     const inventories = await this.inventoryRepository.find({
-      relations: ['address', 'branch'],
+      relations: ['address', 'branch', 'productItemToInventories'],
     });
     for (let i = 0; i < inventories.length; i++) {
-      const piis = await this.productItemInventoryRepository.find({
-        where: { inventory_id: inventories[i].id },
-      });
+      const piis = inventories[i].productItemToInventories;
       inventories[i].total_product_items = 0;
       inventories[i].total_damaged_items = 0;
       for (const pii of piis) {
