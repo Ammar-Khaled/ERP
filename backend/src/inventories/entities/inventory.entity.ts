@@ -26,8 +26,11 @@ export class Inventory {
 
   total_damaged_items: number;
 
-  @OneToOne(() => Address)
-  @JoinColumn({ name: 'address_id' })
+  @OneToOne(() => Address, {
+    eager: true,
+    cascade: true,
+  })
+  @JoinColumn()
   address: Address;
 
   @ManyToOne(() => Branch, (branch) => branch.inventories)
