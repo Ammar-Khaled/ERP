@@ -60,7 +60,7 @@ export class ClientsService {
     const client = await this.findClientByCondition({ id }, 'Client not found');
 
     // Check and handle address updates
-    if (updateClientDto.address) {
+    if (updateClientDto.address ) {
       if (client.address) {
         // Update the existing address
         Object.assign(client.address, updateClientDto.address);
