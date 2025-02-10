@@ -11,6 +11,7 @@ import { ProductItemService } from './product_item.service';
 import { CreateProductItemDto } from './dto/create-product_item.dto';
 import { UpdateProductItemDto } from './dto/update-product_item.dto';
 import { UpdateDamagedDto } from './dto/update-damaged.dto';
+
 @Controller('product-item')
 export class ProductItemController {
   constructor(private readonly productItemService: ProductItemService) {}
@@ -27,7 +28,8 @@ export class ProductItemController {
 
   @Get('/damaged')
   getDamaged() {
-    return this.productItemService.getDamaged();  }
+    return this.productItemService.getDamaged();
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

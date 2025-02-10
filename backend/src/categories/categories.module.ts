@@ -4,6 +4,7 @@ import { CategoriesController } from './categories.controller';
 import { categoriesProviders } from './categories.providers';
 import { DatabaseModule } from '../common/database.module'; // Import DatabaseModule
 import { branchesProviders } from 'src/branches/branches.providers';
+
 @Module({
   imports: [DatabaseModule],
   controllers: [CategoriesController],

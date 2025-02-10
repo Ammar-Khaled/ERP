@@ -34,15 +34,15 @@ export class CategoriesService {
     }
 
     // Check if the branch_id exists in the Branch table
-    const branch = await this.branchRepository.findOne({ where: { id: createCategoryDto.branch_id } });
+    const branch = await this.branchRepository.findOne({
+      where: { id: createCategoryDto.branch_id },
+    });
     if (!branch) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Branch not found.' }),
-      );
+      throw new NotFoundException(jsend.fail({ message: 'Branch not found.' }));
     }
 
     const category = this.categoryRepository.create(createCategoryDto);
-    
+
     try {
       // Save the new category and associate it with the branch
       const newCategory = await this.categoryRepository.save(category);
@@ -50,7 +50,8 @@ export class CategoriesService {
     } catch (err) {
       throw new HttpException(
         jsend.error({
-          message: 'An unexpected error occurred while creating the category. Please try again later.',
+          message:
+            'An unexpected error occurred while creating the category. Please try again later.',
           data: err,
         }),
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -60,11 +61,16 @@ export class CategoriesService {
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
     // Retrieve the category by ID
-    const category = await this.findCategoryByCondition({ id }, 'Category not found');
+    const category = await this.findCategoryByCondition(
+      { id },
+      'Category not found',
+    );
 
     // Check if the branch_id exists in the Branch table
     if (updateCategoryDto.branch_id) {
-      const branch = await this.branchRepository.findOne({ where: { id: updateCategoryDto.branch_id } });
+      const branch = await this.branchRepository.findOne({
+        where: { id: updateCategoryDto.branch_id },
+      });
       if (!branch) {
         throw new NotFoundException(
           jsend.fail({ message: 'Branch not found.' }),
@@ -92,17 +98,26 @@ export class CategoriesService {
   }
 
   async findOne(id: number) {
-    const category = await this.findCategoryByCondition({ id }, 'Category not found');
+    const category = await this.findCategoryByCondition(
+      { id },
+      'Category not found',
+    );
     return jsend.success(category);
   }
 
   async remove(id: number) {
-    const category = await this.findCategoryByCondition({ id }, 'Category not found');
+    const category = await this.findCategoryByCondition(
+      { id },
+      'Category not found',
+    );
     await this.categoryRepository.delete({ id });
     return jsend.success(category);
   }
 
-  private async findCategoryByCondition(condition: object, errorMessage: string) {
+  private async findCategoryByCondition(
+    condition: object,
+    errorMessage: string,
+  ) {
     const category = await this.categoryRepository.findOne({
       where: condition,
     });
