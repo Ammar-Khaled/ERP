@@ -5,11 +5,13 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Branch } from '../../branches/entities/branch.entity';
+import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
 
 @Entity('users')
 export class User {
@@ -63,6 +65,9 @@ export class User {
   })
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
+
+  @OneToMany(() => PurchaseRequest, (purchaseRequests) => purchaseRequests.user)
+  purchaseRequests: PurchaseRequest[];
 
   // TODO: add disabling time
 }

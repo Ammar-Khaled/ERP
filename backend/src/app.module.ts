@@ -21,6 +21,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
 import { PurchaseEntityModule } from './purchase_entity/purchase_entity.module';
 import { PurchaseItemModule } from './purchase_item/purchase_item.module';
+import { PurchaseRequestModule } from './purchase_request/purchase_request.module';
 
 
 @Module({
@@ -41,7 +42,8 @@ import { PurchaseItemModule } from './purchase_item/purchase_item.module';
     UnitsModule,
     CurrencyModule,
     PurchaseEntityModule,
-    PurchaseItemModule
+    PurchaseItemModule,
+    PurchaseRequestModule
   ],
   controllers: [AppController],
   providers: [

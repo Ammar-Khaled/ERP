@@ -21,7 +21,7 @@ export class PurchaseItem {
 
     @ManyToOne(() => PurchaseEntity, (entity) => entity.purchaseItems, {
         eager: true,
-        nullable: true,
+        nullable: false,
     })
     @JoinColumn({name: 'purchase_entity_id'})
     purchaseEntity: PurchaseEntity
