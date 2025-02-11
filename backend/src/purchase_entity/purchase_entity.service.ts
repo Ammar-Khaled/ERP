@@ -10,7 +10,7 @@ config();
 @Injectable()
 export class PurchaseEntityService {
   constructor(
-    @Inject('PURCHASE_ENTITIY_REPOSITORY')
+    @Inject('PURCHASE_ENTITY_REPOSITORY')
     private purchaseEntityRepository: Repository<PurchaseEntity>,
   ) {}
   
@@ -32,17 +32,35 @@ export class PurchaseEntityService {
     return purchaseEntity;
   }
 
-  async update(id: number, updatePurchaseEntityDto: UpdatePurchaseEntityDto) {
-    const purchaseEntity = await this.findOne(id);
+  async findOneByName(name: string) {
+    const purchaseEntity = await this.purchaseEntityRepository.findOne({where: {name}});
+    if (!purchaseEntity) throw new NotFoundException(`There is no purchase entity named "${name}"!`);
+    return purchaseEntity;
+  }
+
+  async update(name: string, updatePurchaseEntityDto: UpdatePurchaseEntityDto) {
+    const purchaseEntity = await this.findOneByName(name);
+
+    if (!purchaseEntity) {
+      throw new NotFoundException(`Purchase entity with name "${name}" not found.`);
+    }
+
     Object.assign(purchaseEntity, updatePurchaseEntityDto);
-    console.log(`Updated a #${id} successfully!`);
+    console.log(`Updated the "${name}" purchase entity successfully!`);
     return await this.purchaseEntityRepository.save(purchaseEntity);
   }
 
-  async remove(id: number) {
-    const purchaseEntity = await this.findOne(id);
-    await this.purchaseEntityRepository.delete({id});
-    console.log(`Removed a #${id} purchaseEntity successfully!`);
+  async remove(name: string) {
+    const purchaseEntity = await this.findOneByName(name);
+    
+    if (!purchaseEntity) {
+        throw new NotFoundException(`Purchase entity with name "${name}" not found.`);
+    }
+
+    await this.purchaseEntityRepository.remove(purchaseEntity);
+    console.log(`Removed the "${name}" purchase entity successfully!`);
+
     return purchaseEntity;
   }
+
 }

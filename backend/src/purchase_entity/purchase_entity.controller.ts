@@ -17,18 +17,23 @@ export class PurchaseEntityController {
     return this.purchaseEntityService.findAll();
   }
 
-  @Get(':id')
+  @Get(':id') // the colon ":" is a placeholder, indicating a dynamic value provided in the url
   findOne(@Param('id') id: string) {
     return this.purchaseEntityService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePurchaseEntityDto: UpdatePurchaseEntityDto) {
-    return this.purchaseEntityService.update(+id, updatePurchaseEntityDto);
+  @Get('find-by-name/:name')
+  findOneByName(@Param('name') name: string) {
+    return this.purchaseEntityService.findOneByName(name);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.purchaseEntityService.remove(+id);
+  @Patch('update/:name')
+  update(@Param('name') name: string, @Body() updatePurchaseEntityDto: UpdatePurchaseEntityDto) {
+    return this.purchaseEntityService.update(name, updatePurchaseEntityDto);
+  }
+
+  @Delete('delete/:name')
+  remove(@Param('name') name: string) {
+    return this.purchaseEntityService.remove(name);
   }
 }
