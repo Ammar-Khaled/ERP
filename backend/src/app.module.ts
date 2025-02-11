@@ -19,6 +19,8 @@ import { CurrencyModule } from './currency/currency.module';
 import { RolesGuard } from './auth/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
+import { PurchaseEntityModule } from './purchase_entity/purchase_entity.module';
+import { PurchaseItemModule } from './purchase_item/purchase_item.module';
 
 
 @Module({
@@ -38,6 +40,8 @@ import { AuthGuard } from './auth/auth.guard';
     ProductItemInventoryModule,
     UnitsModule,
     CurrencyModule,
+    PurchaseEntityModule,
+    PurchaseItemModule
   ],
   controllers: [AppController],
   providers: [
