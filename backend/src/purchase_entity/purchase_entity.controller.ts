@@ -7,17 +7,17 @@ import { UpdatePurchaseEntityDto } from './dto/update-purchase_entity.dto';
 export class PurchaseEntityController {
   constructor(private readonly purchaseEntityService: PurchaseEntityService) {}
 
-  @Post()
+  @Post('create')
   create(@Body() createPurchaseEntityDto: CreatePurchaseEntityDto) {
     return this.purchaseEntityService.create(createPurchaseEntityDto);
   }
 
-  @Get()
+  @Get('find-all')
   findAll() {
     return this.purchaseEntityService.findAll();
   }
 
-  @Get(':id') // the colon ":" is a placeholder, indicating a dynamic value provided in the url
+  @Get('find-by-id/:id')
   findOne(@Param('id') id: string) {
     return this.purchaseEntityService.findOne(+id);
   }
