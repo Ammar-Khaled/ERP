@@ -19,6 +19,8 @@ import { CurrencyModule } from './currency/currency.module';
 import { RolesGuard } from './auth/roles.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
+import { VariationModule } from './variation/variation.module';
+import { VariationOptionModule } from './variation_option/variation_option.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { AuthGuard } from './auth/auth.guard';
     ProductItemInventoryModule,
     UnitsModule,
     CurrencyModule,
+    VariationModule,
+    VariationOptionModule,
   ],
   controllers: [AppController],
   providers: [
