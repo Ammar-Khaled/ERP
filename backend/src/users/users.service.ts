@@ -30,7 +30,9 @@ export class UsersService {
   ) {}
 
   async findAll() {
-    return success(await this.userRepository.find());
+    const users = await this.userRepository.find();
+    users.forEach((user) => delete user.password);
+    return success(users);
   }
 
   async findOne(id: number) {
@@ -43,6 +45,7 @@ export class UsersService {
           data: null,
         }),
       );
+    delete user.password;
     return success(user);
   }
 
