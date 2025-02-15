@@ -5,6 +5,7 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
@@ -19,14 +20,14 @@ export class User {
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   username: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
+  email: string;
+
   @Column({ type: 'varchar', length: 255, nullable: false })
   password: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
   name: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
-  email: string;
 
   @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
   phone: string;
@@ -40,9 +41,9 @@ export class User {
   @Column({ type: 'boolean', default: false })
   isDeleted: boolean;
 
-  @ManyToOne(() => Address, (address) => address.users, {
+  @OneToOne(() => Address, {
     eager: true,
-    nullable: true,
+    cascade: true,
   })
   @JoinColumn({ name: 'address_id' })
   address: Address;

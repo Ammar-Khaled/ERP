@@ -9,7 +9,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { In, Repository } from 'typeorm';
-import { Address } from '../common/entities/address.entity';
 import { hash } from 'bcrypt';
 import { error, success } from 'jsend';
 import { Role } from '../roles/entities/role.entity';
@@ -23,8 +22,6 @@ config();
 export class UsersService {
   constructor(
     @Inject('USER_REPOSITORY') private userRepository: Repository<User>,
-    @Inject('ADDRESS_REPOSITORY')
-    private addressRepository: Repository<Address>,
     @Inject('ROLE_REPOSITORY') private roleRepository: Repository<Role>,
     @Inject('BRANCH_REPOSITORY') private branchRepository: Repository<Branch>,
   ) {}
@@ -49,8 +46,11 @@ export class UsersService {
     return success(user);
   }
 
-  async findOneByUsername(username: string) {
-    const user = await this.userRepository.findOneBy({ username });
+  async findUserByCondition(condition: object, relations?: string[]) {
+    const user = await this.userRepository.findOne({
+      where: condition,
+      relations: relations,
+    });
     if (!user)
       throw new NotFoundException(
         error({
@@ -84,7 +84,7 @@ export class UsersService {
     });
 
     const branch = await this.branchRepository.findOneBy({
-      id: createUserDto.branchId,
+      id: createUserDto.branchId || -1,
     });
 
     createUserDto.password = await hash(
@@ -92,21 +92,20 @@ export class UsersService {
       Number(process.env.BCRYPT_SALT_ROUNDS),
     );
 
-    if (createUserDto.address) {
-      const address = this.addressRepository.create(createUserDto.address);
-      await this.addressRepository.save(address);
-    }
-
     const new_user = this.userRepository.create({
       ...createUserDto,
       roles,
       branch,
     });
-    return success(await this.userRepository.save(new_user));
+
+    await this.userRepository.save(new_user);
+    delete new_user.password;
+    return success(new_user);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.findOne(id)['data'];
+    const response = await this.findOne(id);
+    const user = response['data'];
 
     if (updateUserDto.password) {
       updateUserDto.password = await hash(
@@ -121,23 +120,24 @@ export class UsersService {
       });
     }
 
-    // get the branch
-    const branch = await this.branchRepository.findOneBy({
-      id: updateUserDto.branchId,
-    });
-    if (!branch) {
-      throw new ConflictException(
-        error('Branch not found with id: ' + updateUserDto.branchId),
-      );
+    if (updateUserDto.branchId) {
+      const branch = await this.branchRepository.findOneBy({
+        id: updateUserDto.branchId,
+      });
+      if (!branch) {
+        throw new ConflictException(
+          error('Branch not found with id: ' + updateUserDto.branchId),
+        );
+      }
+      user.branch = branch;
+    } else {
+      user.branch = null;
     }
-    user.branch = branch;
 
     if (updateUserDto.address) {
-      const address = this.addressRepository.create(updateUserDto.address);
-      await this.addressRepository.save(address);
-      // Object.assign(user.address, updateUserDto.address);
-    } else {
-      user.address = null;
+      if (user.address?.id) {
+        updateUserDto.address.id = user.address.id;
+      }
     }
 
     Object.assign(user, updateUserDto);

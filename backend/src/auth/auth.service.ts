@@ -16,13 +16,22 @@ export class AuthService {
   ) {}
 
   async signIn(
-    username: string,
+    usernameOrEmail: string,
     password: string,
   ): Promise<{ token: string; user: User }> {
-    const user = await this.usersService.findOneByUsername(username);
+    const condition = usernameOrEmail.includes('@')
+      ? { email: usernameOrEmail }
+      : { username: usernameOrEmail };
+
+    const user = await this.usersService.findUserByCondition(condition);
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
     const match = await compare(password, user.password);
     if (!match) {
-      throw new UnauthorizedException('Invalid username or password');
+      throw new UnauthorizedException('Incorrect password');
     }
 
     if (user.isBlocked) {
@@ -36,6 +45,7 @@ export class AuthService {
     const payload = {
       sub: user.id,
       username: user.username,
+      email: user.email,
       roles: user.roles,
     };
 

@@ -1,6 +1,16 @@
-import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import {
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateAddressDto {
+  @IsInt()
+  @IsOptional()
+  id: number;
+
   @IsNotEmpty({ message: 'Street address is required' })
   @IsString({ message: 'Street must be a string' })
   street: string;
@@ -20,4 +30,12 @@ export class CreateAddressDto {
   @IsNotEmpty({ message: 'Country must not be empty.' })
   @IsString({ message: 'Country must be a string' })
   country: string;
+
+  @IsOptional()
+  @IsNumber()
+  longitude: number;
+
+  @IsOptional()
+  @IsNumber()
+  latitude: number;
 }
