@@ -19,13 +19,13 @@ export class Address {
   @Column({ type: 'varchar', length: 100, nullable: false })
   city: string;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   state: string;
 
-  @Column({ type: 'varchar', length: 20 })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   zipCode: string;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 100, nullable: true })
   country: string;
 
   @Column({ type: 'float' })

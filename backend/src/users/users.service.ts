@@ -15,6 +15,7 @@ import { Role } from '../roles/entities/role.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { config } from 'dotenv';
 import * as process from 'node:process';
+import { Address } from '../common/entities/address.entity';
 
 config();
 
@@ -24,6 +25,8 @@ export class UsersService {
     @Inject('USER_REPOSITORY') private userRepository: Repository<User>,
     @Inject('ROLE_REPOSITORY') private roleRepository: Repository<Role>,
     @Inject('BRANCH_REPOSITORY') private branchRepository: Repository<Branch>,
+    @Inject('ADDRESS_REPOSITORY')
+    private addressRepository: Repository<Address>,
   ) {}
 
   async findAll() {
@@ -145,9 +148,13 @@ export class UsersService {
   }
 
   async remove(id: number) {
-    const user = await this.findOne(id);
-    await this.userRepository.delete({ id });
-    console.log('User is deleted successfully.');
-    return user;
+    const response = await this.findOne(id);
+    const user = response['data'];
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    await this.addressRepository.delete({ id: user.address?.id });
+    await this.userRepository.delete({ id: user.id });
+    return success(user);
   }
 }
