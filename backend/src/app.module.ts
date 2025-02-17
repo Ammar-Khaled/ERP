@@ -23,6 +23,8 @@ import { PurchaseEntityModule } from './purchase_entity/purchase_entity.module';
 import { PurchaseItemModule } from './purchase_item/purchase_item.module';
 import { PurchaseRequestModule } from './purchase_request/purchase_request.module';
 import { StatusModule } from './status/status.module';
+import { VariationModule } from './variation/variation.module';
+import { VariationOptionModule } from './variation_option/variation_option.module';
 
 
 @Module({
@@ -46,6 +48,8 @@ import { StatusModule } from './status/status.module';
     PurchaseItemModule,
     PurchaseRequestModule,
     StatusModule
+    VariationModule,
+    VariationOptionModule,
   ],
   controllers: [AppController],
   providers: [

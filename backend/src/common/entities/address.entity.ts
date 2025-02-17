@@ -1,6 +1,7 @@
 import { Supplier } from 'src/supplier/entities/supplier.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
+
 @Entity('addresses')
 export class Address {
   @PrimaryGeneratedColumn()
@@ -26,7 +27,4 @@ export class Address {
 
   @Column({ type: 'float', nullable: true })
   latitude: number;
-
-  @OneToMany(() => Supplier, (suppliers) => suppliers.address)
-  suppliers: Supplier[];
 }

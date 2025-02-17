@@ -3,11 +3,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
 import { Branch } from '../../branches/entities/branch.entity';
+import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity';
 
 @Entity('inventories')
 export class Inventory {
@@ -24,11 +26,20 @@ export class Inventory {
 
   total_damaged_items: number;
 
-  @OneToOne(() => Address)
-  @JoinColumn({ name: 'address_id' })
+  @OneToOne(() => Address, {
+    eager: true,
+    cascade: true,
+  })
+  @JoinColumn()
   address: Address;
 
   @ManyToOne(() => Branch, (branch) => branch.inventories)
-  @JoinColumn({ name: 'branch_id' })
+  @JoinColumn()
   branch: Branch;
+
+  @OneToMany(
+    () => ProductItemToInventory,
+    (productItemToInventory) => productItemToInventory.inventory,
+  )
+  productItemToInventories: ProductItemToInventory[];
 }

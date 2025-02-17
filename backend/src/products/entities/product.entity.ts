@@ -1,14 +1,14 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Branch } from '../../branches/entities/branch.entity';  
-import { Category } from '../../categories/entities/category.entity';  
-import { Unit } from '../../units/entities/unit.entity'; 
-import { Currency } from '../../currency/entities/currency.entity'; 
+import { Branch } from '../../branches/entities/branch.entity';
+import { Category } from '../../categories/entities/category.entity';
+import { Unit } from '../../units/entities/unit.entity';
+import { Currency } from '../../currency/entities/currency.entity';
 
 @Entity()
 export class Product {

@@ -1,11 +1,12 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  Param,
   Body,
+  ConflictException,
+  Controller,
+  Delete,
+  Get,
+  Param,
   Patch,
+  Post,
 } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { Branch } from './entities/branch.entity';
@@ -20,8 +21,13 @@ export class BranchesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.branchesService.findOne(id);
+  findOneById(@Param('id') id: number) {
+    const branch = this.branchesService.findOneByCondition({ id });
+    if (!branch) {
+      throw new ConflictException('Branch not found');
+    }
+
+    return branch;
   }
 
   @Post()

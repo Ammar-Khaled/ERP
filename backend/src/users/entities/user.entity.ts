@@ -64,7 +64,7 @@ export class User {
     eager: true,
     nullable: false,
   })
-  @JoinColumn({ name: 'branch_id' })
+  @JoinColumn()
   branch: Branch;
 
   @OneToMany(() => PurchaseRequest, (purchaseRequests) => purchaseRequests.user)

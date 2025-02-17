@@ -1,10 +1,10 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  Entity,
   JoinColumn,
   OneToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
 import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
@@ -23,7 +23,7 @@ export class Supplier {
   @Column({ type: 'varchar', length: 20, nullable: true })
   phone: string;
 
-  @ManyToOne(() => Address, (address) => address.suppliers, {
+  @ManyToOne(() => Address, {
     eager: true,
     nullable: true,
   })

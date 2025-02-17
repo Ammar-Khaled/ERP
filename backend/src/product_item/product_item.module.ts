@@ -8,7 +8,11 @@ import { productsProviders } from '../products/products.providers'; // Import Pr
 @Module({
   imports: [DatabaseModule], // Include the DatabaseModule for DataSource injection
   controllers: [ProductItemController], // Add ProductItem controller
-  providers: [...productItemProviders, ...productsProviders, ProductItemService], // Add providers including related products
+  providers: [
+    ...productItemProviders,
+    ...productsProviders,
+    ProductItemService,
+  ], // Add providers including related products
   exports: [ProductItemService], // Export ProductItemsService if other modules need it
 })
 export class ProductItemModule {}

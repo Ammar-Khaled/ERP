@@ -7,9 +7,8 @@ import { Branch } from '../branches/entities/branch.entity';
 import { Address } from '../common/entities/address.entity';
 import * as jsend from 'jsend';
 import { success } from 'jsend';
-import { ProductItemInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
+import { ProductItemToInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
 import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
-import { ProductItem } from '../product_item/entities/product_item.entity';
 
 @Injectable()
 export class InventoriesService {
@@ -21,9 +20,7 @@ export class InventoriesService {
     @Inject('ADDRESS_REPOSITORY')
     private addressRepository: Repository<Address>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
-    private productItemInventoryRepository: Repository<ProductItemInventory>,
-    @Inject('PRODUCT_ITEM_REPOSITORY')
-    private productItemRepository: Repository<ProductItem>,
+    private productItemInventoryRepository: Repository<ProductItemToInventory>,
   ) {}
 
   async create(createInventoryDto: CreateInventoryDto) {
@@ -36,33 +33,18 @@ export class InventoriesService {
     }
 
     // get the branch
-    let branch: Branch = null;
-    if (createInventoryDto.branchId) {
-      branch = await this.branchRepository.findOneBy({
-        id: createInventoryDto.branchId,
-      });
-      if (!branch) {
-        throw new ConflictException(
-          jsend.error(
-            'Branch not found with id: ' + createInventoryDto.branchId,
-          ),
-        );
-      }
-    }
-
-    // create the address
-    let address: Address = null;
-    if (createInventoryDto.address) {
-      address = this.addressRepository.create(createInventoryDto.address);
-      await this.addressRepository.save(address);
-      // remove the address from the inventory dto
-      delete createInventoryDto.address;
+    const branch = await this.branchRepository.findOneBy({
+      id: createInventoryDto.branchId,
+    });
+    if (!branch) {
+      throw new ConflictException(
+        jsend.error('Branch not found with id: ' + createInventoryDto.branchId),
+      );
     }
 
     // create the inventory
     const inventory = this.inventoryRepository.create({
       ...createInventoryDto,
-      address,
       branch,
     });
     await this.inventoryRepository.save(inventory);
@@ -71,12 +53,10 @@ export class InventoriesService {
 
   async findAll() {
     const inventories = await this.inventoryRepository.find({
-      relations: ['address', 'branch'],
+      relations: ['branch', 'productItemToInventories'],
     });
     for (let i = 0; i < inventories.length; i++) {
-      const piis = await this.productItemInventoryRepository.find({
-        where: { inventory_id: inventories[i].id },
-      });
+      const piis = inventories[i].productItemToInventories;
       inventories[i].total_product_items = 0;
       inventories[i].total_damaged_items = 0;
       for (const pii of piis) {
@@ -90,16 +70,13 @@ export class InventoriesService {
   async findOne(id: number) {
     const inventory = await this.inventoryRepository.findOne({
       where: { id },
-      relations: ['address', 'branch'],
+      relations: ['branch'],
     });
     return jsend.success(inventory);
   }
 
   async update(id: number, updateInventoryDto: UpdateInventoryDto) {
-    const inventory = await this.inventoryRepository.findOne({
-      where: { id },
-      relations: ['address'],
-    });
+    const inventory = await this.inventoryRepository.findOneBy({ id });
     if (!inventory) {
       throw new ConflictException(
         jsend.error('Inventory not found with id: ' + id),
@@ -107,9 +84,8 @@ export class InventoriesService {
     }
 
     // update the branch
-    let branch: Branch = null;
     if (updateInventoryDto.branchId) {
-      branch = await this.branchRepository.findOneBy({
+      const branch = await this.branchRepository.findOneBy({
         id: updateInventoryDto.branchId,
       });
       if (!branch) {
@@ -119,32 +95,31 @@ export class InventoriesService {
           ),
         );
       }
+      inventory.branch = branch;
       delete updateInventoryDto.branchId;
     }
 
-    // update the address
-    let address: Address = null;
     if (updateInventoryDto.address) {
-      await this.addressRepository.delete(inventory.address.id);
-      address = this.addressRepository.create(updateInventoryDto.address);
-      await this.addressRepository.save(address);
-      delete updateInventoryDto.address;
+      if (inventory.address?.id) {
+        updateInventoryDto.address.id = inventory.address.id;
+      }
     }
 
-    await this.inventoryRepository.update(
-      { id },
-      { ...updateInventoryDto, branch, address },
-    );
-    return jsend.success(await this.inventoryRepository.findOneBy({ id }));
+    Object.assign(inventory, updateInventoryDto);
+    return await this.inventoryRepository.save(inventory);
   }
 
   async remove(id: number) {
-    const inventory = await this.inventoryRepository.findOne({
-      where: { id },
-      relations: ['address'],
-    });
-    await this.addressRepository.delete(inventory.address.id);
-    await this.inventoryRepository.delete({ id });
+    const inventory = await this.inventoryRepository.findOneBy({ id });
+    if (!inventory) {
+      throw new ConflictException(
+        jsend.error('Inventory not found with id: ' + id),
+      );
+    }
+
+    const addressId = inventory.address?.id;
+    await this.inventoryRepository.remove(inventory);
+    await this.addressRepository.delete({ id: addressId });
     return jsend.success(inventory);
   }
 
