@@ -21,7 +21,7 @@ export class CreatePurchaseRequestDto {
 
     @IsOptional()
     @IsString()
-    status?: string;
+    status?: string; // if not provided, use the default value "Initiated"
     
     @IsNotEmpty()
     @IsString()

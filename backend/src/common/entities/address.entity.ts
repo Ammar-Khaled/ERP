@@ -1,23 +1,15 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  OneToMany,
-  OneToOne,
-} from 'typeorm';
-import { Supplier } from '../../supplier/entities/supplier.entity';
-import { User } from '../../users/entities/user.entity';
-import { Branch } from '../../branches/entities/branch.entity';
+import { Supplier } from 'src/supplier/entities/supplier.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('addresses')
 export class Address {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255 })
   street: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: false })
+  @Column({ type: 'varchar', length: 100 })
   city: string;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
@@ -29,13 +21,12 @@ export class Address {
   @Column({ type: 'varchar', length: 100, nullable: true })
   country: string;
 
-  @OneToMany(() => Supplier, (supplier) => supplier.address)
+  @Column({ type: 'float', nullable: true })
+  longitude: number;
+
+  @Column({ type: 'float', nullable: true })
+  latitude: number;
+
+  @OneToMany(() => Supplier, (suppliers) => suppliers.address)
   suppliers: Supplier[];
-
-  @OneToMany(() => User, (user) => user.address)
-  users: User[];
-
-  @OneToOne(() => Branch, (branch) => branch.address)
-  branch: Branch;
-  //# todo: add longitude & latitude
 }

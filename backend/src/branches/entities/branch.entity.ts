@@ -44,7 +44,7 @@ export class Branch {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
-  @OneToOne(() => Address, (address) => address.branch)
+  @OneToOne(() => Address, { eager: true, cascade: true })
   @JoinColumn({ name: 'address_id' })
   address: Address;
 

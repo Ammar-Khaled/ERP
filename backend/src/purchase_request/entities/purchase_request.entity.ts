@@ -1,5 +1,5 @@
 import { Branch } from 'src/branches/entities/branch.entity';
-import { Status } from 'src/common/entities/status.entity';
+import { Status } from 'src/status/entities/status.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -15,42 +15,41 @@ export class PurchaseRequest {
     @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
     date: Date;
 
-    //# what about 'status' property?
-
     /// Foreign keys ///
+
+    //# Fix nullable values, it should be false
 
     @ManyToOne(() => User, (user) => user.purchaseRequests, {
         eager: true,
-        nullable: false
+        nullable: true
     })
     @JoinColumn({name: 'user_id'})
     user: User;
     
     @ManyToOne(() => Branch, (branch) => branch.purchaseRequests, {
         eager: true,
-        nullable: false
+        nullable: true
     })
     @JoinColumn({name: 'branch_id'})
     branch: Branch;
     
     @ManyToOne(() => Supplier, (supplier) => supplier.purchaseRequests, {
         eager: true,
-        nullable: false
+        nullable: true
     })
     @JoinColumn({name: 'supplier_id'})
     supplier: Supplier;
 
-    //# store the reverse or no?
     @OneToOne(() => Status, {
         eager: true,
-        nullable: false
+        nullable: true
     })
     @JoinColumn({name: 'status_id'})
     status: Status;
 
     @OneToOne(() => Currency, {
         eager: true,
-        nullable: false
+        nullable: true
     })
     @JoinColumn({name: 'currency_id'})
     currency: Currency;

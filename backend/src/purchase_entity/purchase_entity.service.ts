@@ -15,7 +15,7 @@ export class PurchaseEntityService {
   ) {}
   
   async create(createPurchaseEntityDto: CreatePurchaseEntityDto) {
-    //# suggestion: add (name) property to uniquly identify the entity
+    //# to fix: check if existed
 
     const newPurchase = this.purchaseEntityRepository.create(createPurchaseEntityDto);
     console.log(`Created a purchase entity successfully!`);

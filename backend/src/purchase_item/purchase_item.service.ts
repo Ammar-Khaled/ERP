@@ -53,7 +53,7 @@ export class PurchaseItemService {
   }
 
   async findOneByName(name: string) {
-    //# should I search here or inside the entity?!
+    // # should I search here or inside the entity?!
     const item = await this.purchaseItemRepository.findOneBy({ name });
     if (!item) throw new NotFoundException(`There is no purchase item with that name!`);
     return item;

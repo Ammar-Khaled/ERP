@@ -22,6 +22,7 @@ import { AuthGuard } from './auth/auth.guard';
 import { PurchaseEntityModule } from './purchase_entity/purchase_entity.module';
 import { PurchaseItemModule } from './purchase_item/purchase_item.module';
 import { PurchaseRequestModule } from './purchase_request/purchase_request.module';
+import { StatusModule } from './status/status.module';
 
 
 @Module({
@@ -43,7 +44,8 @@ import { PurchaseRequestModule } from './purchase_request/purchase_request.modul
     CurrencyModule,
     PurchaseEntityModule,
     PurchaseItemModule,
-    PurchaseRequestModule
+    PurchaseRequestModule,
+    StatusModule
   ],
   controllers: [AppController],
   providers: [
