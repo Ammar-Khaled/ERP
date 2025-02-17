@@ -23,7 +23,7 @@ export class AuthService {
       ? { email: usernameOrEmail }
       : { username: usernameOrEmail };
 
-    const user = await this.usersService.findUserByCondition(condition);
+    const user = await this.usersService.findOneByCondition(condition);
 
     if (!user) {
       throw new UnauthorizedException('User not found');

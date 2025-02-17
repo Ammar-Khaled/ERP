@@ -35,41 +35,16 @@ export class UsersService {
     return success(users);
   }
 
-  async findOne(id: number) {
-    const user = await this.userRepository.findOneBy({ id });
-    if (!user)
-      throw new NotFoundException(
-        error({
-          message: 'User not found',
-          code: HttpStatus.NOT_FOUND,
-          data: null,
-        }),
-      );
-    delete user.password;
-    return success(user);
-  }
-
-  async findUserByCondition(condition: object, relations?: string[]) {
-    const user = await this.userRepository.findOne({
+  async findOneByCondition(condition: object, relations?: string[]) {
+    return await this.userRepository.findOne({
       where: condition,
       relations: relations,
     });
-    if (!user)
-      throw new NotFoundException(
-        error({
-          message: 'User not found',
-          code: HttpStatus.NOT_FOUND,
-          data: null,
-        }),
-      );
-    return user;
   }
 
   async create(createUserDto: CreateUserDto) {
     const existingUser =
-      (await this.userRepository.findOneBy({
-        email: createUserDto.email,
-      })) ||
+      (await this.userRepository.findOneBy({ email: createUserDto.email })) ||
       (await this.userRepository.findOneBy({
         username: createUserDto.username,
       }));
@@ -87,8 +62,14 @@ export class UsersService {
     });
 
     const branch = await this.branchRepository.findOneBy({
-      id: createUserDto.branchId || -1,
+      id: createUserDto.branchId,
     });
+
+    if (!branch) {
+      throw new ConflictException(
+        error('Branch not found with id: ' + createUserDto.branchId),
+      );
+    }
 
     createUserDto.password = await hash(
       createUserDto.password,
@@ -107,8 +88,10 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const response = await this.findOne(id);
-    const user = response['data'];
+    const user = await this.findOneByCondition({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     if (updateUserDto.password) {
       updateUserDto.password = await hash(
@@ -133,13 +116,16 @@ export class UsersService {
         );
       }
       user.branch = branch;
-    } else {
-      user.branch = null;
     }
 
     if (updateUserDto.address) {
-      if (user.address?.id) {
-        updateUserDto.address.id = user.address.id;
+      if (!user.address) {
+        user.address = await this.addressRepository.save(updateUserDto.address);
+      } else {
+        await this.addressRepository.update(
+          user.address.id,
+          updateUserDto.address,
+        );
       }
     }
 
@@ -148,13 +134,14 @@ export class UsersService {
   }
 
   async remove(id: number) {
-    const response = await this.findOne(id);
-    const user = response['data'];
+    const user = await this.findOneByCondition({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    await this.addressRepository.delete({ id: user.address?.id });
-    await this.userRepository.delete({ id: user.id });
+
+    const addressId = user.address?.id;
+    await this.userRepository.delete(id);
+    await this.addressRepository.delete({ id: addressId });
     return success(user);
   }
 }

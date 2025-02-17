@@ -1,9 +1,9 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
 
@@ -21,7 +21,7 @@ export class Supplier {
   @Column({ type: 'varchar', length: 20, nullable: true })
   phone: string;
 
-  @ManyToOne(() => Address, (address) => address.suppliers, {
+  @ManyToOne(() => Address, {
     eager: true,
     nullable: true,
   })

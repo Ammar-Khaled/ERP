@@ -52,8 +52,7 @@ export class CreateUserDto {
   roleIds?: number[];
 
   @IsNotEmpty()
-  @IsOptional()
-  branchId?: number;
+  branchId: number;
 
   @IsOptional()
   @ValidateNested()

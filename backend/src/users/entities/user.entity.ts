@@ -60,7 +60,7 @@ export class User {
 
   @ManyToOne(() => Branch, (branch) => branch.users, {
     eager: true,
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
