@@ -54,6 +54,9 @@ export class Branch {
   @OneToMany(() => Inventory, (inventory) => inventory.branch)
   inventories: Inventory[];
 
-  @OneToMany(() => PurchaseRequest, (purchaseRequests) => purchaseRequests.branch)
+  @OneToMany(
+    () => PurchaseRequest,
+    (purchaseRequests) => purchaseRequests.branch,
+  )
   purchaseRequests: PurchaseRequest[];
 }

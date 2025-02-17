@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { PurchaseItemService } from './purchase_item.service';
 import { CreatePurchaseItemDto } from './dto/create-purchase_item.dto';
 import { UpdatePurchaseItemDto } from './dto/update-purchase_item.dto';
@@ -28,7 +36,10 @@ export class PurchaseItemController {
   }
 
   @Patch('update/:name')
-  update(@Param('name') name: string, @Body() updatePurchaseItemDto: UpdatePurchaseItemDto) {
+  update(
+    @Param('name') name: string,
+    @Body() updatePurchaseItemDto: UpdatePurchaseItemDto,
+  ) {
     return this.purchaseItemService.update(name, updatePurchaseItemDto);
   }
 

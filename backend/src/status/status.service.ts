@@ -7,8 +7,8 @@ import { Repository } from 'typeorm';
 @Injectable()
 export class StatusService {
   constructor(
-    @Inject('STATUS_REPOSITORY') private statusRepository: Repository<Status>
-  ) { }
+    @Inject('STATUS_REPOSITORY') private statusRepository: Repository<Status>,
+  ) {}
 
   async create(createStatusDto: CreateStatusDto) {
     const newStatus = this.statusRepository.create(createStatusDto);

@@ -14,10 +14,11 @@ config();
 export class PurchaseItemService {
   constructor(
     private readonly purchaseEntityService: PurchaseEntityService,
-    @Inject('PURCHASE_ITEM_REPOSITORY') private purchaseItemRepository: Repository<PurchaseItem>,
-    @Inject('PURCHASE_ENTITY_REPOSITORY') private purchaseEntityRepository:
-      Repository<PurchaseEntity>
-  ) { }
+    @Inject('PURCHASE_ITEM_REPOSITORY')
+    private purchaseItemRepository: Repository<PurchaseItem>,
+    @Inject('PURCHASE_ENTITY_REPOSITORY')
+    private purchaseEntityRepository: Repository<PurchaseEntity>,
+  ) {}
 
   async create(createPurchaseItemDto: CreatePurchaseItemDto) {
     // Ensure there is a purchase entity with that name:
@@ -30,14 +31,17 @@ export class PurchaseItemService {
       const newEntityDto = new CreatePurchaseEntityDto();
       newEntityDto.name = createPurchaseItemDto.name;
 
-      const newEntity = await this.purchaseEntityRepository.create(newEntityDto);
+      const newEntity =
+        await this.purchaseEntityRepository.create(newEntityDto);
       await this.purchaseEntityRepository.save(newEntity);
 
       createPurchaseItemDto.purchaseEntity = newEntity;
     }
 
     // Create the item and save it:
-    const newItem = await this.purchaseItemRepository.create(createPurchaseItemDto);
+    const newItem = await this.purchaseItemRepository.create(
+      createPurchaseItemDto,
+    );
     console.log('Created purchase item successfully!');
     return await this.purchaseItemRepository.save(newItem);
   }
@@ -48,14 +52,18 @@ export class PurchaseItemService {
 
   async findOne(id: number) {
     const item = await this.purchaseItemRepository.findOneBy({ id });
-    if (!item) throw new NotFoundException(`There is no purchase item with id of ${id}!`);
+    if (!item)
+      throw new NotFoundException(
+        `There is no purchase item with id of ${id}!`,
+      );
     return item;
   }
 
   async findOneByName(name: string) {
     // # should I search here or inside the entity?!
     const item = await this.purchaseItemRepository.findOneBy({ name });
-    if (!item) throw new NotFoundException(`There is no purchase item with that name!`);
+    if (!item)
+      throw new NotFoundException(`There is no purchase item with that name!`);
     return item;
   }
 

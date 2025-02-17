@@ -15,13 +15,16 @@ config();
 @Injectable()
 export class PurchaseRequestService {
   constructor(
-    @Inject('PURCHASE_REQUEST_REPOSITORY') private purchaseRequestRepository: Repository<PurchaseRequest>,
+    @Inject('PURCHASE_REQUEST_REPOSITORY')
+    private purchaseRequestRepository: Repository<PurchaseRequest>,
     @Inject('USER_REPOSITORY') private userRepository: Repository<User>,
     @Inject('BRANCH_REPOSITORY') private branchRepository: Repository<Branch>,
-    @Inject('SUPPLIER_REPOSITORY') private supplierRepository: Repository<Supplier>,
+    @Inject('SUPPLIER_REPOSITORY')
+    private supplierRepository: Repository<Supplier>,
     @Inject('STATUS_REPOSITORY') private statusRepository: Repository<Status>,
-    @Inject('CURRENCY_REPOSITORY') private currencyRepository: Repository<Currency>,
-  ) { }
+    @Inject('CURRENCY_REPOSITORY')
+    private currencyRepository: Repository<Currency>,
+  ) {}
 
   async create(createPurchaseRequestDto: CreatePurchaseRequestDto) {
     return `This action creates a new purchaseRequest`;

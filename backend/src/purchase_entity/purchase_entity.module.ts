@@ -8,6 +8,6 @@ import { purchaseEntityProviders } from './purchase_entity.providers';
   imports: [DatabaseModule],
   controllers: [PurchaseEntityController],
   providers: [...purchaseEntityProviders, PurchaseEntityService],
-  exports: [PurchaseEntityService]
+  exports: [PurchaseEntityService],
 })
 export class PurchaseEntityModule {}

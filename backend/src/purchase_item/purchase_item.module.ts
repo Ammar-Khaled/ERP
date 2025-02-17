@@ -9,7 +9,11 @@ import { purchaseEntityProviders } from 'src/purchase_entity/purchase_entity.pro
 @Module({
   imports: [DatabaseModule, PurchaseEntityModule],
   controllers: [PurchaseItemController],
-  providers: [PurchaseItemService, ...purchaseItemProviders, ...purchaseEntityProviders],
-  exports: [PurchaseItemService]
+  providers: [
+    PurchaseItemService,
+    ...purchaseItemProviders,
+    ...purchaseEntityProviders,
+  ],
+  exports: [PurchaseItemService],
 })
 export class PurchaseItemModule {}

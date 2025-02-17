@@ -1,11 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { PurchaseRequestService } from './purchase_request.service';
 import { CreatePurchaseRequestDto } from './dto/create-purchase_request.dto';
 import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
 
 @Controller('purchase-request')
 export class PurchaseRequestController {
-  constructor(private readonly purchaseRequestService: PurchaseRequestService) {}
+  constructor(
+    private readonly purchaseRequestService: PurchaseRequestService,
+  ) {}
 
   @Post()
   create(@Body() createPurchaseRequestDto: CreatePurchaseRequestDto) {
@@ -23,7 +33,10 @@ export class PurchaseRequestController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePurchaseRequestDto: UpdatePurchaseRequestDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updatePurchaseRequestDto: UpdatePurchaseRequestDto,
+  ) {
     return this.purchaseRequestService.update(+id, updatePurchaseRequestDto);
   }
 

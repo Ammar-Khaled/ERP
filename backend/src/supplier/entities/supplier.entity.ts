@@ -2,8 +2,8 @@ import {
   Column,
   Entity,
   JoinColumn,
-  OneToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
@@ -30,6 +30,9 @@ export class Supplier {
   @JoinColumn({ name: 'address_id' })
   address: Address;
 
-  @OneToMany(() => PurchaseRequest, (purchaseRequests) => purchaseRequests.supplier)
+  @OneToMany(
+    () => PurchaseRequest,
+    (purchaseRequests) => purchaseRequests.supplier,
+  )
   purchaseRequests: PurchaseRequest[];
 }

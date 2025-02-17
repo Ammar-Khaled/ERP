@@ -13,11 +13,13 @@ export class PurchaseEntityService {
     @Inject('PURCHASE_ENTITY_REPOSITORY')
     private purchaseEntityRepository: Repository<PurchaseEntity>,
   ) {}
-  
+
   async create(createPurchaseEntityDto: CreatePurchaseEntityDto) {
     //# to fix: check if existed
 
-    const newPurchase = this.purchaseEntityRepository.create(createPurchaseEntityDto);
+    const newPurchase = this.purchaseEntityRepository.create(
+      createPurchaseEntityDto,
+    );
     console.log(`Created a purchase entity successfully!`);
     return await this.purchaseEntityRepository.save(newPurchase);
   }
@@ -27,14 +29,24 @@ export class PurchaseEntityService {
   }
 
   async findOne(id: number) {
-    const purchaseEntity = await this.purchaseEntityRepository.findOneBy({id});
-    if (!purchaseEntity) throw new NotFoundException(`There is no purchase entity with id of ${id}!`);
+    const purchaseEntity = await this.purchaseEntityRepository.findOneBy({
+      id,
+    });
+    if (!purchaseEntity)
+      throw new NotFoundException(
+        `There is no purchase entity with id of ${id}!`,
+      );
     return purchaseEntity;
   }
 
   async findOneByName(name: string) {
-    const purchaseEntity = await this.purchaseEntityRepository.findOne({where: {name}});
-    if (!purchaseEntity) throw new NotFoundException(`There is no purchase entity named "${name}"!`);
+    const purchaseEntity = await this.purchaseEntityRepository.findOne({
+      where: { name },
+    });
+    if (!purchaseEntity)
+      throw new NotFoundException(
+        `There is no purchase entity named "${name}"!`,
+      );
     return purchaseEntity;
   }
 
@@ -42,7 +54,9 @@ export class PurchaseEntityService {
     const purchaseEntity = await this.findOneByName(name);
 
     if (!purchaseEntity) {
-      throw new NotFoundException(`Purchase entity with name "${name}" not found.`);
+      throw new NotFoundException(
+        `Purchase entity with name "${name}" not found.`,
+      );
     }
 
     Object.assign(purchaseEntity, updatePurchaseEntityDto);
@@ -52,9 +66,11 @@ export class PurchaseEntityService {
 
   async remove(name: string) {
     const purchaseEntity = await this.findOneByName(name);
-    
+
     if (!purchaseEntity) {
-        throw new NotFoundException(`Purchase entity with name "${name}" not found.`);
+      throw new NotFoundException(
+        `Purchase entity with name "${name}" not found.`,
+      );
     }
 
     await this.purchaseEntityRepository.remove(purchaseEntity);
@@ -62,5 +78,4 @@ export class PurchaseEntityService {
 
     return purchaseEntity;
   }
-
 }

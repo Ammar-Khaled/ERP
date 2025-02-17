@@ -12,6 +12,14 @@ import { currencyProviders } from 'src/currency/currency.providers';
 @Module({
   imports: [DatabaseModule],
   controllers: [PurchaseRequestController],
-  providers: [PurchaseRequestService, ...purchaseRequestProviders, ...userProviders, ...branchesProviders, ...supplierProviders, ...statusProviders, ...currencyProviders],
+  providers: [
+    PurchaseRequestService,
+    ...purchaseRequestProviders,
+    ...userProviders,
+    ...branchesProviders,
+    ...supplierProviders,
+    ...statusProviders,
+    ...currencyProviders,
+  ],
 })
-export class PurchaseRequestModule { }
+export class PurchaseRequestModule {}
