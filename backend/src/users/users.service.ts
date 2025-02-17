@@ -116,16 +116,12 @@ export class UsersService {
         );
       }
       user.branch = branch;
+      delete updateUserDto.branchId;
     }
 
     if (updateUserDto.address) {
-      if (!user.address) {
-        user.address = await this.addressRepository.save(updateUserDto.address);
-      } else {
-        await this.addressRepository.update(
-          user.address.id,
-          updateUserDto.address,
-        );
+      if (user.address?.id) {
+        updateUserDto.address.id = user.address.id;
       }
     }
 
@@ -140,7 +136,7 @@ export class UsersService {
     }
 
     const addressId = user.address?.id;
-    await this.userRepository.delete(id);
+    await this.userRepository.remove(user);
     await this.addressRepository.delete({ id: addressId });
     return success(user);
   }

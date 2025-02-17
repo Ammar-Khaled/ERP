@@ -33,18 +33,13 @@ export class InventoriesService {
     }
 
     // get the branch
-    let branch: Branch = null;
-    if (createInventoryDto.branchId) {
-      branch = await this.branchRepository.findOneBy({
-        id: createInventoryDto.branchId,
-      });
-      if (!branch) {
-        throw new ConflictException(
-          jsend.error(
-            'Branch not found with id: ' + createInventoryDto.branchId,
-          ),
-        );
-      }
+    const branch = await this.branchRepository.findOneBy({
+      id: createInventoryDto.branchId,
+    });
+    if (!branch) {
+      throw new ConflictException(
+        jsend.error('Branch not found with id: ' + createInventoryDto.branchId),
+      );
     }
 
     // create the inventory
@@ -58,7 +53,7 @@ export class InventoriesService {
 
   async findAll() {
     const inventories = await this.inventoryRepository.find({
-      relations: ['address', 'branch', 'productItemToInventories'],
+      relations: ['branch', 'productItemToInventories'],
     });
     for (let i = 0; i < inventories.length; i++) {
       const piis = inventories[i].productItemToInventories;
@@ -89,9 +84,8 @@ export class InventoriesService {
     }
 
     // update the branch
-    let branch: Branch = null;
     if (updateInventoryDto.branchId) {
-      branch = await this.branchRepository.findOneBy({
+      const branch = await this.branchRepository.findOneBy({
         id: updateInventoryDto.branchId,
       });
       if (!branch) {
@@ -101,23 +95,18 @@ export class InventoriesService {
           ),
         );
       }
+      inventory.branch = branch;
       delete updateInventoryDto.branchId;
     }
 
     if (updateInventoryDto.address) {
-      inventory.address = {
-        ...inventory.address,
-        ...updateInventoryDto.address,
-      };
-      delete updateInventoryDto.address;
+      if (inventory.address?.id) {
+        updateInventoryDto.address.id = inventory.address.id;
+      }
     }
 
-    await this.inventoryRepository.update(id, {
-      ...updateInventoryDto,
-      branch,
-    });
-    await this.inventoryRepository.save(inventory);
-    return jsend.success(await this.inventoryRepository.findOneBy({ id }));
+    Object.assign(inventory, updateInventoryDto);
+    return await this.inventoryRepository.save(inventory);
   }
 
   async remove(id: number) {
@@ -127,11 +116,10 @@ export class InventoriesService {
         jsend.error('Inventory not found with id: ' + id),
       );
     }
+
+    const addressId = inventory.address?.id;
     await this.inventoryRepository.remove(inventory);
-    if (inventory.address) {
-      // TODO: cascade address deletion
-      await this.addressRepository.remove(inventory.address);
-    }
+    await this.addressRepository.delete({ id: addressId });
     return jsend.success(inventory);
   }
 
