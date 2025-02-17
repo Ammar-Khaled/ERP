@@ -26,7 +26,6 @@ import { StatusModule } from './status/status.module';
 import { VariationModule } from './variation/variation.module';
 import { VariationOptionModule } from './variation_option/variation_option.module';
 
-
 @Module({
   imports: [
     DatabaseModule,
@@ -47,7 +46,7 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
     PurchaseEntityModule,
     PurchaseItemModule,
     PurchaseRequestModule,
-    StatusModule
+    StatusModule,
     VariationModule,
     VariationOptionModule,
   ],
