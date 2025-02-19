@@ -21,7 +21,7 @@ export class StatusService {
 
   async findOne(id: number) {
     const status = await this.statusRepository.findOneBy({statusId: id});
-    if (!status) throw new NotFoundException({ message: `No status with ID of "${id}"!`}); 
+    if (!status) throw new NotFoundException({ message: `No status with ID of (${id})!`}); 
     return status;
   }
 
@@ -32,7 +32,11 @@ export class StatusService {
   }
 
   async update(id: number, updateStatusDto: UpdateStatusDto) {
-    return `This action updates a #${id} status`;
+    const status = await this.findOne(id);
+    Object.assign(status, updateStatusDto);
+
+    console.log(`Update status with id: ${id} successfully!`);
+    return await this.statusRepository.save(status);
   }
 
   async remove(id: number) {
