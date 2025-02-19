@@ -67,27 +67,19 @@ export class PurchaseItemService {
     return item;
   }
 
-  async update(name: string, updatePurchaseItemDto: UpdatePurchaseItemDto) {
-    const item = await this.findOneByName(name);
-
-    if (!item) {
-      throw new NotFoundException(`Purchase item "${name}" not found.`);
-    }
+  async update(id: number, updatePurchaseItemDto: UpdatePurchaseItemDto) {
+    const item = await this.findOne(id);
 
     Object.assign(item, updatePurchaseItemDto);
-    console.log(`Updated purchase item "${name}" successfully!`);
+    console.log(`Updated purchase item "${id}" successfully!`);
     return await this.purchaseItemRepository.save(item);
   }
 
-  async remove(name: string) {
-    const item = await this.findOneByName(name);
+  async remove(id: number) {
+    const item = await this.findOne(id);
 
-    if (!item) {
-      throw new NotFoundException(`Purchase item "${name}" not found.`);
-    }
-
-    await this.purchaseItemRepository.delete({ name });
-    console.log(`Removed purchase item "${name}" successfully!`);
+    await this.purchaseItemRepository.delete({ id });
+    console.log(`Removed purchase item "${id}" successfully!`);
     return item;
   }
 }
