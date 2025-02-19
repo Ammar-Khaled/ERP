@@ -40,6 +40,9 @@ export class StatusService {
   }
 
   async remove(id: number) {
-    return `This action removes a #${id} status`;
+    const status = await this.findOne(id);
+    await this.statusRepository.delete({statusId: id});
+    console.log(`Delete status with id: (${id}) successfully!`);
+    return status;
   }
 }
