@@ -24,39 +24,37 @@ export class PurchaseRequest {
 
   /// Foreign keys ///
 
-  //# Fix nullable values, it should be false
-
   @ManyToOne(() => User, (user) => user.purchaseRequests, {
     eager: true,
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
   @ManyToOne(() => Branch, (branch) => branch.purchaseRequests, {
     eager: true,
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
 
   @ManyToOne(() => Supplier, (supplier) => supplier.purchaseRequests, {
     eager: true,
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'supplier_id' })
   supplier: Supplier;
 
   @OneToOne(() => Status, {
     eager: true,
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'status_id' })
   status: Status;
 
   @OneToOne(() => Currency, {
     eager: true,
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'currency_id' })
   currency: Currency;
