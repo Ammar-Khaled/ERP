@@ -30,6 +30,11 @@ export class StatusController {
     return this.statusService.findOne(+id);
   }
 
+  @Get('find-by-name/:name')
+  findOneByName(@Param('name') name: string) {
+    return this.statusService.findOneByName(name);
+  }
+
   @Patch('update/:id')
   update(@Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto) {
     return this.statusService.update(+id, updateStatusDto);

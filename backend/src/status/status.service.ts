@@ -23,6 +23,10 @@ export class StatusService {
     return `This action returns a #${id} status`;
   }
 
+  async findOneByName(name: string) {
+    return `This action returns a #${name} status`;
+  }
+
   async update(id: number, updateStatusDto: UpdateStatusDto) {
     return `This action updates a #${id} status`;
   }
