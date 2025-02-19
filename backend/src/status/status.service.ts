@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateStatusDto } from './dto/create-status.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { Status } from './entities/status.entity';
@@ -16,15 +16,19 @@ export class StatusService {
   }
 
   async findAll() {
-    return `This action returns all status`;
+    return this.statusRepository.find();
   }
 
   async findOne(id: number) {
-    return `This action returns a #${id} status`;
+    const status = await this.statusRepository.findOneBy({statusId: id});
+    if (!status) throw new NotFoundException({ message: `No status with ID of "${id}"!`}); 
+    return status;
   }
 
   async findOneByName(name: string) {
-    return `This action returns a #${name} status`;
+    const status = await this.statusRepository.findOneBy({statusName: name});
+    if (!status) throw new NotFoundException({ message: `No status with name of "${name}"!`}); 
+    return status;
   }
 
   async update(id: number, updateStatusDto: UpdateStatusDto) {
