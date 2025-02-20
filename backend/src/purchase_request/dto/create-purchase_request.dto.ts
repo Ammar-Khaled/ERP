@@ -19,11 +19,10 @@ export class CreatePurchaseRequestDto {
   @IsString()
   supplierName: string;
 
-  @IsOptional()
   @IsString()
-  status?: string; // if not provided, use the default value "Initiated"
+  statusName: string; 
 
   @IsNotEmpty()
   @IsString()
-  currency: string;
+  currencyName: string; 
 }

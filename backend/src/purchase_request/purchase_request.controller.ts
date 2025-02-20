@@ -17,22 +17,22 @@ export class PurchaseRequestController {
     private readonly purchaseRequestService: PurchaseRequestService,
   ) {}
 
-  @Post()
+  @Post('create')
   create(@Body() createPurchaseRequestDto: CreatePurchaseRequestDto) {
     return this.purchaseRequestService.create(createPurchaseRequestDto);
   }
 
-  @Get()
+  @Get('find-all')
   findAll() {
     return this.purchaseRequestService.findAll();
   }
 
-  @Get(':id')
+  @Get('find-by-id/:id')
   findOne(@Param('id') id: string) {
     return this.purchaseRequestService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch('update/:id')
   update(
     @Param('id') id: string,
     @Body() updatePurchaseRequestDto: UpdatePurchaseRequestDto,
@@ -40,7 +40,7 @@ export class PurchaseRequestController {
     return this.purchaseRequestService.update(+id, updatePurchaseRequestDto);
   }
 
-  @Delete(':id')
+  @Delete('delete/:id')
   remove(@Param('id') id: string) {
     return this.purchaseRequestService.remove(+id);
   }
