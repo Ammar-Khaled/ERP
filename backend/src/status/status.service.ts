@@ -20,13 +20,13 @@ export class StatusService {
   }
 
   async findOne(id: number) {
-    const status = await this.statusRepository.findOneBy({statusId: id});
+    const status = await this.statusRepository.findOneBy({id});
     if (!status) throw new NotFoundException({ message: `No status with ID of (${id})!`}); 
     return status;
   }
 
   async findOneByName(name: string) {
-    const status = await this.statusRepository.findOneBy({statusName: name});
+    const status = await this.statusRepository.findOneBy({name});
     if (!status) throw new NotFoundException({ message: `No status with name of "${name}"!`}); 
     return status;
   }
@@ -41,8 +41,9 @@ export class StatusService {
 
   async remove(id: number) {
     const status = await this.findOne(id);
-    await this.statusRepository.delete({statusId: id});
+    await this.statusRepository.delete({id});
     console.log(`Delete status with id: (${id}) successfully!`);
     return status;
   }
 }
+

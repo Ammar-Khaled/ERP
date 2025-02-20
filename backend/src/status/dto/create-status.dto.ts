@@ -4,9 +4,9 @@ export class CreateStatusDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(10)
-  statusName: string;
+  name: string;
 
   @IsOptional()
   @IsString()
-  statusDescription: string;
+  description: string;
 }

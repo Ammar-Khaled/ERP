@@ -3,10 +3,10 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity('statuses')
 export class Status {
   @PrimaryGeneratedColumn()
-  statusId: number;
+  id: number;
 
   @Column({ type: 'varchar', length: 10, unique: true, nullable: false })
-  statusName: string;
+  name: string;
 
   @Column({
     type: 'varchar',
@@ -14,5 +14,5 @@ export class Status {
     default: 'Status Description',
     nullable: true,
   })
-  statusDescription: string;
+  description: string;
 }
