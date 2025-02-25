@@ -7,11 +7,14 @@ export class PurchaseEntity {
   id: number;
 
   //# tofix: unique: true
-  @Column({ type: 'varchar', length: 20, nullable: false, unique: false })
+  @Column({ type: 'varchar', length: 20, nullable: false, unique: true })
   name: string;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
   description: string;
+
+  @Column({type: 'float', nullable: false})
+  unit_price: number;
 
   @OneToMany(() => PurchaseItem, (item) => item.purchaseEntity)
   purchaseItems: PurchaseItem[];

@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreatePurchaseEntityDto } from './dto/create-purchase_entity.dto';
 import { UpdatePurchaseEntityDto } from './dto/update-purchase_entity.dto';
@@ -15,7 +15,11 @@ export class PurchaseEntityService {
   ) {}
 
   async create(createPurchaseEntityDto: CreatePurchaseEntityDto) {
-    //# to fix: check if existed
+    const existedEntity = await this.purchaseEntityRepository.findOneBy({
+      name: createPurchaseEntityDto.name,
+    });
+    if (existedEntity) 
+      throw new ConflictException(`Purchase entity with name "${createPurchaseEntityDto.name}" already existed.`);
 
     const newPurchase = this.purchaseEntityRepository.create(
       createPurchaseEntityDto,
