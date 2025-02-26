@@ -6,7 +6,6 @@ export class PurchaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  //# tofix: unique: true
   @Column({ type: 'varchar', length: 20, nullable: false, unique: true })
   name: string;
 
