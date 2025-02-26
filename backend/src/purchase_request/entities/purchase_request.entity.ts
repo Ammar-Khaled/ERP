@@ -8,9 +8,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { PurchaseItem } from 'src/purchase_item/entities/purchase_item.entity';
 
 @Entity('purchase_requests')
 export class PurchaseRequest {
@@ -58,4 +60,9 @@ export class PurchaseRequest {
   })
   @JoinColumn({ name: 'currency_id' })
   currency: Currency;
+
+  @OneToMany(() => PurchaseItem, (item) => item.purchaseRequest, {
+    eager: true,
+  })
+  purchaseItems: PurchaseItem[];
 }
