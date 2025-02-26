@@ -1,30 +1,41 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { ProductItem } from '../../product_item/entities/product_item.entity'; // Adjust path as needed
-import { Inventory } from '../../inventories/entities/inventory.entity'; // Adjust path as needed
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { ProductItem } from '../../product_item/entities/product_item.entity';
+import { Inventory } from '../../inventories/entities/inventory.entity';
 
 @Entity()
 export class ProductItemToInventory {
   @PrimaryGeneratedColumn()
   id: number; // Primary key
 
-  @Column()
+  @Column('int')
   number_of_items: number; // Total number of items
 
-  @Column()
-  number_of_damaged: number; // Total number of damaged items
+  @Column('int')
+  number_of_damaged: number = 0; // Total number of damaged items
 
+  // Foreign key for ProductItem
   @Column()
-  product_item_id: number; // Foreign key for ProductItem
+  product_item_id: number;
 
-  @Column()
-  inventory_id: number; // Foreign key for Inventory
-
-  @ManyToOne(
-    () => ProductItem,
-    (productItem) => productItem.productItemToInventories,
-  )
+  @ManyToOne(() => ProductItem, (productItem) => productItem.productItemToInventories, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'product_item_id' }) // Explicitly defining the foreign key column
   productItem: ProductItem;
 
-  @ManyToOne(() => Inventory, (inventory) => inventory.productItemToInventories)
+  // Foreign key for Inventory
+  @Column()
+  inventory_id: number;
+
+  @ManyToOne(() => Inventory, (inventory) => inventory.productItemToInventories, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'inventory_id' }) // Explicitly defining the foreign key column
   inventory: Inventory;
 }
