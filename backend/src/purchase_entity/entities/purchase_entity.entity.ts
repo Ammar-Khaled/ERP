@@ -12,7 +12,7 @@ export class PurchaseEntity {
   @Column({ type: 'varchar', length: 200, nullable: true })
   description: string;
 
-  @Column({type: 'float', nullable: false})
+  @Column({type: 'decimal', nullable: false})
   unit_price: number;
 
   @OneToMany(() => PurchaseItem, (item) => item.purchaseEntity)
