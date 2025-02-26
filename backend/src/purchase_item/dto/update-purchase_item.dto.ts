@@ -1,4 +1,13 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreatePurchaseItemDto } from './create-purchase_item.dto';
+import { IsNumber, IsOptional, Min, IsPositive } from 'class-validator';
 
-export class UpdatePurchaseItemDto extends PartialType(CreatePurchaseItemDto) {}
+export class UpdatePurchaseItemDto {
+    @IsOptional()
+    @IsNumber({ allowNaN: false }, { message: 'Please enter a valid number!' })
+    @Min(1, { message: 'Number of items should be at least 1!' })
+    number_of_items?: number;
+
+    @IsOptional()
+    @IsNumber({ allowNaN: false }, { message: 'Please enter a valid number!' })
+    @IsPositive({ message: 'Please enter a positive number!' })
+    discount?: number;
+}

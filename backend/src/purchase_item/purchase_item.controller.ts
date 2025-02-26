@@ -30,11 +30,6 @@ export class PurchaseItemController {
     return this.purchaseItemService.findOne(+id);
   }
 
-  @Get('find-by-name/:name')
-  findOneByName(@Param('name') name: string) {
-    return this.purchaseItemService.findOneByName(name);
-  }
-
   @Patch('update/:id')
   update(
     @Param('id') id: string,
