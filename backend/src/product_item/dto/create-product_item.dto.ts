@@ -39,31 +39,11 @@ export class CreateProductItemDto {
 
   @IsNotEmpty()
   @IsNumber()
-  category_id: number; // Foreign key for category
-
-  @IsOptional() // Optional because it might default to true
-  @IsBoolean()
-  isActive?: boolean = true; // Whether the product is active (optional, default is true)
-
-  @IsNotEmpty()
-  @IsNumber()
-  unit_id: number; // Foreign key for unit
-
-  @IsNotEmpty()
-  @IsNumber()
-  currency_id: number;
-
-  @IsNotEmpty()
-  @IsString()
-  mainPhoto: string; // Main photo URL or path
-
-  @IsNotEmpty()
-  @IsNumber()
-  branch_id: number; // Foreign key for branch
-
-  @IsNotEmpty()
-  @IsNumber()
   inventory_id: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  product_id: number;
 
   // Add this to specify multiple variation options for the product item
   @IsArray()

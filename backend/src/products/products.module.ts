@@ -7,8 +7,9 @@ import { branchesProviders } from 'src/branches/branches.providers';
 import { categoriesProviders } from 'src/categories/categories.providers';
 import { unitsProviders } from 'src/units/units.providers';
 import { currencyProviders } from 'src/currency/currency.providers';
+import { ProductItemModule } from 'src/product_item/product_item.module';
 @Module({
-  imports: [DatabaseModule], // Include the DatabaseModule for DataSource injection
+  imports: [DatabaseModule, ProductItemModule], // Include the DatabaseModule for DataSource injection
   controllers: [ProductsController],
   providers: [...productsProviders, ...branchesProviders, ... categoriesProviders,...unitsProviders, ...currencyProviders, ProductsService], // Add productsProviders to the module
   exports: [ProductsService], // Export ProductsService if other modules need it

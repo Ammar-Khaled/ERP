@@ -42,32 +42,19 @@ export class ProductItemService {
   ) {}
 
   async create(createProductItemDto: CreateProductItemDto) {
-    // Validate and fetch related entities in parallel
-    const [branch, category, unit, currency] = await Promise.all([
-      this.branchRepository.findOneBy({ id: createProductItemDto.branch_id }),
-      this.categoryRepository.findOneBy({
-        id: createProductItemDto.category_id,
-      }),
-      this.unitRepository.findOneBy({ id: createProductItemDto.unit_id }),
-      this.currencyRepository.findOneBy({
-        id: createProductItemDto.currency_id,
-      }),
-    ]);
-
-    if (!branch || !category || !unit || !currency) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'One or more related entities not found.' }),
-      );
-    }
-
     // Create base product item entity
     const productItem = this.productItemRepository.create({
       ...createProductItemDto,
-      branch,
-      category,
-      unit,
-      currency,
     });
+
+    const product = await this.productRepository.findOne({
+      where: { id: createProductItemDto.product_id },
+    });
+    if (!product) {
+      throw new NotFoundException(
+        jsend.fail({ message: 'Product not found.' }),
+      );
+    }
 
     // Process variations in a transaction
     return this.productItemRepository.manager.transaction(
@@ -203,54 +190,16 @@ export class ProductItemService {
       'Product item not found',
     );
 
-    // Validate and link branch_id if provided
-    if (updateProductItemDto.branch_id) {
-      const branch = await this.branchRepository.findOne({
-        where: { id: updateProductItemDto.branch_id },
+    if (updateProductItemDto.product_id) {
+      const product = await this.productRepository.findOne({
+        where: { id: updateProductItemDto.product_id },
       });
-      if (!branch) {
+      if (!product) {
         throw new NotFoundException(
-          jsend.fail({ message: 'Branch not found.' }),
+          jsend.fail({ message: 'Product not found.' }),
         );
       }
-      productItem.branch = branch;
-    }
-
-    // Validate and link category_id if provided
-    if (updateProductItemDto.category_id) {
-      const category = await this.categoryRepository.findOne({
-        where: { id: updateProductItemDto.category_id },
-      });
-      if (!category) {
-        throw new NotFoundException(
-          jsend.fail({ message: 'Category not found.' }),
-        );
-      }
-      productItem.category = category;
-    }
-
-    // Validate and link unit_id if provided
-    if (updateProductItemDto.unit_id) {
-      const unit = await this.unitRepository.findOne({
-        where: { id: updateProductItemDto.unit_id },
-      });
-      if (!unit) {
-        throw new NotFoundException(jsend.fail({ message: 'Unit not found.' }));
-      }
-      productItem.unit = unit;
-    }
-
-    // Validate and link currency_id if provided
-    if (updateProductItemDto.currency_id) {
-      const currency = await this.currencyRepository.findOne({
-        where: { id: updateProductItemDto.currency_id },
-      });
-      if (!currency) {
-        throw new NotFoundException(
-          jsend.fail({ message: 'Currency not found.' }),
-        );
-      }
-      productItem.currency = currency;
+      productItem.product = product; // Associate the Branch entity
     }
 
     // Handle variation options - Keep existing ones & add new ones
