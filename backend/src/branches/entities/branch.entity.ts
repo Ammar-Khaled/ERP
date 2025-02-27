@@ -16,6 +16,7 @@ import {
   IsPhoneNumber,
   IsString,
 } from 'class-validator';
+import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
 
 @Entity('branches')
 export class Branch {
@@ -44,7 +45,7 @@ export class Branch {
   isActive: boolean;
 
   @OneToOne(() => Address, { eager: true, cascade: true })
-  @JoinColumn({ name: 'address_id' })
+  @JoinColumn()
   address: Address;
 
   @OneToMany(() => User, (user) => user.branch)
@@ -52,4 +53,10 @@ export class Branch {
 
   @OneToMany(() => Inventory, (inventory) => inventory.branch)
   inventories: Inventory[];
+
+  @OneToMany(
+    () => PurchaseRequest,
+    (purchaseRequests) => purchaseRequests.branch,
+  )
+  purchaseRequests: PurchaseRequest[];
 }

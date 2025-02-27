@@ -6,6 +6,9 @@ import { AuthController } from './auth.controller';
 import { jwtConstants } from './constants';
 import { userProviders } from '../users/users.providers';
 import { DatabaseModule } from '../common/database.module';
+import { config } from 'dotenv';
+
+config();
 
 @Module({
   imports: [
@@ -14,7 +17,7 @@ import { DatabaseModule } from '../common/database.module';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '24h' },
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '24h' },
     }),
   ],
   providers: [AuthService, ...userProviders],

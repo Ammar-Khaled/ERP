@@ -4,7 +4,7 @@ import { UsersController } from './users.controller';
 import { userProviders } from './users.providers';
 import { DatabaseModule } from '../common/database.module';
 import { addressProviders } from '../common/address.providers';
-import { roleProviders } from '../roles/roles.providers';
+import { rolesProviders } from '../roles/roles.providers';
 import { branchesProviders } from '../branches/branches.providers';
 
 @Module({
@@ -13,7 +13,7 @@ import { branchesProviders } from '../branches/branches.providers';
   providers: [
     ...userProviders,
     ...addressProviders,
-    ...roleProviders,
+    ...rolesProviders,
     ...branchesProviders,
     UsersService,
   ],

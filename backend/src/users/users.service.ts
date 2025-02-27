@@ -8,14 +8,14 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { In, Repository } from 'typeorm';
-import { Address } from '../common/entities/address.entity';
+import { Repository } from 'typeorm';
 import { hash } from 'bcrypt';
 import { error, success } from 'jsend';
 import { Role } from '../roles/entities/role.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { config } from 'dotenv';
 import * as process from 'node:process';
+import { Address } from '../common/entities/address.entity';
 
 config();
 
@@ -23,47 +23,28 @@ config();
 export class UsersService {
   constructor(
     @Inject('USER_REPOSITORY') private userRepository: Repository<User>,
-    @Inject('ADDRESS_REPOSITORY')
-    private addressRepository: Repository<Address>,
     @Inject('ROLE_REPOSITORY') private roleRepository: Repository<Role>,
     @Inject('BRANCH_REPOSITORY') private branchRepository: Repository<Branch>,
+    @Inject('ADDRESS_REPOSITORY')
+    private addressRepository: Repository<Address>,
   ) {}
 
   async findAll() {
-    return success(await this.userRepository.find());
+    const users = await this.userRepository.find();
+    users.forEach((user) => delete user.password);
+    return success(users);
   }
 
-  async findOne(id: number) {
-    const user = await this.userRepository.findOneBy({ id });
-    if (!user)
-      throw new NotFoundException(
-        error({
-          message: 'User not found',
-          code: HttpStatus.NOT_FOUND,
-          data: null,
-        }),
-      );
-    return success(user);
-  }
-
-  async findOneByUsername(username: string) {
-    const user = await this.userRepository.findOneBy({ username });
-    if (!user)
-      throw new NotFoundException(
-        error({
-          message: 'User not found',
-          code: HttpStatus.NOT_FOUND,
-          data: null,
-        }),
-      );
-    return user;
+  async findOneByCondition(condition: object, relations?: string[]) {
+    return await this.userRepository.findOne({
+      where: condition,
+      relations: relations,
+    });
   }
 
   async create(createUserDto: CreateUserDto) {
     const existingUser =
-      (await this.userRepository.findOneBy({
-        email: createUserDto.email,
-      })) ||
+      (await this.userRepository.findOneBy({ email: createUserDto.email })) ||
       (await this.userRepository.findOneBy({
         username: createUserDto.username,
       }));
@@ -76,34 +57,48 @@ export class UsersService {
         }),
       );
 
-    const roles = await this.roleRepository.findBy({
-      id: In(createUserDto.roleIds || []),
-    });
+    const roles = [];
+    for (const id of createUserDto.roleIds || []) {
+      const role = await this.roleRepository.findOneBy({ id });
+      if (!role) {
+        throw new ConflictException(error('Role not found with id: ' + id));
+      }
+      roles.push(role);
+    }
 
-    const branch = await this.branchRepository.findOneBy({
-      id: createUserDto.branchId,
-    });
+    let branch = null;
+    if (createUserDto.branchId) {
+      branch = await this.branchRepository.findOneBy({
+        id: createUserDto.branchId,
+      });
+      if (!branch) {
+        throw new ConflictException(
+          error('Branch not found with id: ' + createUserDto.branchId),
+        );
+      }
+    }
 
     createUserDto.password = await hash(
       createUserDto.password,
       Number(process.env.BCRYPT_SALT_ROUNDS),
     );
 
-    if (createUserDto.address) {
-      const address = this.addressRepository.create(createUserDto.address);
-      await this.addressRepository.save(address);
-    }
-
     const new_user = this.userRepository.create({
       ...createUserDto,
       roles,
       branch,
     });
-    return success(await this.userRepository.save(new_user));
+
+    await this.userRepository.save(new_user);
+    delete new_user.password;
+    return success(new_user);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.findOne(id)['data'];
+    const user = await this.findOneByCondition({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     if (updateUserDto.password) {
       updateUserDto.password = await hash(
@@ -113,28 +108,35 @@ export class UsersService {
     }
 
     if (updateUserDto.roleIds) {
-      user.roles = await this.roleRepository.findBy({
-        id: In(updateUserDto.roleIds),
-      });
+      const roles = [];
+      for (const id of updateUserDto.roleIds) {
+        const role = await this.roleRepository.findOneBy({ id });
+        if (!role) {
+          throw new ConflictException(error('Role not found with id: ' + id));
+        }
+        roles.push(role);
+      }
+      user.roles = roles;
+      delete updateUserDto.roleIds;
     }
 
-    // get the branch
-    const branch = await this.branchRepository.findOneBy({
-      id: updateUserDto.branchId,
-    });
-    if (!branch) {
-      throw new ConflictException(
-        error('Branch not found with id: ' + updateUserDto.branchId),
-      );
+    if (updateUserDto.branchId) {
+      const branch = await this.branchRepository.findOneBy({
+        id: updateUserDto.branchId,
+      });
+      if (!branch) {
+        throw new ConflictException(
+          error('Branch not found with id: ' + updateUserDto.branchId),
+        );
+      }
+      user.branch = branch;
+      delete updateUserDto.branchId;
     }
-    user.branch = branch;
 
     if (updateUserDto.address) {
-      const address = this.addressRepository.create(updateUserDto.address);
-      await this.addressRepository.save(address);
-      // Object.assign(user.address, updateUserDto.address);
-    } else {
-      user.address = null;
+      if (user.address?.id) {
+        updateUserDto.address.id = user.address.id;
+      }
     }
 
     Object.assign(user, updateUserDto);
@@ -142,9 +144,14 @@ export class UsersService {
   }
 
   async remove(id: number) {
-    const user = await this.findOne(id);
-    await this.userRepository.delete({ id });
-    console.log('User is deleted successfully.');
-    return user;
+    const user = await this.findOneByCondition({ id });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const addressId = user.address?.id;
+    await this.userRepository.remove(user);
+    await this.addressRepository.delete({ id: addressId });
+    return success(user);
   }
 }

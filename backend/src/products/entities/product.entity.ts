@@ -1,12 +1,12 @@
 // src/products/entities/product.entity.ts
 
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  Entity,
   JoinColumn,
-  OneToMany, // Add this import
+  OneToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Branch } from '../../branches/entities/branch.entity';
 import { Category } from '../../categories/entities/category.entity';

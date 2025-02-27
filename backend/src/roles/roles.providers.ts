@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { Role } from './entities/role.entity';
 
-export const roleProviders = [
+export const rolesProviders = [
   {
     provide: 'ROLE_REPOSITORY',
     useFactory: (dataSource: DataSource) => dataSource.getRepository(Role),

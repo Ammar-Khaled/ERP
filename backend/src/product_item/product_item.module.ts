@@ -16,7 +16,17 @@ import { ProductItemInventoryModule } from 'src/product_item_inventory/product_i
 @Module({
   imports: [DatabaseModule, ProductItemInventoryModule], // Include the DatabaseModule for DataSource injection
   controllers: [ProductItemController], // Add ProductItem controller
-  providers: [...productItemProviders,...branchesProviders, ...currencyProviders, ...unitsProviders, ...categoriesProviders, ...productsProviders,...variationsProviders , ...variationOptionsProviders, ProductItemService], // Add providers including related products
+  providers: [
+    ...productItemProviders,
+    ...branchesProviders,
+    ...currencyProviders,
+    ...unitsProviders,
+    ...categoriesProviders,
+    ...productsProviders,
+    ...variationsProviders,
+    ...variationOptionsProviders,
+    ProductItemService
+  ], // Add providers including related products
   exports: [ProductItemService], // Export ProductItemsService if other modules need it
 })
 export class ProductItemModule {}

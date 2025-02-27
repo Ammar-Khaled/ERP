@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { VariationService } from './variation.service';
 import { CreateVariationDto } from './dto/create-variation.dto';
 import { UpdateVariationDto } from './dto/update-variation.dto';
@@ -23,7 +31,10 @@ export class VariationController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVariationDto: UpdateVariationDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateVariationDto: UpdateVariationDto,
+  ) {
     return this.variationService.update(+id, updateVariationDto);
   }
 

@@ -34,7 +34,7 @@ export class Inventory {
   address: Address;
 
   @ManyToOne(() => Branch, (branch) => branch.inventories)
-  @JoinColumn({ name: 'branch_id' })
+  @JoinColumn()
   branch: Branch;
 
   @OneToMany(
