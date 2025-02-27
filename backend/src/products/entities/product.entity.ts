@@ -4,8 +4,8 @@ import {
   Column,
   Entity,
   JoinColumn,
-  OneToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Branch } from '../../branches/entities/branch.entity';

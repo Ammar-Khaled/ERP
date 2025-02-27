@@ -6,7 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { MoreThan, In, Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { ProductItem } from './entities/product_item.entity';
 import { Product } from '../products/entities/product.entity';
 import { CreateProductItemDto } from './dto/create-product_item.dto';
@@ -21,6 +21,7 @@ import { Branch } from 'src/branches/entities/branch.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Unit } from 'src/units/entities/unit.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
+
 @Injectable()
 export class ProductItemService {
   constructor(

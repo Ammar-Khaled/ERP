@@ -10,11 +10,12 @@ import {
 import { VariationOptionService } from './variation_option.service';
 import { CreateVariationOptionDto } from './dto/create-variation_option.dto';
 import { UpdateVariationOptionDto } from './dto/update-variation_option.dto';
-import { Public } from 'src/auth/auth.guard';
 
 @Controller('variation-option')
 export class VariationOptionController {
-  constructor(private readonly variationOptionService: VariationOptionService) {}
+  constructor(
+    private readonly variationOptionService: VariationOptionService,
+  ) {}
 
   @Post()
   create(@Body() createVariationOptionDto: CreateVariationOptionDto) {

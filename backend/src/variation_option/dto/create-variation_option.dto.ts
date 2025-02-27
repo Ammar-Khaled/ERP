@@ -1,6 +1,5 @@
-import { isNotEmpty, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { CreateVariationDto } from 'src/variation/dto/create-variation.dto';
 import { IsNotEmpty, IsString } from 'class-validator';
+import { CreateVariationDto } from 'src/variation/dto/create-variation.dto';
 
 export class CreateVariationOptionDto {
   @IsNotEmpty({ message: 'The name must not be empty.' })

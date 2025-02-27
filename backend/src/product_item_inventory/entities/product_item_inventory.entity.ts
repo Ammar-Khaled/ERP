@@ -23,9 +23,13 @@ export class ProductItemToInventory {
   @Column()
   product_item_id: number;
 
-  @ManyToOne(() => ProductItem, (productItem) => productItem.productItemToInventories, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(
+    () => ProductItem,
+    (productItem) => productItem.productItemToInventories,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
   @JoinColumn({ name: 'product_item_id' }) // Explicitly defining the foreign key column
   productItem: ProductItem;
 
@@ -33,9 +37,13 @@ export class ProductItemToInventory {
   @Column()
   inventory_id: number;
 
-  @ManyToOne(() => Inventory, (inventory) => inventory.productItemToInventories, {
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(
+    () => Inventory,
+    (inventory) => inventory.productItemToInventories,
+    {
+      onDelete: 'CASCADE',
+    },
+  )
   @JoinColumn({ name: 'inventory_id' }) // Explicitly defining the foreign key column
   inventory: Inventory;
 }

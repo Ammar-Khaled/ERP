@@ -3,7 +3,6 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsBoolean,
   IsString,
 } from 'class-validator';
 import { CreateVariationOptionDto } from 'src/variation_option/dto/create-variation_option.dto';

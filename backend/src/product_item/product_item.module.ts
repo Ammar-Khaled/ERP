@@ -7,7 +7,6 @@ import { productsProviders } from '../products/products.providers'; // Import Pr
 import { variationOptionsProviders } from 'src/variation_option/variation_option.providers';
 import { variationsProviders } from 'src/variation/variation.providers';
 import { branchesProviders } from 'src/branches/branches.providers';
-import { Currency } from 'src/currency/entities/currency.entity';
 import { currencyProviders } from 'src/currency/currency.providers';
 import { unitsProviders } from 'src/units/units.providers';
 import { categoriesProviders } from 'src/categories/categories.providers';
@@ -25,7 +24,7 @@ import { ProductItemInventoryModule } from 'src/product_item_inventory/product_i
     ...productsProviders,
     ...variationsProviders,
     ...variationOptionsProviders,
-    ProductItemService
+    ProductItemService,
   ], // Add providers including related products
   exports: [ProductItemService], // Export ProductItemsService if other modules need it
 })

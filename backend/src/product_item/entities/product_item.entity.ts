@@ -2,20 +2,15 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
-  ManyToMany,
-  JoinTable,
   PrimaryGeneratedColumn,
-  Unique,
 } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
 import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity';
 import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Assuming a VariationOption entity exists
-import { Category } from 'src/categories/entities/category.entity';
-import { Unit } from 'src/units/entities/unit.entity';
-import { Currency } from 'src/currency/entities/currency.entity';
-import { Branch } from 'src/branches/entities/branch.entity';
 @Entity()
 export class ProductItem {
   @PrimaryGeneratedColumn()
