@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
-import { RoleService } from './role.service';
-import { RoleController } from './role.controller';
+import { RolesService } from './roles.service';
+import { RolesController } from './roles.controller';
 import { DatabaseModule } from '../common/database.module';
 import { userProviders } from '../users/users.providers';
 import { permissionProviders } from '../permissions/permissions.providers';
-import { roleProviders } from './roles.providers';
+import { rolesProviders } from './roles.providers';
 
 @Module({
   imports: [DatabaseModule],
   providers: [
-    RoleService,
-    ...roleProviders,
+    RolesService,
+    ...rolesProviders,
     ...userProviders,
     ...permissionProviders,
   ],
-  controllers: [RoleController],
+  controllers: [RolesController],
 })
-export class RoleModule {}
+export class RolesModule {}

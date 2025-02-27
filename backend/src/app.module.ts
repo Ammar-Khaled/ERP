@@ -6,7 +6,7 @@ import { UsersModule } from './users/users.module';
 import { ClientsModule } from './clients/clients.module';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './common/database.module';
-import { RoleModule } from './roles/role.module';
+import { RolesModule } from './roles/roles.module';
 import { PermissionModule } from './permissions/permission.module';
 import { BranchesModule } from './branches/branches.module';
 import { InventoriesModule } from './inventories/inventories.module';
@@ -33,7 +33,7 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
     UsersModule,
     ClientsModule,
     AuthModule,
-    RoleModule,
+    RolesModule,
     PermissionModule,
     BranchesModule,
     InventoriesModule,
