@@ -1,7 +1,10 @@
+// src/products/entities/product.entity.ts
+
 import {
   Column,
   Entity,
   JoinColumn,
+  OneToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -9,55 +12,60 @@ import { Branch } from '../../branches/entities/branch.entity';
 import { Category } from '../../categories/entities/category.entity';
 import { Unit } from '../../units/entities/unit.entity';
 import { Currency } from '../../currency/entities/currency.entity';
+import { ProductItem } from '../../product_item/entities/product_item.entity'; // Add this import
 
 @Entity()
 export class Product {
   @PrimaryGeneratedColumn()
-  id: number; // Primary key
+  id: number;
 
   @Column()
-  name: string; // Product name
+  name: string;
 
   @Column()
-  type: string; // Product type
+  type: string;
 
   @Column()
-  quantity: number; // Product quantity
+  quantity: number;
 
   @Column()
-  mainPhoto: string; // URL or path to the main photo
+  mainPhoto: string;
 
   @Column()
-  branch_id: number; // Foreign key for branch
+  branch_id: number;
 
-  @ManyToOne(() => Branch) // Relationship with Branch entity
-  @JoinColumn({ name: 'branch_id' }) // Join column for the branch foreign key
-  branch: Branch; // The associated branch
+  @ManyToOne(() => Branch)
+  @JoinColumn({ name: 'branch_id' })
+  branch: Branch;
 
-  @Column({ nullable: true }) // Optional field
-  brand: string; // Product brand
+  @Column({ nullable: true })
+  brand: string;
 
   @Column()
-  category_id: number; // Foreign key for category
+  category_id: number;
 
-  @ManyToOne(() => Category) // Relationship with Category entity
-  @JoinColumn({ name: 'category_id' }) // Join column for the category foreign key
-  category: Category; // The associated category
+  @ManyToOne(() => Category)
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
 
   @Column({ default: true })
-  isActive: boolean; // Whether the product is active
+  isActive: boolean;
 
   @Column()
-  unit_id: number; // Foreign key for unit
+  unit_id: number;
 
-  @ManyToOne(() => Unit) // Relationship with Unit entity
-  @JoinColumn({ name: 'unit_id' }) // Join column for the unit foreign key
-  unit: Unit; // The associated unit
+  @ManyToOne(() => Unit)
+  @JoinColumn({ name: 'unit_id' })
+  unit: Unit;
 
   @Column()
-  currency_id: number; // Foreign key for currency
+  currency_id: number;
 
-  @ManyToOne(() => Currency) // Relationship with Currency entity
-  @JoinColumn({ name: 'currency_id' }) // Join column for the currency foreign key
-  currency: Currency; // The associated currency
+  @ManyToOne(() => Currency)
+  @JoinColumn({ name: 'currency_id' })
+  currency: Currency;
+
+  // Add OneToMany relationship with ProductItem
+  @OneToMany(() => ProductItem, (productItem) => productItem.product)
+  productItems: ProductItem[];
 }
