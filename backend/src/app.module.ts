@@ -16,7 +16,7 @@ import { ProductItemModule } from './product_item/product_item.module';
 import { ProductItemInventoryModule } from './product_item_inventory/product_item_inventory.module';
 import { UnitsModule } from './units/units.module';
 import { CurrencyModule } from './currency/currency.module';
-import { RolesGuard } from './auth/roles.guard';
+import { PermissionsGuard } from './auth/permissions.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
 import { PurchaseEntityModule } from './purchase_entity/purchase_entity.module';
@@ -58,8 +58,8 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
       useClass: AuthGuard,
     },
     {
-      provide: 'APP_GUARD',
-      useClass: RolesGuard,
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
     },
   ],
 })

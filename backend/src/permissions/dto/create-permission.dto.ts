@@ -16,14 +16,6 @@ export class CreatePermissionDto {
   @IsString()
   description?: string;
 
-  @IsNotEmpty()
-  @IsString()
-  controller: string;
-
-  @IsNotEmpty()
-  @IsString()
-  action: string;
-
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
