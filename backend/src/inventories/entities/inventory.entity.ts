@@ -22,9 +22,9 @@ export class Inventory {
   @Column({ type: 'bool', default: true })
   isActive: boolean;
 
-  total_product_items: number;
+  total_product_items: number = 0;
 
-  total_damaged_items: number;
+  total_damaged_items: number = 0;
 
   @OneToOne(() => Address, {
     eager: true,

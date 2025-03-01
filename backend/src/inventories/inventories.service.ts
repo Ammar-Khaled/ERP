@@ -9,6 +9,7 @@ import * as jsend from 'jsend';
 import { success } from 'jsend';
 import { ProductItemToInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
 import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
+import { ProductItem } from '../product_item/entities/product_item.entity';
 
 @Injectable()
 export class InventoriesService {
@@ -19,6 +20,8 @@ export class InventoriesService {
     private branchRepository: Repository<Branch>,
     @Inject('ADDRESS_REPOSITORY')
     private addressRepository: Repository<Address>,
+    @Inject('PRODUCT_ITEM_REPOSITORY')
+    private productItemRepository: Repository<ProductItem>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
     private productItemInventoryRepository: Repository<ProductItemToInventory>,
   ) {}
@@ -57,8 +60,6 @@ export class InventoriesService {
     });
     for (let i = 0; i < inventories.length; i++) {
       const piis = inventories[i].productItemToInventories;
-      inventories[i].total_product_items = 0;
-      inventories[i].total_damaged_items = 0;
       for (const pii of piis) {
         inventories[i].total_product_items += pii.number_of_items;
         inventories[i].total_damaged_items += pii.number_of_damaged;
@@ -70,8 +71,19 @@ export class InventoriesService {
   async findOne(id: number) {
     const inventory = await this.inventoryRepository.findOne({
       where: { id },
-      relations: ['branch'],
+      relations: ['branch', 'productItemToInventories'],
     });
+    if (!inventory) {
+      throw new ConflictException(
+        jsend.error('Inventory not found with id: ' + id),
+      );
+    }
+
+    for (const pii of inventory.productItemToInventories) {
+      inventory.total_product_items += pii.number_of_items;
+      inventory.total_damaged_items += pii.number_of_damaged;
+    }
+
     return jsend.success(inventory);
   }
 
@@ -146,6 +158,19 @@ export class InventoriesService {
         jsend.error(
           'Target inventory not found with id: ' +
             transferProductItemsDto.targetInventoryId,
+        ),
+      );
+    }
+
+    // validate the product item
+    const productItem = await this.productItemRepository.findOneBy({
+      id: transferProductItemsDto.productItemId,
+    });
+    if (!productItem) {
+      throw new ConflictException(
+        jsend.error(
+          'Product item not found with id: ' +
+            transferProductItemsDto.productItemId,
         ),
       );
     }
