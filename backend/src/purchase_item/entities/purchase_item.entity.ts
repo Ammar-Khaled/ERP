@@ -14,7 +14,7 @@ import {
 export class PurchaseItem {
   @PrimaryGeneratedColumn()
   id: number;
-  
+
   @ManyToOne(() => PurchaseEntity, (entity) => entity.purchaseItems, {
     eager: true,
     nullable: false,
@@ -31,16 +31,17 @@ export class PurchaseItem {
   @Column({ type: 'decimal', nullable: false })
   total_price: number;
   // auto calculate the total price, before inserting a new entity and when updating.
+  @ManyToOne(() => PurchaseRequest, (request) => request.purchaseItems, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'purchase_request_id' })
+  purchaseRequest: PurchaseRequest;
+
   // Note: only called when detecting ACTUAL update!
   @BeforeInsert()
   @BeforeUpdate()
   calculateTotalPrice() {
-    this.total_price = this.number_of_items * this.purchaseEntity.unit_price - this.discount;
+    this.total_price =
+      this.number_of_items * this.purchaseEntity.unit_price - this.discount;
   }
-
-  @ManyToOne(() => PurchaseRequest, (request) => request.purchaseItems, {
-    nullable: true
-  })
-  @JoinColumn({ name: 'purchase_request_id' })
-  purchaseRequest: PurchaseRequest;
 }

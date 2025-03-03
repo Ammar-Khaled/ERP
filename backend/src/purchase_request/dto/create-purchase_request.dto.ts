@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+  IsDate,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { CreatePurchaseItemDto } from 'src/purchase_item/dto/create-purchase_item.dto';
 
 export class CreatePurchaseRequestDto {
@@ -21,11 +27,11 @@ export class CreatePurchaseRequestDto {
   supplierName: string;
 
   @IsString()
-  statusName: string; 
+  statusName: string;
 
   @IsNotEmpty()
   @IsString()
-  currencyName: string; 
+  currencyName: string;
 
   @IsNotEmpty()
   @ValidateNested({ each: true }) // Validates each element in the array

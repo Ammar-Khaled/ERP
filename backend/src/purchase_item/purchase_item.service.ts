@@ -5,7 +5,6 @@ import { config } from 'dotenv';
 import { PurchaseItem } from './entities/purchase_item.entity';
 import { Repository } from 'typeorm';
 import { PurchaseEntity } from 'src/purchase_entity/entities/purchase_entity.entity';
-import { PurchaseEntityService } from 'src/purchase_entity/purchase_entity.service';
 
 config();
 
@@ -16,7 +15,7 @@ export class PurchaseItemService {
     private purchaseItemRepository: Repository<PurchaseItem>,
     @Inject('PURCHASE_ENTITY_REPOSITORY')
     private purchaseEntityRepository: Repository<PurchaseEntity>,
-  ) { }
+  ) {}
 
   async create(createPurchaseItemDto: CreatePurchaseItemDto) {
     const newPurchaseItem = new PurchaseItem();
@@ -54,7 +53,7 @@ export class PurchaseItemService {
   }
 
   async update(id: number, updatePurchaseItemDto: UpdatePurchaseItemDto) {
-    const purchaseItem = await this.findOne(id); 
+    const purchaseItem = await this.findOne(id);
     Object.assign(purchaseItem, updatePurchaseItemDto);
 
     console.log(`Updated purchase item "${id}" successfully!`);

@@ -11,7 +11,7 @@ export class CreatePurchaseItemDto {
   @IsNotEmpty({ message: 'Purchase entity name must not be empty.' })
   @IsString({ message: 'Purchase entity name must be a string.' })
   purchaseEntityName: string;
-  
+
   @IsNotEmpty()
   @IsNumber({ allowNaN: false }, { message: 'Please enter a valid number!' })
   @Min(1, { message: 'Number of items should be at least 1!' })
