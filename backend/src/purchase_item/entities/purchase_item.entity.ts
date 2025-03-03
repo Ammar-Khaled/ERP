@@ -39,7 +39,7 @@ export class PurchaseItem {
   }
 
   @ManyToOne(() => PurchaseRequest, (request) => request.purchaseItems, {
-    nullable: false
+    nullable: true
   })
   @JoinColumn({ name: 'purchase_request_id' })
   purchaseRequest: PurchaseRequest;

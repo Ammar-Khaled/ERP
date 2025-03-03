@@ -8,6 +8,9 @@ import { branchesProviders } from 'src/branches/branches.providers';
 import { supplierProviders } from 'src/supplier/suppliers.providers';
 import { statusProviders } from 'src/status/status.providers';
 import { currencyProviders } from 'src/currency/currency.providers';
+import { PurchaseItemService } from 'src/purchase_item/purchase_item.service';
+import { purchaseItemProviders } from 'src/purchase_item/purchase_item.providers';
+import { purchaseEntityProviders } from 'src/purchase_entity/purchase_entity.providers';
 
 @Module({
   imports: [DatabaseModule],
@@ -20,6 +23,9 @@ import { currencyProviders } from 'src/currency/currency.providers';
     ...supplierProviders,
     ...statusProviders,
     ...currencyProviders,
+    PurchaseItemService,
+    ...purchaseItemProviders,
+    ...purchaseEntityProviders,
   ],
 })
 export class PurchaseRequestModule {}

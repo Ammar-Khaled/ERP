@@ -53,14 +53,16 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-    {
-      provide: 'APP_GUARD',
-      useClass: RolesGuard,
-    },
+    
+    //# IMPORTANT to fix
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard,
+    // },
+    // {
+    //   provide: 'APP_GUARD',
+    //   useClass: RolesGuard,
+    // },
   ],
 })
 export class AppModule {}

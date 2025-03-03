@@ -63,6 +63,7 @@ export class PurchaseRequest {
 
   @OneToMany(() => PurchaseItem, (item) => item.purchaseRequest, {
     eager: true,
+    cascade: ['insert'],
   })
   purchaseItems: PurchaseItem[];
 }

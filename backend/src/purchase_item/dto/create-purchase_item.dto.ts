@@ -21,4 +21,6 @@ export class CreatePurchaseItemDto {
   @IsNumber({ allowNaN: false }, { message: 'Please enter a valid number!' })
   @IsPositive({ message: 'Please enter a positive number!' })
   discount?: number;
+
+  //# get the request id and search for it?
 }

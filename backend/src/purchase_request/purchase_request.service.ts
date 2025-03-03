@@ -9,6 +9,8 @@ import { Branch } from 'src/branches/entities/branch.entity';
 import { Supplier } from 'src/supplier/entities/supplier.entity';
 import { Status } from 'src/status/entities/status.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
+import { CreatePurchaseItemDto } from 'src/purchase_item/dto/create-purchase_item.dto';
+import { PurchaseItemService } from 'src/purchase_item/purchase_item.service';
 
 config();
 
@@ -24,11 +26,13 @@ export class PurchaseRequestService {
     @Inject('STATUS_REPOSITORY') private statusRepository: Repository<Status>,
     @Inject('CURRENCY_REPOSITORY')
     private currencyRepository: Repository<Currency>,
+    
+    private readonly purchaseItemService: PurchaseItemService
   ) {}
 
   async create(createPurchaseRequestDto: CreatePurchaseRequestDto) {
     const newPurchaseRequest = new PurchaseRequest();
-    newPurchaseRequest.date = createPurchaseRequestDto.date;
+    newPurchaseRequest.date = createPurchaseRequestDto.date || new Date();
 
     // Handle the user
     const user = await this.userRepository.findOneBy({username: createPurchaseRequestDto.userName});
@@ -55,6 +59,36 @@ export class PurchaseRequestService {
     if (!currency) throw new NotFoundException({message: `This currency name is not found!`});
     newPurchaseRequest.currency = currency;
 
+    // Handle the array of purchase items
+    // Ensuring the items are unique based on the name of the purchase entity in the final result
+    // by incrementing the quantity if found duplicated items 
+    const purchaseItemsDtos = createPurchaseRequestDto.purchaseItemsDtos;
+    const uniquePurchaseItemsDtos = purchaseItemsDtos.reduce((visited, item) => {
+      const existingItem = visited.find((i) => i.purchaseEntityName === item.purchaseEntityName);
+      if (existingItem)
+        existingItem.number_of_items += item.number_of_items;
+      else visited.push(item);
+
+      return visited;
+    }, [] as CreatePurchaseItemDto[]);
+
+    //# send the request id to the purchase items
+    
+    // Use the unique purhcase items dtos to create the purchase items entities
+    const purchaseItems = await Promise.all(
+      uniquePurchaseItemsDtos.map((itemDto) => {
+        const purchaseItem = this.purchaseItemService.create(itemDto);
+        return purchaseItem;
+      })
+    );
+
+    // link between purchase item and purchase request
+    for (const purchaseItem of purchaseItems) {
+      purchaseItem.purchaseRequest = newPurchaseRequest;
+    }
+
+    newPurchaseRequest.purchaseItems = purchaseItems;
+    
     // Log and save
     console.log('Create a new purchase request!');
     return await this.purchaseRequestRepository.save(newPurchaseRequest);

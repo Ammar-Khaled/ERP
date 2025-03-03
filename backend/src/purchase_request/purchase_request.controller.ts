@@ -11,7 +11,7 @@ import { PurchaseRequestService } from './purchase_request.service';
 import { CreatePurchaseRequestDto } from './dto/create-purchase_request.dto';
 import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
 
-@Controller('purchase-request')
+@Controller('purchase-requests')
 export class PurchaseRequestController {
   constructor(
     private readonly purchaseRequestService: PurchaseRequestService,

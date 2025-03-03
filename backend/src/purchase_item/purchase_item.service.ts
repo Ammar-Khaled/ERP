@@ -12,7 +12,6 @@ config();
 @Injectable()
 export class PurchaseItemService {
   constructor(
-    private readonly purchaseEntityService: PurchaseEntityService,
     @Inject('PURCHASE_ITEM_REPOSITORY')
     private purchaseItemRepository: Repository<PurchaseItem>,
     @Inject('PURCHASE_ENTITY_REPOSITORY')
