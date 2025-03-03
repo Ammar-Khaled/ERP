@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { SupplierModule } from './supplier/supplier.module';
+import { SuppliersModule } from './supplier/suppliers.module';
 import { UsersModule } from './users/users.module';
 import { ClientsModule } from './clients/clients.module';
 import { AuthModule } from './auth/auth.module';
@@ -29,7 +29,7 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
 @Module({
   imports: [
     DatabaseModule,
-    SupplierModule,
+    SuppliersModule,
     UsersModule,
     ClientsModule,
     AuthModule,

@@ -7,14 +7,13 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { SupplierService } from './supplier.service';
+import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 
-@Controller('supplier')
-// #todo: add Guards ... Waiting for Auth and Roles modules!
-export class SupplierController {
-  constructor(private readonly supplierService: SupplierService) {}
+@Controller('suppliers')
+export class SuppliersController {
+  constructor(private readonly supplierService: SuppliersService) {}
 
   @Post()
   async create(@Body() createSupplierDto: CreateSupplierDto) {
