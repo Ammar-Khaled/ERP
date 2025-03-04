@@ -31,10 +31,7 @@ export class PurchaseItem {
   @Column({ type: 'decimal', nullable: false })
   total_price: number;
   // auto calculate the total price, before inserting a new entity and when updating.
-  @ManyToOne(() => PurchaseRequest, (request) => request.purchaseItems, {
-    nullable: true,
-  })
-  @JoinColumn({ name: 'purchase_request_id' })
+  @ManyToOne(() => PurchaseRequest, (request) => request.purchaseItems)
   purchaseRequest: PurchaseRequest;
 
   // Note: only called when detecting ACTUAL update!

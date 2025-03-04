@@ -16,54 +16,46 @@ import { PurchaseItem } from 'src/purchase_item/entities/purchase_item.entity';
 
 @Entity('purchase_requests')
 export class PurchaseRequest {
-  /// Basic properties ///
-
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date: Date;
 
-  /// Foreign keys ///
-
   @ManyToOne(() => User, (user) => user.purchaseRequests, {
-    eager: true,
     nullable: false,
   })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
   @ManyToOne(() => Branch, (branch) => branch.purchaseRequests, {
-    eager: true,
     nullable: false,
   })
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
 
   @ManyToOne(() => Supplier, (supplier) => supplier.purchaseRequests, {
-    eager: true,
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn({ name: 'supplier_id' })
   supplier: Supplier;
 
   @OneToOne(() => Status, {
     eager: true,
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn({ name: 'status_id' })
   status: Status;
 
   @OneToOne(() => Currency, {
     eager: true,
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn({ name: 'currency_id' })
   currency: Currency;
 
   @OneToMany(() => PurchaseItem, (item) => item.purchaseRequest, {
     eager: true,
-    cascade: ['insert'],
   })
   purchaseItems: PurchaseItem[];
 }

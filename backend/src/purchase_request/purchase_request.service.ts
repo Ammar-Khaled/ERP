@@ -100,28 +100,20 @@ export class PurchaseRequestService {
 
     //# send the request id to the purchase items
 
-    // Use the unique purhcase items dtos to create the purchase items entities
-    const purchaseItems = await Promise.all(
-      uniquePurchaseItemsDtos.map((itemDto) => {
-        const purchaseItem = this.purchaseItemService.create(itemDto);
-        return purchaseItem;
-      }),
-    );
-
     // link between purchase item and purchase request
-    for (const purchaseItem of purchaseItems) {
-      purchaseItem.purchaseRequest = newPurchaseRequest;
+    const purchaseItems = [];
+    for (const itemDto of uniquePurchaseItemsDtos) {
+      const pi = await this.purchaseItemService.create(itemDto);
+      purchaseItems.push(pi);
     }
-
     newPurchaseRequest.purchaseItems = purchaseItems;
 
     // Log and save
-    console.log('Create a new purchase request!');
     return await this.purchaseRequestRepository.save(newPurchaseRequest);
   }
 
   async findAll() {
-    return await this.purchaseRequestRepository.find();
+    return await this.purchaseRequestRepository.find({});
   }
 
   async findOne(id: number) {
