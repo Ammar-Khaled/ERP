@@ -8,40 +8,33 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { PurchaseItem } from 'src/purchase_item/entities/purchase_item.entity';
 
 @Entity('purchase_requests')
 export class PurchaseRequest {
-  /// Basic properties ///
-
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date: Date;
 
-  /// Foreign keys ///
-
-  //# Fix nullable values, it should be false
-
   @ManyToOne(() => User, (user) => user.purchaseRequests, {
-    eager: true,
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
   @ManyToOne(() => Branch, (branch) => branch.purchaseRequests, {
-    eager: true,
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
 
   @ManyToOne(() => Supplier, (supplier) => supplier.purchaseRequests, {
-    eager: true,
     nullable: true,
   })
   @JoinColumn({ name: 'supplier_id' })
@@ -60,4 +53,9 @@ export class PurchaseRequest {
   })
   @JoinColumn({ name: 'currency_id' })
   currency: Currency;
+
+  @OneToMany(() => PurchaseItem, (item) => item.purchaseRequest, {
+    eager: true,
+  })
+  purchaseItems: PurchaseItem[];
 }

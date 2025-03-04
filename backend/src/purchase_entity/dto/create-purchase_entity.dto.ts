@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsPositive, IsString } from 'class-validator';
 
 export class CreatePurchaseEntityDto {
   @IsNotEmpty()
@@ -8,4 +8,8 @@ export class CreatePurchaseEntityDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsNotEmpty()
+  @IsPositive()
+  unit_price: number;
 }

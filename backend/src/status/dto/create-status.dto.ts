@@ -1,12 +1,12 @@
-import { IsNotEmpty, IsOptional, IsString, Max } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class CreateStatusDto {
   @IsNotEmpty()
   @IsString()
-  @Max(10)
-  statusName: string;
+  @MaxLength(10)
+  name: string;
 
   @IsOptional()
   @IsString()
-  statusDescription: string;
+  description: string;
 }
