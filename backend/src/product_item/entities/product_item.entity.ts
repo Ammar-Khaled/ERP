@@ -2,20 +2,22 @@ import {
   Column,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
-import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity'; // Assuming a Product entity exists
-
+import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity';
+import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Assuming a VariationOption entity exists
 @Entity()
 export class ProductItem {
   @PrimaryGeneratedColumn()
   id: number; // Primary key for the product item
 
-  @Column()
-  barcode: string; // Barcode for the product item
+  @Column({ unique: true })
+  barcode: string; // Barcode for the product item, now enforced as unique
 
   @Column('decimal', { precision: 10, scale: 2 })
   cost: number; // Cost price of the product item
@@ -33,11 +35,11 @@ export class ProductItem {
   name: string; // Name of the product item (e.g., variant name)
 
   @Column()
-  product_id: number; // Foreign key for the parent product
+  product_id: number; // Foreign key for category
 
-  @ManyToOne(() => Product) // Relationship with Product entity
-  @JoinColumn({ name: 'product_id' }) // Join column for the product foreign key
-  product: Product; // The associated parent product
+  @ManyToOne(() => Product)
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
 
   @Column('simple-array', { nullable: true })
   photos?: string[]; // Array of photo URLs (optional)
@@ -47,4 +49,12 @@ export class ProductItem {
     (productItemToInventory) => productItemToInventory.productItem,
   )
   productItemToInventories: ProductItemToInventory[]; // One-to-many relationship with ProductItemInventory
+
+  // Many-to-many relationship with VariationOption entity
+  @ManyToMany(
+    () => VariationOption,
+    (variationOption) => variationOption.productItems,
+  )
+  @JoinTable() // Creates a join table to manage the relationship
+  variationOptions: VariationOption[]; // The associated variation options
 }

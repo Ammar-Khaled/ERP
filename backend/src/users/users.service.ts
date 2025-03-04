@@ -8,7 +8,7 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { hash } from 'bcrypt';
 import { error, success } from 'jsend';
 import { Role } from '../roles/entities/role.entity';
@@ -57,18 +57,25 @@ export class UsersService {
         }),
       );
 
-    const roles = await this.roleRepository.findBy({
-      id: In(createUserDto.roleIds || []),
-    });
+    const roles = [];
+    for (const id of createUserDto.roleIds || []) {
+      const role = await this.roleRepository.findOneBy({ id });
+      if (!role) {
+        throw new ConflictException(error('Role not found with id: ' + id));
+      }
+      roles.push(role);
+    }
 
-    const branch = await this.branchRepository.findOneBy({
-      id: createUserDto.branchId,
-    });
-
-    if (!branch) {
-      throw new ConflictException(
-        error('Branch not found with id: ' + createUserDto.branchId),
-      );
+    let branch = null;
+    if (createUserDto.branchId) {
+      branch = await this.branchRepository.findOneBy({
+        id: createUserDto.branchId,
+      });
+      if (!branch) {
+        throw new ConflictException(
+          error('Branch not found with id: ' + createUserDto.branchId),
+        );
+      }
     }
 
     createUserDto.password = await hash(
@@ -101,9 +108,16 @@ export class UsersService {
     }
 
     if (updateUserDto.roleIds) {
-      user.roles = await this.roleRepository.findBy({
-        id: In(updateUserDto.roleIds),
-      });
+      const roles = [];
+      for (const id of updateUserDto.roleIds) {
+        const role = await this.roleRepository.findOneBy({ id });
+        if (!role) {
+          throw new ConflictException(error('Role not found with id: ' + id));
+        }
+        roles.push(role);
+      }
+      user.roles = roles;
+      delete updateUserDto.roleIds;
     }
 
     if (updateUserDto.branchId) {

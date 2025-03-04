@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { SupplierModule } from './supplier/supplier.module';
+import { SuppliersModule } from './supplier/suppliers.module';
 import { UsersModule } from './users/users.module';
 import { ClientsModule } from './clients/clients.module';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './common/database.module';
-import { RoleModule } from './roles/role.module';
+import { RolesModule } from './roles/roles.module';
 import { PermissionModule } from './permissions/permission.module';
 import { BranchesModule } from './branches/branches.module';
 import { InventoriesModule } from './inventories/inventories.module';
@@ -16,6 +16,9 @@ import { ProductItemModule } from './product_item/product_item.module';
 import { ProductItemInventoryModule } from './product_item_inventory/product_item_inventory.module';
 import { UnitsModule } from './units/units.module';
 import { CurrencyModule } from './currency/currency.module';
+import { PermissionsGuard } from './auth/permissions.guard';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth/auth.guard';
 import { PurchaseEntityModule } from './purchase_entity/purchase_entity.module';
 import { PurchaseItemModule } from './purchase_item/purchase_item.module';
 import { PurchaseRequestModule } from './purchase_request/purchase_request.module';
@@ -26,11 +29,11 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
 @Module({
   imports: [
     DatabaseModule,
-    SupplierModule,
+    SuppliersModule,
     UsersModule,
     ClientsModule,
     AuthModule,
-    RoleModule,
+    RolesModule,
     PermissionModule,
     BranchesModule,
     InventoriesModule,
@@ -50,16 +53,14 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
   controllers: [AppController],
   providers: [
     AppService,
-
-    //# IMPORTANT to fix
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthGuard,
-    // },
-    // {
-    //   provide: 'APP_GUARD',
-    //   useClass: RolesGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
+    },
   ],
 })
 export class AppModule {}

@@ -3,8 +3,12 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsArray,
+  ValidateNested,
   IsString,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateProductItemDto } from 'src/product_item/dto/create-product_item.dto';
 
 export class CreateProductDto {
   @IsNotEmpty()
@@ -46,4 +50,9 @@ export class CreateProductDto {
   @IsNotEmpty()
   @IsNumber()
   currency_id: number; // Foreign key for currency
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductItemDto)
+  productItems: CreateProductItemDto[];
 }

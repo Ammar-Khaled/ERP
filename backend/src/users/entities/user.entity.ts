@@ -47,14 +47,14 @@ export class User {
     eager: true,
     cascade: true,
   })
-  @JoinColumn({ name: 'address_id' })
+  @JoinColumn()
   address: Address;
 
   @ManyToMany(() => Role, (role) => role.users, {
     eager: true,
   })
   @JoinTable({
-    name: 'user_roles',
+    name: 'users_roles',
     joinColumn: { name: 'user_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
   })
@@ -62,7 +62,7 @@ export class User {
 
   @ManyToOne(() => Branch, (branch) => branch.users, {
     eager: true,
-    nullable: false,
+    nullable: true,
   })
   @JoinColumn()
   branch: Branch;
