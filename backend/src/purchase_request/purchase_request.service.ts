@@ -27,7 +27,7 @@ export class PurchaseRequestService {
     @Inject('CURRENCY_REPOSITORY')
     private currencyRepository: Repository<Currency>,
     private readonly purchaseItemService: PurchaseItemService,
-  ) {}
+  ) { }
 
   async create(createPurchaseRequestDto: CreatePurchaseRequestDto) {
     const newPurchaseRequest = new PurchaseRequest();
@@ -98,13 +98,11 @@ export class PurchaseRequestService {
       [] as CreatePurchaseItemDto[],
     );
 
-    //# send the request id to the purchase items
-
     // link between purchase item and purchase request
     const purchaseItems = [];
     for (const itemDto of uniquePurchaseItemsDtos) {
-      const pi = await this.purchaseItemService.create(itemDto);
-      purchaseItems.push(pi);
+      const purchaseItem = await this.purchaseItemService.create(itemDto);
+      purchaseItems.push(purchaseItem);
     }
     newPurchaseRequest.purchaseItems = purchaseItems;
 
@@ -189,6 +187,32 @@ export class PurchaseRequestService {
           message: `This currency name is not found!`,
         });
       purchaseRequest.currency = currency;
+    }
+
+    // TODO: don't repeat the same code in `create`
+    
+    if (updatePurchaseRequestDto.purchaseItemsDtos) {
+      const purchaseItemsDtos = updatePurchaseRequestDto.purchaseItemsDtos;
+      const uniquePurchaseItemsDtos = purchaseItemsDtos.reduce(
+        (visited, item) => {
+          const existingItem = visited.find(
+            (i) => i.purchaseEntityName === item.purchaseEntityName,
+          );
+          if (existingItem) existingItem.number_of_items += item.number_of_items;
+          else visited.push(item);
+
+          return visited;
+        },
+        [] as CreatePurchaseItemDto[],
+      );
+
+      const purchaseItems = [];
+      for (const itemDto of uniquePurchaseItemsDtos) {
+        const purchaseItem = await this.purchaseItemService.create(itemDto);
+        purchaseItems.push(purchaseItem);
+      }
+
+      purchaseRequest.purchaseItems = purchaseItems;
     }
 
     Object.assign(purchaseRequest, updatePurchaseRequestDto);
