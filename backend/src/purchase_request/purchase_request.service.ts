@@ -27,7 +27,7 @@ export class PurchaseRequestService {
     @Inject('CURRENCY_REPOSITORY')
     private currencyRepository: Repository<Currency>,
     private readonly purchaseItemService: PurchaseItemService,
-  ) { }
+  ) {}
 
   async create(createPurchaseRequestDto: CreatePurchaseRequestDto) {
     const newPurchaseRequest = new PurchaseRequest();
@@ -190,7 +190,7 @@ export class PurchaseRequestService {
     }
 
     // TODO: don't repeat the same code in `create`
-    
+
     if (updatePurchaseRequestDto.purchaseItemsDtos) {
       const purchaseItemsDtos = updatePurchaseRequestDto.purchaseItemsDtos;
       const uniquePurchaseItemsDtos = purchaseItemsDtos.reduce(
@@ -198,7 +198,8 @@ export class PurchaseRequestService {
           const existingItem = visited.find(
             (i) => i.purchaseEntityName === item.purchaseEntityName,
           );
-          if (existingItem) existingItem.number_of_items += item.number_of_items;
+          if (existingItem)
+            existingItem.number_of_items += item.number_of_items;
           else visited.push(item);
 
           return visited;
