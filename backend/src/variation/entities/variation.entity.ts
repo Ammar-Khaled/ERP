@@ -1,10 +1,6 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { VariationOption } from 'src/variation_option/entities/variation_option.entity';
+
 @Entity()
 export class Variation {
   @PrimaryGeneratedColumn()
@@ -12,4 +8,10 @@ export class Variation {
 
   @Column()
   name: string;
+
+  @OneToMany(
+    () => VariationOption,
+    (variationOption) => variationOption.variation,
+  )
+  variationOptions: VariationOption[];
 }

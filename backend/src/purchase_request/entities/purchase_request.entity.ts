@@ -1,0 +1,61 @@
+import { Branch } from 'src/branches/entities/branch.entity';
+import { Status } from 'src/status/entities/status.entity';
+import { Currency } from 'src/currency/entities/currency.entity';
+import { Supplier } from 'src/supplier/entities/supplier.entity';
+import { User } from 'src/users/entities/user.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { PurchaseItem } from 'src/purchase_item/entities/purchase_item.entity';
+
+@Entity('purchase_requests')
+export class PurchaseRequest {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  date: Date;
+
+  @ManyToOne(() => User, (user) => user.purchaseRequests, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @ManyToOne(() => Branch, (branch) => branch.purchaseRequests, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'branch_id' })
+  branch: Branch;
+
+  @ManyToOne(() => Supplier, (supplier) => supplier.purchaseRequests, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'supplier_id' })
+  supplier: Supplier;
+
+  @OneToOne(() => Status, {
+    eager: true,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'status_id' })
+  status: Status;
+
+  @OneToOne(() => Currency, {
+    eager: true,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'currency_id' })
+  currency: Currency;
+
+  @OneToMany(() => PurchaseItem, (item) => item.purchaseRequest, {
+    eager: true,
+  })
+  purchaseItems: PurchaseItem[];
+}

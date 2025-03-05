@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { CreateVariationOptionDto } from 'src/variation_option/dto/create-variation_option.dto';
 
 export class CreateProductItemDto {
   @IsNotEmpty()
@@ -37,5 +38,14 @@ export class CreateProductItemDto {
 
   @IsNotEmpty()
   @IsNumber()
-  product_id: number; // Foreign key linking to the parent product (numeric type)
+  inventory_id: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  product_id: number;
+
+  // Add this to specify multiple variation options for the product item
+  @IsArray()
+  @IsOptional()
+  variationOptions?: CreateVariationOptionDto[]; // Array of variation options to associate with this product item
 }

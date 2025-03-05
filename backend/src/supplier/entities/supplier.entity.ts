@@ -1,11 +1,13 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
+import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
 
 @Entity('suppliers')
 export class Supplier {
@@ -18,13 +20,19 @@ export class Supplier {
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
   phone: string;
 
-  @ManyToOne(() => Address, (address) => address.suppliers, {
+  @OneToOne(() => Address, {
+    cascade: true,
     eager: true,
-    nullable: true,
   })
-  @JoinColumn({ name: 'address_id' })
+  @JoinColumn()
   address: Address;
+
+  @OneToMany(
+    () => PurchaseRequest,
+    (purchaseRequest) => purchaseRequest.supplier,
+  )
+  purchaseRequests: PurchaseRequest[];
 }

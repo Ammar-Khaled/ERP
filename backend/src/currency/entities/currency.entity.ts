@@ -5,7 +5,7 @@ export class Currency {
   @PrimaryGeneratedColumn()
   id: number; // Primary key
 
-  @Column()
+  @Column({ unique: true })
   name: string; // Name of the currency
 
   @Column()

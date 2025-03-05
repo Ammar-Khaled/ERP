@@ -5,12 +5,14 @@ import {
   JoinTable,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Branch } from '../../branches/entities/branch.entity';
+import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
 
 @Entity('users')
 export class User {
@@ -45,14 +47,14 @@ export class User {
     eager: true,
     cascade: true,
   })
-  @JoinColumn({ name: 'address_id' })
+  @JoinColumn()
   address: Address;
 
   @ManyToMany(() => Role, (role) => role.users, {
     eager: true,
   })
   @JoinTable({
-    name: 'user_roles',
+    name: 'users_roles',
     joinColumn: { name: 'user_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
   })
@@ -62,8 +64,11 @@ export class User {
     eager: true,
     nullable: true,
   })
-  @JoinColumn({ name: 'branch_id' })
+  @JoinColumn()
   branch: Branch;
+
+  @OneToMany(() => PurchaseRequest, (purchaseRequests) => purchaseRequests.user)
+  purchaseRequests: PurchaseRequest[];
 
   // TODO: add disabling time
 }

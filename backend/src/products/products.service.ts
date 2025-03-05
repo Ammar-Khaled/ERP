@@ -15,6 +15,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import * as jsend from 'jsend';
 import { Unit } from 'src/units/entities/unit.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
+import { ProductItemService } from 'src/product_item/product_item.service';
 
 @Injectable()
 export class ProductsService {
@@ -29,10 +30,10 @@ export class ProductsService {
     private unitRepository: Repository<Unit>,
     @Inject('CURRENCY_REPOSITORY')
     private currencyRepository: Repository<Currency>,
+    private productItemService: ProductItemService,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
-    // Check if a product with the same name already exists
     const existingProduct = await this.productRepository.findOne({
       where: { name: createProductDto.name },
     });
@@ -42,7 +43,6 @@ export class ProductsService {
       );
     }
 
-    // Validate branch_id
     const branch = await this.branchRepository.findOne({
       where: { id: createProductDto.branch_id },
     });
@@ -50,7 +50,6 @@ export class ProductsService {
       throw new NotFoundException(jsend.fail({ message: 'Branch not found.' }));
     }
 
-    // Validate category_id
     const category = await this.categoryRepository.findOne({
       where: { id: createProductDto.category_id },
     });
@@ -59,14 +58,14 @@ export class ProductsService {
         jsend.fail({ message: 'Category not found.' }),
       );
     }
-    // validate unit_id
+
     const unit = await this.unitRepository.findOne({
       where: { id: createProductDto.unit_id },
     });
     if (!unit) {
       throw new NotFoundException(jsend.fail({ message: 'Unit not found.' }));
     }
-    // validate currency
+
     const currency = await this.currencyRepository.findOne({
       where: { id: createProductDto.currency_id },
     });
@@ -79,10 +78,30 @@ export class ProductsService {
     const product = this.productRepository.create(createProductDto);
 
     try {
-      // Save the new product
       const newProduct = await this.productRepository.save(product);
+
+      // Create each ProductItem
+      const productItems = [];
+      for (const itemDto of createProductDto.productItems) {
+        const modifiedItemDto = {
+          ...itemDto,
+          product_id: newProduct.id, // Set the correct product_id
+        };
+
+        // Create ProductItem via ProductItemService
+        const result = await this.productItemService.create(modifiedItemDto);
+        productItems.push(result.data);
+      }
+
+      // Assign the created product items to the response
+      newProduct.productItems = productItems;
+
       return jsend.success(newProduct);
     } catch (err) {
+      // Handle specific error cases
+      if (err instanceof ConflictException) {
+        throw err;
+      }
       throw new HttpException(
         jsend.error({
           message:
@@ -96,7 +115,15 @@ export class ProductsService {
 
   async findAll() {
     const products = await this.productRepository.find({
-      relations: ['branch', 'category', 'unit', 'currency'], // Include branch and category relations
+      relations: [
+        'branch',
+        'category',
+        'unit',
+        'currency',
+        'productItems',
+        'productItems.variationOptions',
+        'productItems.variationOptions.variation',
+      ], // Include branch and category relations
     });
     return jsend.success(products);
   }
@@ -191,7 +218,15 @@ export class ProductsService {
   ) {
     const product = await this.productRepository.findOne({
       where: condition,
-      relations: ['branch', 'category'], // Include relations for completeness
+      relations: [
+        'branch',
+        'category',
+        'unit',
+        'currency',
+        'productItems',
+        'productItems.variationOptions',
+        'productItems.variationOptions.variation',
+      ], // Include relations for completeness
     });
     if (!product) {
       throw new NotFoundException(jsend.fail({ message: errorMessage }));

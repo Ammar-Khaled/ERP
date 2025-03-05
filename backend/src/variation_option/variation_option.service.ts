@@ -24,9 +24,9 @@ export class VariationOptionService {
   ) {}
 
   async create(createVariationOptionDto: CreateVariationOptionDto) {
-    // Check if the referenced variation exists
+    // Check if the referenced variation exists using the variation object
     const variation = await this.variationRepository.findOne({
-      where: { id: createVariationOptionDto.variation_id },
+      where: { name: createVariationOptionDto.variation.name },
     });
 
     if (!variation) {
@@ -39,7 +39,7 @@ export class VariationOptionService {
     const existingOption = await this.variationOptionRepository.findOne({
       where: {
         value: createVariationOptionDto.value,
-        variation_id: createVariationOptionDto.variation_id,
+        variation: variation, // Using variation object directly
       },
     });
 
@@ -53,7 +53,8 @@ export class VariationOptionService {
 
     // Create a new variation option
     const variationOption = this.variationOptionRepository.create({
-      ...createVariationOptionDto,
+      value: createVariationOptionDto.value,
+      variation, // Using the variation object directly
     });
 
     try {
@@ -92,10 +93,10 @@ export class VariationOptionService {
       'Variation option not found',
     );
 
-    // If updating the variation_id, check if the new variation exists
-    if (updateVariationOptionDto.variation_id) {
+    // If updating the variation, check if the new variation exists
+    if (updateVariationOptionDto.variation) {
       const variation = await this.variationRepository.findOne({
-        where: { id: updateVariationOptionDto.variation_id },
+        where: { name: updateVariationOptionDto.variation.name }, // Accessing variation.id
       });
 
       if (!variation) {
@@ -104,11 +105,14 @@ export class VariationOptionService {
         );
       }
 
-      variationOption.variation_id = updateVariationOptionDto.variation_id;
       variationOption.variation = variation;
     }
 
-    Object.assign(variationOption, updateVariationOptionDto);
+    // Update the variation option with the new value
+    if (updateVariationOptionDto.value) {
+      variationOption.value = updateVariationOptionDto.value;
+    }
+
     await this.variationOptionRepository.save(variationOption);
 
     return jsend.success(variationOption);
