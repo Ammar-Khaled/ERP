@@ -17,6 +17,7 @@ import { Currency } from 'src/currency/entities/currency.entity';
 import * as jsend from 'jsend';
 import { OrderItem } from 'src/order_item/entities/order_item.entity';
 import { OrderItemService } from 'src/order_item/order_item.service';
+import { ProductItem } from '../product_item/entities/product_item.entity';
 
 @Injectable()
 export class OrderService {
@@ -36,6 +37,8 @@ export class OrderService {
     @Inject('ORDER_ITEM_REPOSITORY')
     private orderItemRepo: Repository<OrderItem>,
     private readonly orderItemService: OrderItemService,
+    @Inject('PRODUCT_ITEM_REPOSITORY')
+    private productItemRepo: Repository<ProductItem>,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -97,6 +100,10 @@ export class OrderService {
     const orderItems = [];
     for (const item of createOrderDto.items) {
       const orderItem = await this.orderItemRepo.create(item);
+      const productItem = await this.productItemRepo.findOneBy({
+        id: item.product_item_id,
+      });
+      orderItem.productItem = productItem;
       await this.orderItemRepo.save(orderItem);
       orderItems.push(orderItem);
     }

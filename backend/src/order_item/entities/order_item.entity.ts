@@ -33,7 +33,7 @@ export class OrderItem {
 
   //---------------
 
-  @OneToOne(() => ProductItem, { nullable: false })
-  @JoinColumn({ name: 'product_item_id' })
+  @OneToOne(() => ProductItem)
+  @JoinColumn()
   productItem: ProductItem;
 }
