@@ -94,11 +94,14 @@ export class OrderService {
       );
     }
 
+    const orderItems = [];
     for (const item of createOrderDto.items) {
-      this.orderItemService.create(item);
+      const orderItem = await this.orderItemService.create(item);
+      orderItems.push(orderItem);
     }
 
     const order = this.orderRepo.create(createOrderDto);
+    order.items = orderItems;
 
     try {
       const new_order = await this.orderRepo.save(order);
