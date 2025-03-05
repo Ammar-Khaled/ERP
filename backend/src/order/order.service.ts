@@ -96,7 +96,7 @@ export class OrderService {
 
     const orderItems = [];
     for (const item of createOrderDto.items) {
-      const orderItem = await this.orderItemService.create(item);
+      const orderItem = await this.orderItemRepo.create(item);
       orderItems.push(orderItem);
     }
 

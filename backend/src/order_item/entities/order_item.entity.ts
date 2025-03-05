@@ -28,7 +28,7 @@ export class OrderItem {
 
   //---------------
 
-  @ManyToOne(() => Order, (order) => order.items, { nullable: false })
+  @ManyToOne(() => Order, (order) => order.items)
   order: Order;
 
   //---------------

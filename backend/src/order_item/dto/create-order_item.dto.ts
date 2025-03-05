@@ -17,9 +17,5 @@ export class CreateOrderItemDto {
 
   @IsNotEmpty()
   @IsNumber()
-  order_id: number;
-
-  @IsNotEmpty()
-  @IsNumber()
   product_item_id: number;
 }
