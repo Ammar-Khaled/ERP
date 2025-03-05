@@ -6,11 +6,14 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
+  ManyToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
+import { Order } from 'src/order/entities/order.entity';
 import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity';
 import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Assuming a VariationOption entity exists
+
 @Entity()
 export class ProductItem {
   @PrimaryGeneratedColumn()
