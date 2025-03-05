@@ -9,7 +9,6 @@ import { clientsProviders } from 'src/clients/clients.providers';
 import { couponProviders } from 'src/coupon/coupon.providers';
 import { currencyProviders } from 'src/currency/currency.providers';
 import { productItemProviders } from 'src/product_item/product_item.providers';
-import { OrderItemController } from 'src/order_item/order_item.controller';
 import { OrderItemService } from 'src/order_item/order_item.service';
 import { orderItemProviders } from 'src/order_item/order_item.providers';
 
@@ -26,7 +25,7 @@ import { orderItemProviders } from 'src/order_item/order_item.providers';
     ...currencyProviders,
     ...productItemProviders,
     ...orderItemProviders,
-    OrderItemService
+    OrderItemService,
   ],
 })
 export class OrderModule {}

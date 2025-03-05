@@ -82,7 +82,10 @@ export class VariationService {
     return jsend.success(variation);
   }
 
-  private async findVariationByCondition(condition: object, errorMessage: string) {
+  private async findVariationByCondition(
+    condition: object,
+    errorMessage: string,
+  ) {
     const variation = await this.variationRepository.findOne({
       where: condition,
     });

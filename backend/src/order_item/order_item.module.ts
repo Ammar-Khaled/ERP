@@ -7,6 +7,6 @@ import { orderItemProviders } from './order_item.providers';
 @Module({
   imports: [DatabaseModule],
   controllers: [OrderItemController],
-  providers: [OrderItemService, ...orderItemProviders ],
+  providers: [OrderItemService, ...orderItemProviders],
 })
 export class OrderItemModule {}

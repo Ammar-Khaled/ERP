@@ -8,6 +8,6 @@ import { branchesProviders } from './branches.providers';
 @Module({
   imports: [DatabaseModule],
   controllers: [BranchesController],
-  providers: [BranchesService, ...branchesProviders , ...addressProviders],
+  providers: [BranchesService, ...branchesProviders, ...addressProviders],
 })
 export class BranchesModule {}
