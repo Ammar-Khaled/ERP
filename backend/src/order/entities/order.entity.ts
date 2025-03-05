@@ -92,9 +92,7 @@ export class Order {
 
     //-----------------
 
-    @OneToMany(() => OrderItem, (orderItem) => orderItem.order, {
-        cascade: true, 
-    })
+    @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
     items: OrderItem[];
 
     // Automatically persist related items

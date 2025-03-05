@@ -28,19 +28,12 @@ export class OrderItem {
 
     //---------------
 
-    @Column()
-    order_id: number; // Foreign key for order
-
-    @ManyToOne(() => Order, (order) => order.items)
-    @JoinColumn({name: 'order_id'})
+    @ManyToOne(() => Order, (order) => order.items, {nullable: false})
     order: Order;
 
     //---------------
 
-    @Column()
-    product_item_id: number;
-
-    @OneToOne(() => ProductItem)
+    @OneToOne(() => ProductItem,{nullable: false})
     @JoinColumn({name: 'product_item_id'})
     productItem: ProductItem;
 }

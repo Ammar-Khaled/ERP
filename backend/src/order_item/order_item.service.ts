@@ -14,7 +14,7 @@ export class OrderItemService {
 
 
   async create(createOrderItemDto: CreateOrderItemDto) {
-    
+    await this.orderItemRepo.save(createOrderItemDto);
   }
 
   findAll() {

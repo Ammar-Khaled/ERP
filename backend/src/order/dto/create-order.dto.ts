@@ -9,6 +9,7 @@ import {
   } from 'class-validator';
 import { STATUS } from '../entities/order.entity';
 import { OrderItem } from 'src/order_item/entities/order_item.entity';
+import { CreateOrderItemDto } from 'src/order_item/dto/create-order_item.dto';
 
 export class CreateOrderDto {
     @IsNotEmpty()
@@ -49,5 +50,5 @@ export class CreateOrderDto {
 
     @IsNotEmpty()
     @IsArray()
-    items: OrderItem[];
+    items: CreateOrderItemDto[];
 }

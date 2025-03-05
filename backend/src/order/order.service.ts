@@ -29,6 +29,9 @@ export class OrderService {
     private couponRepo: Repository<Coupon>,
     @Inject('CURRENCY_REPOSITORY')
     private currencyRepo: Repository<Currency>,
+    @Inject('ORDER_ITEM_REPOSITORY')
+    private orderItemRepo : Repository<OrderItem>,
+    private readonly orderItemService: OrderItemService,
   ){}
 
 
@@ -80,10 +83,11 @@ export class OrderService {
       throw new NotFoundException(jsend.fail({message: 'There is NO currency with that id !!'}));
     }
 
-    /*if(createOrderDto.items.length == 0){
-      throw new ForbiddenException('The Order must has items !');
-    }*/
 
+    for(const item of createOrderDto.items){
+      this.orderItemService.create(item);
+    }
+    
     const order = this.orderRepo.create(createOrderDto);
 
     try{

@@ -10,6 +10,8 @@ import { couponProviders } from 'src/coupon/coupon.providers';
 import { currencyProviders } from 'src/currency/currency.providers';
 import { productItemProviders } from 'src/product_item/product_item.providers';
 import { OrderItemController } from 'src/order_item/order_item.controller';
+import { OrderItemService } from 'src/order_item/order_item.service';
+import { orderItemProviders } from 'src/order_item/order_item.providers';
 
 @Module({
   imports: [DatabaseModule],
@@ -22,7 +24,9 @@ import { OrderItemController } from 'src/order_item/order_item.controller';
     ...clientsProviders,
     ...couponProviders,
     ...currencyProviders,
-    ...productItemProviders
+    ...productItemProviders,
+    ...orderItemProviders,
+    OrderItemService
   ],
 })
 export class OrderModule {}
