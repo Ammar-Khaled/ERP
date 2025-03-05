@@ -4,10 +4,12 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  ManyToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Product } from '../../products/entities/product.entity';
 import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity'; // Assuming a Product entity exists
+import { Order } from 'src/order/entities/order.entity';
 
 @Entity()
 export class ProductItem {
@@ -47,4 +49,7 @@ export class ProductItem {
     (productItemToInventory) => productItemToInventory.productItem,
   )
   productItemToInventories: ProductItemToInventory[]; // One-to-many relationship with ProductItemInventory
+
+  /*@ManyToMany(() => Order, (order) => order.productItems)
+  order: Order[];*/
 }

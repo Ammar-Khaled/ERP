@@ -21,6 +21,9 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
 import { VariationModule } from './variation/variation.module';
 import { VariationOptionModule } from './variation_option/variation_option.module';
+import { OrderModule } from './order/order.module';
+import { OrderItemModule } from './order_item/order_item.module';
+import { CouponModule } from './coupon/coupon.module';
 
 @Module({
   imports: [
@@ -41,6 +44,9 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
     CurrencyModule,
     VariationModule,
     VariationOptionModule,
+    OrderModule,
+    OrderItemModule,
+    CouponModule,
   ],
   controllers: [AppController],
   providers: [
