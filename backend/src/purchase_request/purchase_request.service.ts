@@ -35,7 +35,7 @@ export class PurchaseRequestService {
 
     // Handle the user
     const user = await this.userRepository.findOneBy({
-      username: createPurchaseRequestDto.userName,
+      id: createPurchaseRequestDto.userId,
     });
     if (!user)
       throw new NotFoundException({ message: `This username is not found!` });
@@ -43,7 +43,7 @@ export class PurchaseRequestService {
 
     // Handle the branch
     const branch = await this.branchRepository.findOneBy({
-      name: createPurchaseRequestDto.branchName,
+      id: createPurchaseRequestDto.branchId,
     });
     if (!branch)
       throw new NotFoundException({
@@ -53,7 +53,7 @@ export class PurchaseRequestService {
 
     // Handle the supplier
     const supplier = await this.supplierRepository.findOneBy({
-      name: createPurchaseRequestDto.supplierName,
+      id: createPurchaseRequestDto.supplierId,
     });
     if (!supplier)
       throw new NotFoundException({
@@ -63,7 +63,7 @@ export class PurchaseRequestService {
 
     // Handle the status
     const status = await this.statusRepository.findOneBy({
-      name: createPurchaseRequestDto.statusName,
+      id: createPurchaseRequestDto.statusId,
     });
     if (!status)
       throw new NotFoundException({
@@ -73,7 +73,7 @@ export class PurchaseRequestService {
 
     // Handle the currency
     const currency = await this.currencyRepository.findOneBy({
-      name: createPurchaseRequestDto.currencyName,
+      id: createPurchaseRequestDto.currencyId,
     });
     if (!currency)
       throw new NotFoundException({
@@ -98,13 +98,11 @@ export class PurchaseRequestService {
       [] as CreatePurchaseItemDto[],
     );
 
-    //# send the request id to the purchase items
-
     // link between purchase item and purchase request
     const purchaseItems = [];
     for (const itemDto of uniquePurchaseItemsDtos) {
-      const pi = await this.purchaseItemService.create(itemDto);
-      purchaseItems.push(pi);
+      const purchaseItem = await this.purchaseItemService.create(itemDto);
+      purchaseItems.push(purchaseItem);
     }
     newPurchaseRequest.purchaseItems = purchaseItems;
 
@@ -138,18 +136,18 @@ export class PurchaseRequestService {
     }
 
     // Update related entities if necessary
-    if (updatePurchaseRequestDto.userName) {
+    if (updatePurchaseRequestDto.userId) {
       const user = await this.userRepository.findOneBy({
-        username: updatePurchaseRequestDto.userName,
+        id: updatePurchaseRequestDto.userId,
       });
       if (!user)
         throw new NotFoundException({ message: `This username is not found!` });
       purchaseRequest.user = user;
     }
 
-    if (updatePurchaseRequestDto.branchName) {
+    if (updatePurchaseRequestDto.branchId) {
       const branch = await this.branchRepository.findOneBy({
-        name: updatePurchaseRequestDto.branchName,
+        id: updatePurchaseRequestDto.branchId,
       });
       if (!branch)
         throw new NotFoundException({
@@ -158,9 +156,9 @@ export class PurchaseRequestService {
       purchaseRequest.branch = branch;
     }
 
-    if (updatePurchaseRequestDto.supplierName) {
+    if (updatePurchaseRequestDto.supplierId) {
       const supplier = await this.supplierRepository.findOneBy({
-        name: updatePurchaseRequestDto.supplierName,
+        id: updatePurchaseRequestDto.supplierId,
       });
       if (!supplier)
         throw new NotFoundException({
@@ -169,9 +167,9 @@ export class PurchaseRequestService {
       purchaseRequest.supplier = supplier;
     }
 
-    if (updatePurchaseRequestDto.statusName) {
+    if (updatePurchaseRequestDto.statusId) {
       const status = await this.statusRepository.findOneBy({
-        name: updatePurchaseRequestDto.statusName,
+        id: updatePurchaseRequestDto.statusId,
       });
       if (!status)
         throw new NotFoundException({
@@ -180,15 +178,42 @@ export class PurchaseRequestService {
       purchaseRequest.status = status;
     }
 
-    if (updatePurchaseRequestDto.currencyName) {
+    if (updatePurchaseRequestDto.currencyId) {
       const currency = await this.currencyRepository.findOneBy({
-        name: updatePurchaseRequestDto.currencyName,
+        id: updatePurchaseRequestDto.currencyId,
       });
       if (!currency)
         throw new NotFoundException({
           message: `This currency name is not found!`,
         });
       purchaseRequest.currency = currency;
+    }
+
+    // TODO: don't repeat the same code in `create`
+
+    if (updatePurchaseRequestDto.purchaseItemsDtos) {
+      const purchaseItemsDtos = updatePurchaseRequestDto.purchaseItemsDtos;
+      const uniquePurchaseItemsDtos = purchaseItemsDtos.reduce(
+        (visited, item) => {
+          const existingItem = visited.find(
+            (i) => i.purchaseEntityName === item.purchaseEntityName,
+          );
+          if (existingItem)
+            existingItem.number_of_items += item.number_of_items;
+          else visited.push(item);
+
+          return visited;
+        },
+        [] as CreatePurchaseItemDto[],
+      );
+
+      const purchaseItems = [];
+      for (const itemDto of uniquePurchaseItemsDtos) {
+        const purchaseItem = await this.purchaseItemService.create(itemDto);
+        purchaseItems.push(purchaseItem);
+      }
+
+      purchaseRequest.purchaseItems = purchaseItems;
     }
 
     Object.assign(purchaseRequest, updatePurchaseRequestDto);

@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Currency {
@@ -10,4 +11,7 @@ export class Currency {
 
   @Column()
   symbol: string; // Symbol of the currency
+
+  @OneToMany(() => PurchaseRequest, (purchaseRequest) => purchaseRequest.currency)
+  purchaseRequests: PurchaseRequest[];
 }

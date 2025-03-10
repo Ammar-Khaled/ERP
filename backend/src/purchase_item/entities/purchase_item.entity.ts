@@ -30,7 +30,7 @@ export class PurchaseItem {
 
   @Column({ type: 'decimal', nullable: false })
   total_price: number;
-  // auto calculate the total price, before inserting a new entity and when updating.
+
   @ManyToOne(() => PurchaseRequest, (request) => request.purchaseItems)
   purchaseRequest: PurchaseRequest;
 
