@@ -6,7 +6,7 @@ import { config } from 'dotenv';
 import { PurchaseRequest } from './entities/purchase_request.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Branch } from 'src/branches/entities/branch.entity';
-import { Supplier } from 'src/supplier/entities/supplier.entity';
+import { Supplier } from 'src/suppliers/entities/supplier.entity';
 import { Status } from 'src/status/entities/status.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { CreatePurchaseItemDto } from 'src/purchase_item/dto/create-purchase_item.dto';

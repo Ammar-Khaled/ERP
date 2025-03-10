@@ -5,7 +5,7 @@ import { DatabaseModule } from 'src/common/database.module';
 import { purchaseRequestProviders } from './purchase_request.providers';
 import { userProviders } from 'src/users/users.providers';
 import { branchesProviders } from 'src/branches/branches.providers';
-import { supplierProviders } from 'src/supplier/suppliers.providers';
+import { supplierProviders } from 'src/suppliers/suppliers.providers';
 import { statusProviders } from 'src/status/status.providers';
 import { currencyProviders } from 'src/currency/currency.providers';
 import { PurchaseItemService } from 'src/purchase_item/purchase_item.service';

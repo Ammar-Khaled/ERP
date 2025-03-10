@@ -1,7 +1,7 @@
 import { Branch } from 'src/branches/entities/branch.entity';
 import { Status } from 'src/status/entities/status.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
-import { Supplier } from 'src/supplier/entities/supplier.entity';
+import { Supplier } from 'src/suppliers/entities/supplier.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,

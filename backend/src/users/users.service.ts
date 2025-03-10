@@ -149,7 +149,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const deletedUser = await this.userRepository.softRemove(user);
-    return deletedUser;
+    await this.userRepository.softRemove(user);
+    return user;
   }
 }
