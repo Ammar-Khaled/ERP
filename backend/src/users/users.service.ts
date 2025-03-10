@@ -61,7 +61,7 @@ export class UsersService {
     for (const id of createUserDto.roleIds || []) {
       const role = await this.roleRepository.findOneBy({ id });
       if (!role) {
-        throw new ConflictException(error('Role not found with id: ' + id));
+        throw new NotFoundException(error('Role not found with id: ' + id));
       }
       roles.push(role);
     }
@@ -72,7 +72,7 @@ export class UsersService {
         id: createUserDto.branchId,
       });
       if (!branch) {
-        throw new ConflictException(
+        throw new NotFoundException(
           error('Branch not found with id: ' + createUserDto.branchId),
         );
       }
@@ -112,7 +112,7 @@ export class UsersService {
       for (const id of updateUserDto.roleIds) {
         const role = await this.roleRepository.findOneBy({ id });
         if (!role) {
-          throw new ConflictException(error('Role not found with id: ' + id));
+          throw new NotFoundException(error('Role not found with id: ' + id));
         }
         roles.push(role);
       }
@@ -125,7 +125,7 @@ export class UsersService {
         id: updateUserDto.branchId,
       });
       if (!branch) {
-        throw new ConflictException(
+        throw new NotFoundException(
           error('Branch not found with id: ' + updateUserDto.branchId),
         );
       }
@@ -149,9 +149,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const addressId = user.address?.id;
-    await this.userRepository.remove(user);
-    await this.addressRepository.delete({ id: addressId });
-    return success(user);
+    const deletedUser = await this.userRepository.softRemove(user);
+    return deletedUser;
   }
 }

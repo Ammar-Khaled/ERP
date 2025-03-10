@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -21,6 +22,9 @@ export class Role {
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 
   @ManyToMany(() => User, (user) => user.roles)
   users: User[];

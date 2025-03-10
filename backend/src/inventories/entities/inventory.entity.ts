@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -21,6 +22,9 @@ export class Inventory {
 
   @Column({ type: 'bool', default: true })
   isActive: boolean;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 
   total_product_items: number = 0;
 
