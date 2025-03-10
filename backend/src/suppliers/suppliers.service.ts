@@ -46,9 +46,7 @@ export class SuppliersService {
 
   async remove(id: number) {
     const supplier = await this.findOne(id);
-    const addressId = supplier.address?.id;
-    await this.supplierRepository.delete({ id });
-    await this.addressRepository.delete(addressId);
+    await this.supplierRepository.softRemove(supplier);
     return supplier;
   }
 }
