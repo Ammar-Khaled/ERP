@@ -14,7 +14,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('/', app, documentFactory);
+  SwaggerModule.setup('/api/v1/docs/swagger', app, documentFactory);
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new DatabaseExceptionFilter());
   await app.listen(process.env.PORT ?? 3000);
