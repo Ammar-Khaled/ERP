@@ -12,6 +12,9 @@ export class Currency {
   @Column()
   symbol: string; // Symbol of the currency
 
-  @OneToMany(() => PurchaseRequest, (purchaseRequest) => purchaseRequest.currency)
+  @OneToMany(
+    () => PurchaseRequest,
+    (purchaseRequest) => purchaseRequest.currency,
+  )
   purchaseRequests: PurchaseRequest[];
 }

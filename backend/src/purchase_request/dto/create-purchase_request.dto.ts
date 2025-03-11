@@ -3,7 +3,6 @@ import {
   IsDate,
   IsNotEmpty,
   IsOptional,
-  IsString,
   ValidateNested,
 } from 'class-validator';
 import { CreatePurchaseItemDto } from 'src/purchase_item/dto/create-purchase_item.dto';

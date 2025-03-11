@@ -11,7 +11,6 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { PurchaseItem } from 'src/purchase_item/entities/purchase_item.entity';
