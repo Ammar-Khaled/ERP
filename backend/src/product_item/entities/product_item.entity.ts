@@ -49,7 +49,4 @@ export class ProductItem {
     (productItemToInventory) => productItemToInventory.productItem,
   )
   productItemToInventories: ProductItemToInventory[]; // One-to-many relationship with ProductItemInventory
-
-  /*@ManyToMany(() => Order, (order) => order.productItems)
-  order: Order[];*/
 }
