@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  DeleteDateColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -27,11 +28,14 @@ export class Order {
   @Column()
   date: string;
 
-  @Column()
+  @Column({type: 'float'})
   total_amount: number;
 
   @Column({ default: false })
   is_returned: boolean;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 
   //----------------
 
@@ -91,15 +95,4 @@ export class Order {
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
   items: OrderItem[];
-
-  // Automatically persist related items
-  /*@ManyToMany(() => ProductItem, (productItem) => productItem.order, {
-        eager: true,
-      })
-    @JoinTable({
-        name: 'order_items',
-        joinColumn: { name: 'order_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'product_item_id', referencedColumnName: 'id' },
-    })
-    productItems: ProductItem[];*/
 }

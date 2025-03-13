@@ -65,7 +65,7 @@ export class CouponService {
       { id },
       'Coupon not found !',
     );
-    await this.couponRepo.delete({ id });
+    await this.couponRepo.softRemove(coupon);
     return jsend.success(coupon);
   }
 
