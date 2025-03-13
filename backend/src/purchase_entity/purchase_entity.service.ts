@@ -71,7 +71,7 @@ export class PurchaseEntityService {
 
   async remove(id: number) {
     const purchaseEntity = await this.findOne(id);
-    await this.purchaseEntityRepository.remove(purchaseEntity);
+    await this.purchaseEntityRepository.softDelete({id});
 
     console.log(`Removed the purchase entity with id of ${id} successfully!`);
     return purchaseEntity;

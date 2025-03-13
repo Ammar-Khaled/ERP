@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   OneToMany,
@@ -35,4 +36,7 @@ export class Supplier {
     (purchaseRequest) => purchaseRequest.supplier,
   )
   purchaseRequests: PurchaseRequest[];
+
+  @DeleteDateColumn() // Add DeleteDateColumn for soft delete
+  deletedAt?: Date;
 }

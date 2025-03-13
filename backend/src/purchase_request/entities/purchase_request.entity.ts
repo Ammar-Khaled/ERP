@@ -7,6 +7,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -70,4 +71,7 @@ export class PurchaseRequest {
     nullable: false,
   })
   purchaseItems: PurchaseItem[];
+
+  @DeleteDateColumn() // Add DeleteDateColumn for soft delete
+  deletedAt?: Date;
 }
