@@ -15,23 +15,19 @@ export class CreatePurchaseRequestDto {
   date?: Date;
 
   @IsNotEmpty()
-  @IsString()
-  userName: string;
+  userId: number;
 
   @IsNotEmpty()
-  @IsString()
-  branchName: string;
+  branchId: number;
 
   @IsNotEmpty()
-  @IsString()
-  supplierName: string;
-
-  @IsString()
-  statusName: string;
+  supplierId: number;
 
   @IsNotEmpty()
-  @IsString()
-  currencyName: string;
+  statusId: number;
+
+  @IsNotEmpty()
+  currencyId: number;
 
   @IsNotEmpty()
   @ValidateNested({ each: true }) // Validates each element in the array
