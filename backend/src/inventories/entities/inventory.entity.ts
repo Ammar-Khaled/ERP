@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -22,9 +23,12 @@ export class Inventory {
   @Column({ type: 'bool', default: true })
   isActive: boolean;
 
-  total_product_items: number;
+  @DeleteDateColumn()
+  deletedAt: Date;
 
-  total_damaged_items: number;
+  total_product_items: number = 0;
+
+  total_damaged_items: number = 0;
 
   @OneToOne(() => Address, {
     eager: true,
@@ -34,7 +38,7 @@ export class Inventory {
   address: Address;
 
   @ManyToOne(() => Branch, (branch) => branch.inventories)
-  @JoinColumn({ name: 'branch_id' })
+  @JoinColumn()
   branch: Branch;
 
   @OneToMany(

@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
@@ -16,11 +17,14 @@ export class Role {
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   name: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true, default: null })
   description: string;
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 
   @ManyToMany(() => User, (user) => user.roles)
   users: User[];
@@ -29,7 +33,7 @@ export class Role {
     eager: true,
   })
   @JoinTable({
-    name: 'role_permissions', // name of the join table
+    name: 'role_permissions',
     joinColumn: { name: 'role_id', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'permission_id', referencedColumnName: 'id' },
   })

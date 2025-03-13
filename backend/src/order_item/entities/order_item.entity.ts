@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  DeleteDateColumn,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -26,6 +27,9 @@ export class OrderItem {
   @Column({ type: 'float', default: 0 })
   total_price: number;
 
+  @DeleteDateColumn()
+  deletedAt: Date;
+  
   //---------------
 
   @ManyToOne(() => Order, (order) => order.items)
@@ -33,7 +37,10 @@ export class OrderItem {
 
   //---------------
 
-  @OneToOne(() => ProductItem, { nullable: false })
-  @JoinColumn({ name: 'product_item_id' })
+  @Column()
+  product_item_id: number;
+
+  @ManyToOne(() => ProductItem)
+  @JoinColumn({name:'product_item_id'})
   productItem: ProductItem;
 }

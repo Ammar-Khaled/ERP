@@ -16,14 +16,13 @@ export class CreateInventoryDto {
 
   @IsOptional()
   @IsBoolean()
-  isActive: boolean;
+  isActive?: boolean;
 
   @IsOptional()
   @ValidateNested()
   @Type(() => CreateAddressDto)
   address?: CreateAddressDto;
 
-  @IsOptional()
   @IsInt()
-  branchId?: number;
+  branchId: number;
 }

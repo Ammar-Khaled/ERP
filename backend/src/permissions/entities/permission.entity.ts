@@ -9,16 +9,10 @@ export class Permission {
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   name: string;
 
-  @Column()
+  @Column({ type: 'text', nullable: true, default: null })
   description: string;
 
-  @Column()
-  controller: string;
-
-  @Column()
-  action: string;
-
-  @Column({ default: true })
+  @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
   @ManyToMany(() => Role, (role) => role.permissions)

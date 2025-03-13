@@ -26,7 +26,7 @@ export class OrderItemController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.orderItemService.findOne(+id);
   }
 
@@ -39,7 +39,7 @@ export class OrderItemController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.orderItemService.remove(+id);
   }
 }

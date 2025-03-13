@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  ConflictException
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -17,6 +18,8 @@ import { Currency } from 'src/currency/entities/currency.entity';
 import * as jsend from 'jsend';
 import { OrderItem } from 'src/order_item/entities/order_item.entity';
 import { OrderItemService } from 'src/order_item/order_item.service';
+import { ProductItem } from '../product_item/entities/product_item.entity';
+import { ProductItemService } from 'src/product_item/product_item.service';
 
 @Injectable()
 export class OrderService {
@@ -35,7 +38,10 @@ export class OrderService {
     private currencyRepo: Repository<Currency>,
     @Inject('ORDER_ITEM_REPOSITORY')
     private orderItemRepo: Repository<OrderItem>,
+    @Inject('PRODUCT_ITEM_REPOSITORY')
+    private productItemRepo: Repository<ProductItem>,
     private readonly orderItemService: OrderItemService,
+    private readonly productItemService: ProductItemService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -97,6 +103,30 @@ export class OrderService {
     const orderItems = [];
     for (const item of createOrderDto.items) {
       const orderItem = await this.orderItemRepo.create(item);
+      const productItem = await this.productItemRepo.findOneBy({
+        id: item.product_item_id,
+      });
+      orderItem.productItem = productItem;
+
+      // make the price & name of same item equal in both of order_item and product_item
+      orderItem.unit_price = productItem.price;
+      orderItem.name = productItem.name;
+
+      // validating the amount of items in the order and stock
+      if(orderItem.number_of_items > productItem.total_items){
+        throw new ConflictException(
+          jsend.fail({ message: `There is NO enough items of ${productItem.name}`})
+        ); 
+      }
+      productItem.total_items -= orderItem.number_of_items;
+      await this.productItemService.update(productItem.id,productItem);
+
+      // calculate total price for one order item
+      orderItem.total_price = orderItem.unit_price * orderItem.number_of_items;
+      
+      // calculate total amount of the order
+      createOrderDto.total_amount += orderItem.total_price;
+
       await this.orderItemRepo.save(orderItem);
       orderItems.push(orderItem);
     }
@@ -119,19 +149,158 @@ export class OrderService {
     }
   }
 
-  findAll(): string {
-    return `This action returns all order`;
+  async findAll() {
+    const orders = await this.orderRepo.find({relations:["items"]});
+    return jsend.success(orders);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async findOne(id: number) {
+    const order = await this.findOrderByCondition({ id },'Order Not Found !');
+    return jsend.success(order);
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
+  async update(id: number, updateOrderDto: UpdateOrderDto) {
+    const order = await this.findOrderByCondition({ id },'Order Not Found !');
+
+    if (updateOrderDto.coupon_id > 0) {
+      // Verify the existence of the coupon
+      const coupon = await this.couponRepo.findOne({
+        where: { id: updateOrderDto.coupon_id },
+      });
+      if (!coupon) {
+        throw new NotFoundException(
+          jsend.fail({ message: 'There is NO coupon with that id !!' }),
+        );
+      }
+      order.coupon_id = updateOrderDto.coupon_id;
+    }
+
+    if(updateOrderDto.currency_id > 0){
+      // Verify the existence of the currency
+      const currency = await this.currencyRepo.findOne({
+        where: { id: updateOrderDto.currency_id },
+      });
+      if (!currency) {
+        throw new NotFoundException(
+          jsend.fail({ message: 'There is NO currency with that id !!' }),
+        );
+      }
+      order.currency_id = updateOrderDto.currency_id;
+    }
+
+    const newOrderItems = [];
+    for(const item of updateOrderDto.items){
+      const productItem = await this.productItemRepo.findOneBy({
+        id: item.product_item_id,
+      });
+      let flag: boolean;
+      flag = false;
+      item.unit_price = productItem.price;
+
+      // This loop determine whether if the product_item_id of the orderItem coming 
+      // in updateOrderDto exists or not in the items of order
+      for(let i = 0;i < order.items.length;++i){
+        if(item.product_item_id === order.items[i].product_item_id){
+
+          // merge the new order item with the old one as they share same product item id
+          if(item.number_of_items > order.items[i].number_of_items){ // in case of more items are needed
+            let difference: number = 0;
+            difference = item.number_of_items - order.items[i].number_of_items;
+            if(difference > productItem.total_items){
+              throw new ConflictException(
+                jsend.fail({ message: `There is NO enough items of ${productItem.name}`})
+              );
+            }
+            order.items[i].number_of_items += difference;
+            order.items[i].total_price += ( difference * order.items[i].unit_price );
+            order.total_amount += ( difference * order.items[i].unit_price );
+            productItem.total_items -= difference;
+            await this.productItemService.update(productItem.id,productItem);
+          }
+          else if(item.number_of_items <= order.items[i].number_of_items){ // in case of some items are returned
+            let difference: number;
+            difference = order.items[i].number_of_items - item.number_of_items;
+
+            order.items[i].number_of_items -= difference;
+            order.items[i].total_price -= ( difference * order.items[i].unit_price );
+            order.total_amount -= ( difference * order.items[i].unit_price );
+            productItem.total_items += difference;
+            await this.productItemService.update(productItem.id,productItem);
+          }
+          flag = true;
+          break;
+        }
+      }
+      if(!flag){
+        // Add new order item that doesn't exist in old items array of order 
+        const orderItem = await this.orderItemRepo.create(item);
+        orderItem.productItem = productItem;
+
+        // make the price & name of same item equal in both of order_item and product_item
+        orderItem.unit_price = productItem.price;
+        orderItem.name = productItem.name;
+
+        // validating the amount of items in the order and stock
+        if(orderItem.number_of_items > productItem.total_items){
+          throw new ConflictException(
+            jsend.fail({ message: `There is NO enough items of ${productItem.name}`})
+          ); 
+        }
+        productItem.total_items -= orderItem.number_of_items;
+        await this.productItemService.update(productItem.id,productItem);
+
+        // calculate total price for one order item
+        orderItem.total_price = orderItem.unit_price * orderItem.number_of_items;
+      
+        // calculate total amount of the order
+        order.total_amount += orderItem.total_price;
+
+        await this.orderItemRepo.save(orderItem);
+        newOrderItems.push(orderItem);
+      }
+    }
+    
+
+    for(const orderItem of order.items){
+      await this.orderItemRepo.save(orderItem);
+    }
+
+    for(const order_item of newOrderItems){
+      order.items.push(order_item);
+    }
+
+    Object.assign(updateOrderDto,order);
+    try {
+      const updatedOrder =
+        await this.orderRepo.save(updateOrderDto);
+      return jsend.success(updatedOrder);
+    } catch (err) {
+      throw new HttpException(
+        jsend.error({
+          message: 'An error occurred while updating the Order.',
+          data: err,
+        }),
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  async remove(id: number) {
+    const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
+    for(const orderItem of order.items){
+      await this.orderItemRepo.softRemove(orderItem);
+    }
+    await this.orderRepo.softRemove(order);
+    return jsend.success(order);
+  }
+
+  private async findOrderByCondition(condition: object, errorMessage: string) {
+    const order = await this.orderRepo.findOne({
+      where: condition, relations:["items"]
+    });
+    if (!order) {
+      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+    }
+    return order;
   }
 }

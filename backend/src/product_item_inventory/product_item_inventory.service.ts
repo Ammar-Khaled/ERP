@@ -1,10 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ProductItemToInventory } from './entities/product_item_inventory.entity';
 import { ProductItem } from '../product_item/entities/product_item.entity';
@@ -47,26 +41,30 @@ export class ProductItemInventoryService {
       );
     }
 
-    // Create and save the new ProductItemInventory
-    const productItemInventory = this.productItemInventoryRepository.create({
-      ...createProductItemInventoryDto,
-      productItem,
-      inventory,
-    });
+    // Check if the ProductItemInventory already exists
+    const existingProductItemInventory =
+      await this.productItemInventoryRepository.findOne({
+        where: { productItem, inventory },
+      });
 
-    try {
-      const newProductItemInventory =
-        await this.productItemInventoryRepository.save(productItemInventory);
-      return jsend.success(newProductItemInventory);
-    } catch (err) {
-      throw new HttpException(
-        jsend.error({
-          message:
-            'An unexpected error occurred while creating the ProductItemInventory. Please try again later.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+    if (existingProductItemInventory) {
+      existingProductItemInventory.number_of_damaged +=
+        createProductItemInventoryDto.number_of_damaged;
+      existingProductItemInventory.number_of_items +=
+        createProductItemInventoryDto.number_of_items;
+      await this.productItemInventoryRepository.save(
+        existingProductItemInventory,
       );
+      return jsend.success(existingProductItemInventory);
+    } else {
+      // Create and save the new ProductItemInventory
+      const productItemInventory = this.productItemInventoryRepository.create({
+        ...createProductItemInventoryDto,
+        productItem,
+        inventory,
+      });
+      await this.productItemInventoryRepository.save(productItemInventory);
+      return jsend.success(productItemInventory);
     }
   }
 

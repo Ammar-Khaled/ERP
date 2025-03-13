@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   OneToMany,
@@ -9,42 +10,30 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Address } from '../../common/entities/address.entity';
 import { Inventory } from '../../inventories/entities/inventory.entity';
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsOptional,
-  IsPhoneNumber,
-  IsString,
-} from 'class-validator';
+import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
 
 @Entity('branches')
 export class Branch {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @IsString()
-  @IsNotEmpty()
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   name: string;
 
-  @IsString()
-  @IsOptional()
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @IsString()
-  @IsOptional()
-  @IsPhoneNumber()
   @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
   phone: string;
 
-  @IsBoolean()
-  @IsOptional()
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
-  @OneToOne(() => Address, (address) => address.branch)
-  @JoinColumn({ name: 'address_id' })
+  @DeleteDateColumn()
+  deletedAt: Date;
+
+  @OneToOne(() => Address, { eager: true, cascade: true })
+  @JoinColumn()
   address: Address;
 
   @OneToMany(() => User, (user) => user.branch)
@@ -52,4 +41,10 @@ export class Branch {
 
   @OneToMany(() => Inventory, (inventory) => inventory.branch)
   inventories: Inventory[];
+
+  @OneToMany(
+    () => PurchaseRequest,
+    (purchaseRequests) => purchaseRequests.branch,
+  )
+  purchaseRequests: PurchaseRequest[];
 }
