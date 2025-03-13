@@ -1,5 +1,5 @@
 import { PurchaseItem } from 'src/purchase_item/entities/purchase_item.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('purchase_entities')
 export class PurchaseEntity {
@@ -17,4 +17,7 @@ export class PurchaseEntity {
 
   @OneToMany(() => PurchaseItem, (item) => item.purchaseEntity)
   purchaseItems: PurchaseItem[];
+
+  @DeleteDateColumn() // Add DeleteDateColumn for soft delete
+  deletedAt?: Date;
 }

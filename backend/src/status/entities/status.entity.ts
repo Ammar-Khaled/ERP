@@ -1,5 +1,5 @@
 import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('statuses')
 export class Status {
@@ -19,4 +19,7 @@ export class Status {
 
   @OneToMany(() => PurchaseRequest, (purchaseRequest) => purchaseRequest.status)
   purchaseRequests: PurchaseRequest[];
+
+  @DeleteDateColumn() // Add DeleteDateColumn for soft delete
+  deletedAt?: Date;
 }
