@@ -1,4 +1,9 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Repository } from 'typeorm';
@@ -40,8 +45,8 @@ export class InventoriesService {
       id: createInventoryDto.branchId,
     });
     if (!branch) {
-      throw new ConflictException(
-        jsend.error('Branch not found with id: ' + createInventoryDto.branchId),
+      throw new NotFoundException(
+        'Branch not found with id: ' + createInventoryDto.branchId,
       );
     }
 
@@ -74,9 +79,7 @@ export class InventoriesService {
       relations: ['branch', 'productItemToInventories'],
     });
     if (!inventory) {
-      throw new ConflictException(
-        jsend.error('Inventory not found with id: ' + id),
-      );
+      throw new NotFoundException('Inventory not found with id: ' + id);
     }
 
     for (const pii of inventory.productItemToInventories) {
@@ -90,9 +93,7 @@ export class InventoriesService {
   async update(id: number, updateInventoryDto: UpdateInventoryDto) {
     const inventory = await this.inventoryRepository.findOneBy({ id });
     if (!inventory) {
-      throw new ConflictException(
-        jsend.error('Inventory not found with id: ' + id),
-      );
+      throw new NotFoundException('Inventory not found with id: ' + id);
     }
 
     // update the branch
@@ -101,10 +102,8 @@ export class InventoriesService {
         id: updateInventoryDto.branchId,
       });
       if (!branch) {
-        throw new ConflictException(
-          jsend.error(
-            'Branch not found with id: ' + updateInventoryDto.branchId,
-          ),
+        throw new NotFoundException(
+          'Branch not found with id: ' + updateInventoryDto.branchId,
         );
       }
       inventory.branch = branch;
@@ -124,15 +123,10 @@ export class InventoriesService {
   async remove(id: number) {
     const inventory = await this.inventoryRepository.findOneBy({ id });
     if (!inventory) {
-      throw new ConflictException(
-        jsend.error('Inventory not found with id: ' + id),
-      );
+      throw new NotFoundException('Inventory not found with id: ' + id);
     }
 
-    const addressId = inventory.address?.id;
-    await this.inventoryRepository.remove(inventory);
-    await this.addressRepository.delete({ id: addressId });
-    return jsend.success(inventory);
+    return await this.inventoryRepository.softRemove(inventory);
   }
 
   async transferProductItems(transferProductItemsDto: TransferProductItemsDto) {

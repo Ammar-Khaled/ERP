@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { SuppliersModule } from './supplier/suppliers.module';
+import { SuppliersModule } from './suppliers/suppliers.module';
 import { UsersModule } from './users/users.module';
 import { ClientsModule } from './clients/clients.module';
 import { AuthModule } from './auth/auth.module';
@@ -25,7 +25,9 @@ import { PurchaseRequestModule } from './purchase_request/purchase_request.modul
 import { StatusModule } from './status/status.module';
 import { VariationModule } from './variation/variation.module';
 import { VariationOptionModule } from './variation_option/variation_option.module';
-// import { ReturnItemModule } from './return_item/return_item.module';
+import { OrderModule } from './order/order.module';
+import { OrderItemModule } from './order_item/order_item.module';
+import { CouponModule } from './coupon/coupon.module';
 
 @Module({
   imports: [
@@ -50,6 +52,9 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
     StatusModule,
     VariationModule,
     VariationOptionModule,
+    OrderModule,
+    OrderItemModule,
+    CouponModule,
   ],
   controllers: [AppController],
   providers: [

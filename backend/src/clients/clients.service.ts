@@ -49,7 +49,7 @@ export class ClientsService {
 
   async remove(id: number) {
     const client = await this.findClientByCondition({ id }, 'Client not found');
-    await this.clientRepository.delete({ id });
+    await this.clientRepository.softRemove(client);
     return jsend.success(client);
   }
 

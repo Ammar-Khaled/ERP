@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   OneToOne,
@@ -18,8 +19,11 @@ export class Client {
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
   phone_number: string;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 
   @OneToOne(() => Address, { cascade: true, eager: true })
   @JoinColumn()

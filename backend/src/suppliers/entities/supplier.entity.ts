@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   OneToMany,
@@ -22,6 +23,9 @@ export class Supplier {
 
   @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
   phone: string;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 
   @OneToOne(() => Address, {
     cascade: true,

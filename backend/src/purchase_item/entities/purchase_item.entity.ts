@@ -4,6 +4,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -30,7 +31,7 @@ export class PurchaseItem {
 
   @Column({ type: 'decimal', nullable: false })
   total_price: number;
-  // auto calculate the total price, before inserting a new entity and when updating.
+
   @ManyToOne(() => PurchaseRequest, (request) => request.purchaseItems)
   purchaseRequest: PurchaseRequest;
 
@@ -41,4 +42,7 @@ export class PurchaseItem {
     this.total_price =
       this.number_of_items * this.purchaseEntity.unit_price - this.discount;
   }
+
+  @DeleteDateColumn() // Add DeleteDateColumn for soft delete
+  deletedAt?: Date;
 }

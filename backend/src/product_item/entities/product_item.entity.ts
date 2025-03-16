@@ -11,6 +11,8 @@ import {
 import { Product } from '../../products/entities/product.entity';
 import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity';
 import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Assuming a VariationOption entity exists
+import { OrderItem } from 'src/order_item/entities/order_item.entity';
+
 @Entity()
 export class ProductItem {
   @PrimaryGeneratedColumn()
@@ -26,7 +28,7 @@ export class ProductItem {
   price: number; // Selling price of the product item
 
   @Column('int')
-  total_items: number; // Total quantity of this product item in stock
+  number_of_valid: number; // Total quantity of this product item in stock
 
   @Column('int')
   number_of_damaged: number = 0; // Number of damaged items in stock
@@ -57,4 +59,7 @@ export class ProductItem {
   )
   @JoinTable() // Creates a join table to manage the relationship
   variationOptions: VariationOption[]; // The associated variation options
+
+  @OneToMany(() => OrderItem, (orderItem) => orderItem.productItem)
+  orderItem: OrderItem;
 }

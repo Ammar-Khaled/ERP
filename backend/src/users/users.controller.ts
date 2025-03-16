@@ -28,7 +28,7 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Permissions(['UsersController:findAll'])
+  // @Permissions(['UsersController:findAll'])
   @Get()
   findAll() {
     return this.usersService.findAll();
@@ -50,7 +50,7 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Permissions(['UsersController:remove'])
+  // @Permissions(['UsersController:remove'])
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);

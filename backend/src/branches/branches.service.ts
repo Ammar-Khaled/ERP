@@ -1,4 +1,9 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Branch } from './entities/branch.entity';
 import { CreateBranchDto } from './dto/create-branch.dto';
@@ -43,7 +48,7 @@ export class BranchesService {
   async update(id: number, updatedBranchDto: Branch): Promise<Branch> {
     const branch = await this.findOneByCondition({ id });
     if (!branch) {
-      throw new ConflictException('Branch not found');
+      throw new NotFoundException('Branch not found');
     }
 
     if (updatedBranchDto.address) {
@@ -57,15 +62,12 @@ export class BranchesService {
   }
 
   async remove(id: number): Promise<Branch> {
-    const branch = await this.findOneByCondition({ id });
+    let branch = await this.findOneByCondition({ id });
     if (!branch) {
-      throw new ConflictException('Branch not found');
+      throw new NotFoundException('Branch not found');
     }
 
-    const addressId = branch.address?.id;
-    await this.branchRepository.delete(id);
-    await this.addressRepository.delete({ id: addressId });
-
+    branch = await this.branchRepository.softRemove(branch);
     return branch;
   }
 }

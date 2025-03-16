@@ -1,15 +1,17 @@
 import { Branch } from 'src/branches/entities/branch.entity';
 import { Status } from 'src/status/entities/status.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
-import { Supplier } from 'src/supplier/entities/supplier.entity';
+import { Supplier } from 'src/suppliers/entities/supplier.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { PurchaseItem } from 'src/purchase_item/entities/purchase_item.entity';
@@ -21,6 +23,18 @@ export class PurchaseRequest {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date: Date;
+
+  @Column({ type: 'decimal', nullable: false })
+  totalPrice: number;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  calculateTotalPrice() {
+    this.totalPrice = this.purchaseItems.reduce(
+      (total, item) => total + item.total_price,
+      0,
+    );
+  }
 
   @ManyToOne(() => User, (user) => user.purchaseRequests, {
     nullable: false,
@@ -35,27 +49,28 @@ export class PurchaseRequest {
   branch: Branch;
 
   @ManyToOne(() => Supplier, (supplier) => supplier.purchaseRequests, {
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'supplier_id' })
   supplier: Supplier;
 
-  @OneToOne(() => Status, {
-    eager: true,
-    nullable: true,
+  @ManyToOne(() => Status, (status) => status.purchaseRequests, {
+    nullable: false,
   })
   @JoinColumn({ name: 'status_id' })
   status: Status;
 
-  @OneToOne(() => Currency, {
-    eager: true,
-    nullable: true,
+  @ManyToOne(() => Currency, (currency) => currency.purchaseRequests, {
+    nullable: false,
   })
   @JoinColumn({ name: 'currency_id' })
   currency: Currency;
 
   @OneToMany(() => PurchaseItem, (item) => item.purchaseRequest, {
-    eager: true,
+    nullable: false,
   })
   purchaseItems: PurchaseItem[];
+
+  @DeleteDateColumn() // Add DeleteDateColumn for soft delete
+  deletedAt?: Date;
 }
