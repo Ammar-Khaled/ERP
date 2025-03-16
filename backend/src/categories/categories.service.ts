@@ -76,6 +76,7 @@ export class CategoriesService {
           jsend.fail({ message: 'Branch not found.' }),
         );
       }
+      category.branch = branch;
     }
 
     // Ensure there are fields to update
