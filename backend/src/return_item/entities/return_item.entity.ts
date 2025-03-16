@@ -1,7 +1,10 @@
+import { OrderItem } from 'src/order_item/entities/order_item.entity';
 import {
   Column,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -19,7 +22,12 @@ export class ReturnItem {
   @DeleteDateColumn()
   deletedAt?: Date;
 
+  // add one-to-one relation with order item module
+  @OneToOne(() => OrderItem, (orderItem) => orderItem.returnItem, {
+    nullable: false
+  })
+  @JoinColumn({ name: 'order_item_id' })
+  orderItem: OrderItem;
+  
   //# TODO: Add relation with return entity
-
-  //# TODO: add relation with order item
 }

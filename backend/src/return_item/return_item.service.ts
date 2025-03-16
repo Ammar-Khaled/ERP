@@ -6,10 +6,14 @@ import {
 } from '@nestjs/common';
 import { CreateReturnItemDto } from './dto/create-return_item.dto';
 import { UpdateReturnItemDto } from './dto/update-return_item.dto';
+import { ReturnItem } from './entities/return_item.entity';
 
 @Injectable()
 export class ReturnItemService {
-  constructor(@Inject('RETURN_ITEM_REPOSITORY') private returnItemRepository) {}
+  constructor(
+    @Inject('RETURN_ITEM_REPOSITORY') private returnItemRepository,
+    @Inject('ORDER_ITEM_REPOSITORY') private orderItemRepository,
+  ) {}
 
   async create(createReturnItemDto: CreateReturnItemDto) {
     const existingReturnItem = await this.returnItemRepository.findOneBy({
@@ -18,6 +22,15 @@ export class ReturnItemService {
     if (existingReturnItem) {
       throw new ConflictException(
         'A return item with this name already exists',
+      );
+    }
+    
+    const existingOrderItem = await this.orderItemRepository.findOneBy({
+      id: createReturnItemDto.order_item_id,
+    });
+    if (!existingOrderItem) {
+      throw new NotFoundException(
+        `Order item with id ${createReturnItemDto.order_item_id} not found`,
       );
     }
 

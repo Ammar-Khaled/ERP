@@ -9,4 +9,8 @@ export class CreateReturnItemDto {
   @IsInt({ message: 'The number of items must be an integer.' })
   @Min(1, { message: 'The number of items must be at least 1.' })
   number_of_items: number;
+
+  @IsNotEmpty({ message: 'The order item ID must not be empty.' })
+  @IsInt({ message: 'The order item ID must be an integer.' })
+  order_item_id: number;
 }
