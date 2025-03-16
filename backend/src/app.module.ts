@@ -25,6 +25,7 @@ import { PurchaseRequestModule } from './purchase_request/purchase_request.modul
 import { StatusModule } from './status/status.module';
 import { VariationModule } from './variation/variation.module';
 import { VariationOptionModule } from './variation_option/variation_option.module';
+// import { ReturnItemModule } from './return_item/return_item.module';
 
 @Module({
   imports: [
@@ -53,14 +54,6 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: PermissionsGuard,
-    },
   ],
 })
 export class AppModule {}
