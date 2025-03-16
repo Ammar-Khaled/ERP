@@ -63,7 +63,7 @@ export class PurchaseItemService {
   async remove(id: number) {
     const purchaseItem = await this.findOne(id);
     await this.purchaseItemRepository.softDelete({ id });
-    
+
     console.log(`Removed purchase item "${id}" successfully!`);
     return purchaseItem;
   }

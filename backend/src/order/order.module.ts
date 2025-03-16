@@ -14,7 +14,7 @@ import { orderItemProviders } from 'src/order_item/order_item.providers';
 import { ProductItemModule } from 'src/product_item/product_item.module';
 
 @Module({
-  imports: [DatabaseModule,ProductItemModule],
+  imports: [DatabaseModule, ProductItemModule],
   controllers: [OrderController],
   providers: [
     OrderService,

@@ -1,10 +1,9 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
-  DeleteDateColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Order } from 'src/order/entities/order.entity';
@@ -29,7 +28,7 @@ export class OrderItem {
 
   @DeleteDateColumn()
   deletedAt: Date;
-  
+
   //---------------
 
   @ManyToOne(() => Order, (order) => order.items)
@@ -41,6 +40,6 @@ export class OrderItem {
   product_item_id: number;
 
   @ManyToOne(() => ProductItem)
-  @JoinColumn({name:'product_item_id'})
+  @JoinColumn({ name: 'product_item_id' })
   productItem: ProductItem;
 }

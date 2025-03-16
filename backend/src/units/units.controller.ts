@@ -10,7 +10,6 @@ import {
 import { UnitsService } from './units.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
-import { Public } from 'src/auth/auth.guard';
 
 @Controller('units')
 export class UnitsController {

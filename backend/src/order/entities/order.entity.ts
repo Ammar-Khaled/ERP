@@ -1,8 +1,8 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
-  DeleteDateColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -28,7 +28,7 @@ export class Order {
   @Column()
   date: string;
 
-  @Column({type: 'float'})
+  @Column({ type: 'float' })
   total_amount: number;
 
   @Column({ default: false })
