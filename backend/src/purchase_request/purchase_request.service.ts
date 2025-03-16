@@ -224,7 +224,7 @@ export class PurchaseRequestService {
   async remove(id: number) {
     const purchaseRequest = await this.findOne(id);
     await this.purchaseRequestRepository.softDelete({ id });
-    
+
     console.log(`Removed purchase request with ID: ${id} successfully!`);
     return purchaseRequest;
   }

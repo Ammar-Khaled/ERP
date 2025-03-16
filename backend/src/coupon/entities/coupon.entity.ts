@@ -1,4 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn,DeleteDateColumn } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Coupon {
