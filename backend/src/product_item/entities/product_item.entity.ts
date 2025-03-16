@@ -26,7 +26,7 @@ export class ProductItem {
   price: number; // Selling price of the product item
 
   @Column('int')
-  total_items: number; // Total quantity of this product item in stock
+  number_of_valid: number; // Total quantity of this product item in stock
 
   @Column('int')
   number_of_damaged: number = 0; // Number of damaged items in stock

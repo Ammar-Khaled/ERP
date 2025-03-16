@@ -51,6 +51,7 @@ export class CreateProductDto {
   @IsNumber()
   currency_id: number; // Foreign key for currency
 
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateProductItemDto)
