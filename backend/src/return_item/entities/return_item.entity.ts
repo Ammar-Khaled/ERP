@@ -19,9 +19,6 @@ export class ReturnItem {
   @Column({ type: 'int', nullable: false })
   number_of_items: number;
 
-  @DeleteDateColumn()
-  deletedAt?: Date;
-
   // add one-to-one relation with order item module
   @OneToOne(() => OrderItem, (orderItem) => orderItem.returnItem, {
     nullable: false
@@ -30,4 +27,7 @@ export class ReturnItem {
   orderItem: OrderItem;
   
   //# TODO: Add relation with return entity
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }

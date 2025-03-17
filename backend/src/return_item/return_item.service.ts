@@ -34,7 +34,8 @@ export class ReturnItemService {
       );
     }
 
-    const returnItem = this.returnItemRepository.create(createReturnItemDto);
+    const returnItem = await this.returnItemRepository.create(createReturnItemDto);
+    returnItem.orderItem = existingOrderItem;
     return await this.returnItemRepository.save(returnItem);
   }
 
@@ -53,7 +54,20 @@ export class ReturnItemService {
 
   async update(id: number, updateReturnItemDto: UpdateReturnItemDto) {
     const returnItem = await this.findOne(id);
+
     Object.assign(returnItem, updateReturnItemDto);
+    if (updateReturnItemDto.order_item_id) {
+      const existingOrderItem = await this.orderItemRepository.findOneBy({
+        id: updateReturnItemDto.order_item_id,
+      });
+      if (!existingOrderItem) {
+        throw new NotFoundException(
+          `Order item with id ${updateReturnItemDto.order_item_id} not found`,
+        );
+      }
+      returnItem.orderItem = existingOrderItem;
+    }
+
     return await this.returnItemRepository.save(returnItem);
   }
 

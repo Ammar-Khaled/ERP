@@ -28,6 +28,7 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
 import { OrderModule } from './order/order.module';
 import { OrderItemModule } from './order_item/order_item.module';
 import { CouponModule } from './coupon/coupon.module';
+import { ReturnItemModule } from './return_item/return_item.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { CouponModule } from './coupon/coupon.module';
     OrderModule,
     OrderItemModule,
     CouponModule,
+    ReturnItemModule,
   ],
   controllers: [AppController],
   providers: [
