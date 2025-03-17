@@ -9,28 +9,28 @@ export class Return {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'date' })
+    @Column({ type: 'date', default: 'CURRENT_TIMESTAMP' })
     date: Date;
 
-    @Column({ type: 'varchar', length: 255 })
+    @Column({ type: 'varchar', length: 255, default: "Not Specified" })
     reason: string;
-
-    @ManyToOne(() => Order, (order: Order) => order.returns, {
-        nullable: false,
-    })
-    order: Order;
-
-    @ManyToMany(() => ProductItem, (productItems) => productItems.returns)
-    @JoinTable()
-    productItems: ProductItem[];
 
     @OneToMany(() => ReturnItem, (returnItem) => returnItem.return, {
         nullable: false,
     })
     returnItems: ReturnItem[];
 
+    @ManyToOne(() => Order, (order: Order) => order.returns, {
+        nullable: false,
+    })
+    order: Order;
+
     @ManyToOne(() => Status, (status) => status.returns, {
         nullable: false,
     })
     status: Status;
+
+    @ManyToMany(() => ProductItem, (productItems) => productItems.returns)
+    @JoinTable()
+    productItems: ProductItem[];
 }

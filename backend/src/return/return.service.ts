@@ -1,11 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { CreateReturnDto } from './dto/create-return.dto';
 import { UpdateReturnDto } from './dto/update-return.dto';
+import { Return } from './entities/return.entity';
 
 @Injectable()
 export class ReturnService {
   create(createReturnDto: CreateReturnDto) {
-    return 'This action adds a new return';
+    const newReturn = new Return();
+
+    newReturn.date = createReturnDto.date || new Date();
+    if (createReturnDto.reason) {
+      newReturn.reason = createReturnDto.reason;
+    }
+
+    
   }
 
   findAll() {
