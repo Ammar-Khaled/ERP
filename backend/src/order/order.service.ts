@@ -20,6 +20,8 @@ import { OrderItem } from 'src/order_item/entities/order_item.entity';
 import { OrderItemService } from 'src/order_item/order_item.service';
 import { ProductItem } from '../product_item/entities/product_item.entity';
 import { ProductItemService } from 'src/product_item/product_item.service';
+import { CreateOrderItemDto } from 'src/order_item/dto/create-order_item.dto';
+import { Status } from 'src/status/entities/status.entity';
 
 @Injectable()
 export class OrderService {
@@ -40,11 +42,17 @@ export class OrderService {
     private orderItemRepo: Repository<OrderItem>,
     @Inject('PRODUCT_ITEM_REPOSITORY')
     private productItemRepo: Repository<ProductItem>,
+    @Inject('STATUS_REPOSITORY')
+    private statusRepo: Repository<Status>,
     private readonly orderItemService: OrderItemService,
     private readonly productItemService: ProductItemService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
+
+    const _newOrder = new Order();
+    _newOrder.date = createOrderDto.date || new Date();
+
     // Verify the existence of the branch
     const branch = await this.branchRepo.findOne({
       where: { id: createOrderDto.branch_id },
@@ -54,6 +62,7 @@ export class OrderService {
         jsend.fail({ message: 'There is NO branch with that id !!' }),
       );
     }
+    _newOrder.branch = branch;
 
     // Verify the existence of the user
     const user = await this.userRepo.findOne({
@@ -64,6 +73,7 @@ export class OrderService {
         jsend.fail({ message: 'There is NO user with that id !!' }),
       );
     }
+    _newOrder.user = user;
 
     // Verify the existence of the client
     const client = await this.clientRepo.findOne({
@@ -74,6 +84,17 @@ export class OrderService {
         jsend.fail({ message: 'There is NO client with that id !!' }),
       );
     }
+    _newOrder.client = client;
+
+    // Verify the existence of the status
+    const status = await this.statusRepo.findOneBy({
+      id: createOrderDto.status_id,
+    });
+    if (!status)
+      throw new NotFoundException({
+        message: 'There is NO status with that id !!',
+      });
+    _newOrder.status = status;
 
     // the order doesn't necessarily has coupons,
     // so that, coupon_id is optional.
@@ -88,6 +109,7 @@ export class OrderService {
           jsend.fail({ message: 'There is NO coupon with that id !!' }),
         );
       }
+      _newOrder.coupon = coupon;
     }
 
     // Verify the existence of the currency
@@ -99,9 +121,23 @@ export class OrderService {
         jsend.fail({ message: 'There is NO currency with that id !!' }),
       );
     }
+    _newOrder.currency = currency;
+
+    const _orderItems = createOrderDto.items;
+    const uniqueOrderItems = _orderItems.reduce(
+      (merged, item) => {
+        const existingItem = merged.find(
+          (i) => i.product_item_id === item.product_item_id,
+        );
+        if (existingItem) existingItem.number_of_items += item.number_of_items;
+        else merged.push(item);
+
+        return merged;
+      }, [] as CreateOrderItemDto[]
+    );
 
     const orderItems = [];
-    for (const item of createOrderDto.items) {
+    for (const item of uniqueOrderItems) {
       const orderItem = await this.orderItemRepo.create(item);
       const productItem = await this.productItemRepo.findOneBy({
         id: item.product_item_id,
@@ -115,9 +151,7 @@ export class OrderService {
       // validating the amount of items in the order and stock
       if (orderItem.number_of_items > productItem.number_of_valid) {
         throw new ConflictException(
-          jsend.fail({
-            message: `There is NO enough items of ${productItem.name}`,
-          }),
+          jsend.fail({ message: `There is NO enough items of ${productItem.name}`})
         );
       }
       productItem.number_of_valid -= orderItem.number_of_items;
@@ -133,12 +167,11 @@ export class OrderService {
       orderItems.push(orderItem);
     }
 
-    const order = this.orderRepo.create(createOrderDto);
-    order.items = orderItems;
+    _newOrder.items = orderItems;
 
     try {
-      const new_order = await this.orderRepo.save(order);
-      return jsend.success(new_order);
+      const newOrder = await this.orderRepo.save(_newOrder);
+      return jsend.success(newOrder);
     } catch (error) {
       throw new HttpException(
         jsend.error({

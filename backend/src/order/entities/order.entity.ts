@@ -6,6 +6,8 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
 import { Branch } from '../../branches/entities/branch.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -13,26 +15,26 @@ import { Client } from 'src/clients/entities/client.entity';
 import { Coupon } from 'src/coupon/entities/coupon.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { OrderItem } from 'src/order_item/entities/order_item.entity';
-
-export enum STATUS {
-  COMPLETED = 0,
-  PENDING = 1,
-  CANCELED = 2,
-}
+import { Status } from 'src/status/entities/status.entity';
 
 @Entity()
 export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  date: string;
+  @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
+  date: Date;
 
-  @Column({ type: 'float' })
+  @Column({type: 'decimal', default: 0.0, nullable: false})
   total_amount: number;
 
-  @Column({ default: false })
-  is_returned: boolean;
+  @BeforeInsert()
+  @BeforeUpdate()
+  calculateTheTotalAmount(){
+    this.total_amount = this.items.reduce(
+      (total,item) => total + item.total_price,0
+    );
+  }
 
   @DeleteDateColumn()
   deletedAt: Date;
@@ -66,12 +68,14 @@ export class Order {
 
   //----------------
 
-  @Column({
-    type: 'enum',
-    enum: STATUS,
-    default: STATUS.PENDING,
+  @Column()
+  status_id: number;
+
+  @ManyToOne(() => Status, (status) => status.orders, {
+    nullable: false,
   })
-  status: STATUS;
+  @JoinColumn({ name: 'status_id' })
+  status: Status;
 
   //----------------
 

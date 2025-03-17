@@ -23,7 +23,7 @@ export class OrderItem {
   @Column({ type: 'float' })
   unit_price: number;
 
-  @Column({ type: 'float', default: 0 })
+  @Column({ type: 'float', default: 0.0 })
   total_price: number;
 
   @DeleteDateColumn()

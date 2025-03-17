@@ -1,3 +1,4 @@
+import { Order } from 'src/order/entities/order.entity';
 import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
 import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -22,4 +23,7 @@ export class Status {
 
   @DeleteDateColumn() // Add DeleteDateColumn for soft delete
   deletedAt?: Date;
+  
+  @OneToMany(() => Order, (order) => order.status)
+  orders: Order[];
 }
