@@ -1,3 +1,4 @@
+import { Order } from 'src/order/entities/order.entity';
 import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -19,4 +20,7 @@ export class Status {
 
   @OneToMany(() => PurchaseRequest, (purchaseRequest) => purchaseRequest.status)
   purchaseRequests: PurchaseRequest[];
+
+  @OneToMany(() => Order, (order) => order.status)
+  orders: Order[];
 }

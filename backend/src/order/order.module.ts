@@ -12,6 +12,7 @@ import { productItemProviders } from 'src/product_item/product_item.providers';
 import { OrderItemService } from 'src/order_item/order_item.service';
 import { orderItemProviders } from 'src/order_item/order_item.providers';
 import { ProductItemModule } from 'src/product_item/product_item.module';
+import { statusProviders } from 'src/status/status.providers';
 
 @Module({
   imports: [DatabaseModule,ProductItemModule],
@@ -26,6 +27,7 @@ import { ProductItemModule } from 'src/product_item/product_item.module';
     ...currencyProviders,
     ...productItemProviders,
     ...orderItemProviders,
+    ...statusProviders,
     OrderItemService,
   ],
 })

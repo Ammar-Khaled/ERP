@@ -1,27 +1,18 @@
 import {
   IsArray,
-  IsBoolean,
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsString,
+  IsDate,
 } from 'class-validator';
-import { STATUS } from '../entities/order.entity';
 import { CreateOrderItemDto } from 'src/order_item/dto/create-order_item.dto';
+import { Type } from 'class-transformer';
 
 export class CreateOrderDto {
-  @IsNotEmpty()
-  @IsString()
-  date: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  total_amount: number;
-
   @IsOptional()
-  @IsBoolean()
-  is_returned: boolean;
+  @Type(() => Date)
+  @IsDate()
+  date?: Date;
 
   @IsNotEmpty()
   @IsNumber()
@@ -36,8 +27,8 @@ export class CreateOrderDto {
   client_id: number;
 
   @IsNotEmpty()
-  @IsEnum(STATUS)
-  status: STATUS;
+  @IsNumber()
+  status_id: number;
 
   @IsOptional()
   @IsNumber()
