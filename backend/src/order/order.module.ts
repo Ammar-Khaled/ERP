@@ -15,7 +15,7 @@ import { ProductItemModule } from 'src/product_item/product_item.module';
 import { statusProviders } from 'src/status/status.providers';
 
 @Module({
-  imports: [DatabaseModule,ProductItemModule],
+  imports: [DatabaseModule, ProductItemModule],
   controllers: [OrderController],
   providers: [
     OrderService,

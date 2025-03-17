@@ -4,6 +4,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -41,4 +42,7 @@ export class PurchaseItem {
     this.total_price =
       this.number_of_items * this.purchaseEntity.unit_price - this.discount;
   }
+
+  @DeleteDateColumn() // Add DeleteDateColumn for soft delete
+  deletedAt?: Date;
 }

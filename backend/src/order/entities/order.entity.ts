@@ -1,8 +1,8 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
-  DeleteDateColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -25,7 +25,7 @@ export class Order {
   @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
   date: Date;
 
-  @Column({type: 'decimal', default: 0.0,nullable: false})
+  @Column({type: 'decimal', default: 0.0, nullable: false})
   total_amount: number;
 
   @BeforeInsert()

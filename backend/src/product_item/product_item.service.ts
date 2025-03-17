@@ -135,7 +135,7 @@ export class ProductItemService {
             await transactionalEntityManager
               .getRepository(ProductItemToInventory)
               .insert({
-                number_of_items: createProductItemDto.total_items,
+                number_of_items: createProductItemDto.number_of_valid,
                 number_of_damaged: createProductItemDto.number_of_damaged || 0,
                 product_item_id: newProductItem.id,
                 inventory_id: createProductItemDto.inventory_id,

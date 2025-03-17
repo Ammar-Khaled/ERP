@@ -25,9 +25,9 @@ export class CreateProductItemDto {
   @IsString({ each: true })
   photos?: string[]; // Array of photo URLs or paths
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
-  total_items: number; // Total items in stock for this product item
+  number_of_valid: number; // Total items in stock for this product item
 
   @IsOptional()
   number_of_damaged: number;
@@ -40,6 +40,7 @@ export class CreateProductItemDto {
   @IsNumber()
   inventory_id: number;
 
+  @IsOptional()
   @IsNotEmpty()
   @IsNumber()
   product_id: number;

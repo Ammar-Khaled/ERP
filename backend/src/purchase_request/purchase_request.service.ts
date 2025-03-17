@@ -222,16 +222,9 @@ export class PurchaseRequestService {
   }
 
   async remove(id: number) {
-    const purchaseRequest = await this.purchaseRequestRepository.findOneBy({
-      id,
-    });
-    if (!purchaseRequest) {
-      throw new NotFoundException({
-        message: `No purchase request with ID of (${id})!`,
-      });
-    }
+    const purchaseRequest = await this.findOne(id);
+    await this.purchaseRequestRepository.softDelete({ id });
 
-    await this.purchaseRequestRepository.delete({ id });
     console.log(`Removed purchase request with ID: ${id} successfully!`);
     return purchaseRequest;
   }
