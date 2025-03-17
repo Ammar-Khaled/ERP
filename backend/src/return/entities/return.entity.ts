@@ -30,7 +30,8 @@ export class Return {
     })
     status: Status;
 
-    @ManyToMany(() => ProductItem, (productItems) => productItems.returns)
-    @JoinTable()
-    productItems: ProductItem[];
+    //# Discuss this relationship
+    // @ManyToMany(() => ProductItem, (productItems) => productItems.returns)
+    // @JoinTable()
+    // productItems: ProductItem[];
 }

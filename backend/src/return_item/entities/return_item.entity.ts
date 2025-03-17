@@ -19,7 +19,7 @@ export class ReturnItem {
   name: string;
 
   @Column({ type: 'int', nullable: false })
-  number_of_items: number;
+  numberOfItems: number;
 
   // add one-to-one relation with order item module
   @OneToOne(() => OrderItem, (orderItem) => orderItem.returnItem, {
