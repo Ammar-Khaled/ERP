@@ -1,8 +1,8 @@
 import { Order } from "src/order/entities/order.entity";
-import { Product } from "src/products/entities/product.entity";
+import { ProductItem } from "src/product_item/entities/product_item.entity";
 import { ReturnItem } from "src/return_item/entities/return_item.entity";
 import { Status } from "src/status/entities/status.entity";
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('returns')
 export class Return {
@@ -15,14 +15,14 @@ export class Return {
     @Column({ type: 'varchar', length: 255 })
     reason: string;
 
-    @OneToOne(() => Order, (order: Order) => order.return, {
+    @ManyToOne(() => Order, (order: Order) => order.returns, {
         nullable: false,
     })
     order: Order;
 
-    //# Ensure the relation
-    @ManyToMany(() => Product, (products) => products.returns)
-    products: Product[];
+    @ManyToMany(() => ProductItem, (productItems) => productItems.returns)
+    @JoinTable()
+    productItems: ProductItem[];
 
     @OneToMany(() => ReturnItem, (returnItem) => returnItem.return, {
         nullable: false,

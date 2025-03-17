@@ -12,6 +12,7 @@ import { Product } from '../../products/entities/product.entity';
 import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity';
 import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Assuming a VariationOption entity exists
 import { OrderItem } from 'src/order_item/entities/order_item.entity';
+import { Return } from 'src/return/entities/return.entity';
 
 @Entity()
 export class ProductItem {
@@ -62,4 +63,7 @@ export class ProductItem {
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.productItem)
   orderItem: OrderItem;
+
+  @ManyToMany(() => Return, (returns) => returns.productItems)
+  returns: Return[];
 }

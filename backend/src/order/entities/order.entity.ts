@@ -98,6 +98,6 @@ export class Order {
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
   items: OrderItem[];
 
-  @OneToOne(() => Return, (returnParam: Return) => returnParam.order)
-  return: Return;
+  @OneToMany(() => Return, (returnParam: Return) => returnParam.order)
+  returns: Return[];
 }

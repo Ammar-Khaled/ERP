@@ -70,7 +70,4 @@ export class Product {
   // Add OneToMany relationship with ProductItem
   @OneToMany(() => ProductItem, (productItem) => productItem.product)
   productItems: ProductItem[];
-
-  @ManyToMany(() => Return, (returns) => returns.products)
-  returns: Return[];
 }
