@@ -1,4 +1,6 @@
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   DeleteDateColumn,
   Entity,
@@ -6,8 +8,6 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  BeforeInsert,
-  BeforeUpdate,
 } from 'typeorm';
 import { Branch } from '../../branches/entities/branch.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -22,17 +22,18 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date: Date;
 
-  @Column({type: 'decimal', default: 0.0, nullable: false})
+  @Column({ type: 'decimal', default: 0.0, nullable: false })
   total_amount: number;
 
   @BeforeInsert()
   @BeforeUpdate()
-  calculateTheTotalAmount(){
+  calculateTheTotalAmount() {
     this.total_amount = this.items.reduce(
-      (total,item) => total + item.total_price,0
+      (total, item) => total + item.total_price,
+      0,
     );
   }
 

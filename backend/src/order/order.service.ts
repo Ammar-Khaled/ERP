@@ -49,7 +49,6 @@ export class OrderService {
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
-
     const _newOrder = new Order();
     _newOrder.date = createOrderDto.date || new Date();
 
@@ -124,17 +123,15 @@ export class OrderService {
     _newOrder.currency = currency;
 
     const _orderItems = createOrderDto.items;
-    const uniqueOrderItems = _orderItems.reduce(
-      (merged, item) => {
-        const existingItem = merged.find(
-          (i) => i.product_item_id === item.product_item_id,
-        );
-        if (existingItem) existingItem.number_of_items += item.number_of_items;
-        else merged.push(item);
+    const uniqueOrderItems = _orderItems.reduce((merged, item) => {
+      const existingItem = merged.find(
+        (i) => i.product_item_id === item.product_item_id,
+      );
+      if (existingItem) existingItem.number_of_items += item.number_of_items;
+      else merged.push(item);
 
-        return merged;
-      }, [] as CreateOrderItemDto[]
-    );
+      return merged;
+    }, [] as CreateOrderItemDto[]);
 
     const orderItems = [];
     for (const item of uniqueOrderItems) {
@@ -151,7 +148,9 @@ export class OrderService {
       // validating the amount of items in the order and stock
       if (orderItem.number_of_items > productItem.number_of_valid) {
         throw new ConflictException(
-          jsend.fail({ message: `There is NO enough items of ${productItem.name}`})
+          jsend.fail({
+            message: `There is NO enough items of ${productItem.name}`,
+          }),
         );
       }
       productItem.number_of_valid -= orderItem.number_of_items;
@@ -159,9 +158,6 @@ export class OrderService {
 
       // calculate total price for one order item
       orderItem.total_price = orderItem.unit_price * orderItem.number_of_items;
-
-      // calculate total amount of the order
-      createOrderDto.total_amount += orderItem.total_price;
 
       await this.orderItemRepo.save(orderItem);
       orderItems.push(orderItem);
