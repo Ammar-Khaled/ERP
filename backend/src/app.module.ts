@@ -29,6 +29,7 @@ import { OrderModule } from './order/order.module';
 import { OrderItemModule } from './order_item/order_item.module';
 import { CouponModule } from './coupon/coupon.module';
 import { ReturnItemModule } from './return_item/return_item.module';
+import { ReturnModule } from './return/return.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { ReturnItemModule } from './return_item/return_item.module';
     OrderItemModule,
     CouponModule,
     ReturnItemModule,
+    ReturnModule,
   ],
   controllers: [AppController],
   providers: [
