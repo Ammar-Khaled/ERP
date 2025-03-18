@@ -1,5 +1,11 @@
 import { PurchaseItem } from 'src/purchase_item/entities/purchase_item.entity';
-import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('purchase_entities')
 export class PurchaseEntity {
