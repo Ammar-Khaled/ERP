@@ -13,9 +13,6 @@ export class CreateOrderItemDto {
   unit_price: number;
 
   @IsNotEmpty()
-  total_price: number;
-
-  @IsNotEmpty()
   @IsNumber()
   product_item_id: number;
 }
