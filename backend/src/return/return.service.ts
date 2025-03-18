@@ -120,7 +120,14 @@ export class ReturnService {
   }
 
   async update(id: number, updateReturnDto: UpdateReturnDto) {
-    return `This action updates a #${id} return`;
+    const returnObj = await this.findOne(id);
+
+    Object.assign(returnObj, updateReturnDto);
+
+    // Handle return items //
+    if (updateReturnDto.returnItemDtos) {
+      
+    }
   }
 
   async remove(id: number) {
