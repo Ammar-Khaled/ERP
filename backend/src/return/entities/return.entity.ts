@@ -1,7 +1,7 @@
 import { Order } from "src/order/entities/order.entity";
 import { ReturnItem } from "src/return_item/entities/return_item.entity";
 import { Status } from "src/status/entities/status.entity";
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeleteDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('returns')
 export class Return {
@@ -30,4 +30,7 @@ export class Return {
         eager: true,
     })
     status: Status;
+
+    @DeleteDateColumn()
+    deletedAt?: Date;
 }

@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ConsoleLogger, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReturnDto } from './dto/create-return.dto';
 import { UpdateReturnDto } from './dto/update-return.dto';
 import { Return } from './entities/return.entity';
@@ -136,13 +136,16 @@ export class ReturnService {
     if (updateReturnDto.returnItemDtos) {
       // Ensure that the return items are unique based on the order item id
       const returnItemDtos = updateReturnDto.returnItemDtos;
-      const uniquePurchaseItemsDtos = this.uniqueDtos(returnItemDtos);
+      const uniqueReturnItemDtos = this.uniqueDtos(returnItemDtos);
+
+      // console.log(uniqueReturnItemDtos);
 
       // Ensure the quantity is available for each item
-      for (const itemDto of uniquePurchaseItemsDtos) {
+      for (const itemDto of uniqueReturnItemDtos) {
         const orderItem = await this.orderItemRepository.findOneBy({
           id: itemDto.orderItemId,
         });
+        //# Fix the bug
         if (itemDto.numberOfItems > orderItem.numberOfItems) {
           throw new ConflictException({
             message: `The number of items to return is greater than the number of items in the order!`,
@@ -150,18 +153,28 @@ export class ReturnService {
         }
       }
 
+      console.log(returnObj.returnItems);
+
       // Update the items and save them
-      for (const itemDto of uniquePurchaseItemsDtos) {
+      for (const itemDto of uniqueReturnItemDtos) {
+        // console.log(itemDto);
+
         const existingItem = returnObj.returnItems.find(
           (returnItem) => returnItem.orderItem.id === itemDto.orderItemId
         );
+
+        // console.log('before if statement');
+
         if (existingItem) {
           // Found? => just update the quantity
           let difference = existingItem.numberOfItems - itemDto.numberOfItems;
           existingItem.orderItem.numberOfItems += difference;
           await this.orderItemRepository.save(existingItem.orderItem);
 
-          await this.returnItemService.update(existingItem.id, itemDto);
+          existingItem.numberOfItems = itemDto.numberOfItems;
+          await this.returnItemService.update(existingItem.id, existingItem);
+
+          // console.log('finish if statement');
         } else {
           // Not found? => create a new item
           const orderItem = await this.orderItemRepository.findOneBy({
@@ -173,6 +186,8 @@ export class ReturnService {
 
           const returnItem = await this.returnItemService.create(itemDto);
           returnObj.returnItems.push(returnItem);
+
+          // console.log('finish else statement');
         }
       }
 
