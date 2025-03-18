@@ -22,21 +22,14 @@ export class ReturnService {
     private orderRepository: Repository<Order>,
     @Inject('STATUS_REPOSITORY')
     private statusRepository: Repository<Status>,
-  ) {}
-  
-  async create(createReturnDto: CreateReturnDto) {
-    const newReturn = new Return();
+  ) { }
 
-    newReturn.date = createReturnDto.date || new Date();
-    if (createReturnDto.reason) {
-      newReturn.reason = createReturnDto.reason;
-    }
+  /// Utility Functions ///
+  uniqueDtos(dtos) {
+    // Returns the unique dtos
+    // By merging the number of items for dtos with the same order item id
 
-    // Handle return items //
-    
-    // Ensure that the return items are unique based on the order item id
-    const returnItemDtos = createReturnDto.returnItemDtos;
-    const uniquePurchaseItemsDtos = returnItemDtos.reduce(
+    return dtos.reduce(
       (visited, item) => {
         const existingItem = visited.find(
           (visitedItem) => visitedItem.orderItemId === item.orderItemId
@@ -51,6 +44,21 @@ export class ReturnService {
       },
       [] as CreateReturnItemDto[],
     );
+  }
+
+  async create(createReturnDto: CreateReturnDto) {
+    const newReturn = new Return();
+
+    newReturn.date = createReturnDto.date || new Date();
+    if (createReturnDto.reason) {
+      newReturn.reason = createReturnDto.reason;
+    }
+
+    // Handle return items //
+
+    // Ensure that the return items are unique based on the order item id
+    const returnItemDtos = createReturnDto.returnItemDtos;
+    const uniquePurchaseItemsDtos = this.uniqueDtos(returnItemDtos);
 
     // Ensure the quantity is available for each item
     for (const itemDto of uniquePurchaseItemsDtos) {
@@ -61,7 +69,7 @@ export class ReturnService {
         throw new ConflictException({
           message: `The number of items to return is greater than the number of items in the order!`,
         });
-      } 
+      }
     }
 
     // Create the items and save them
@@ -73,7 +81,7 @@ export class ReturnService {
 
       orderItem.numberOfItems -= itemDto.numberOfItems;
       await this.orderItemRepository.save(orderItem);
-      
+
       const returnItem = await this.returnItemService.create(itemDto);
       returnItems.push(returnItem);
     }
@@ -126,11 +134,81 @@ export class ReturnService {
 
     // Handle return items //
     if (updateReturnDto.returnItemDtos) {
-      
+      // Ensure that the return items are unique based on the order item id
+      const returnItemDtos = updateReturnDto.returnItemDtos;
+      const uniquePurchaseItemsDtos = this.uniqueDtos(returnItemDtos);
+
+      // Ensure the quantity is available for each item
+      for (const itemDto of uniquePurchaseItemsDtos) {
+        const orderItem = await this.orderItemRepository.findOneBy({
+          id: itemDto.orderItemId,
+        });
+        if (itemDto.numberOfItems > orderItem.numberOfItems) {
+          throw new ConflictException({
+            message: `The number of items to return is greater than the number of items in the order!`,
+          });
+        }
+      }
+
+      // Update the items and save them
+      for (const itemDto of uniquePurchaseItemsDtos) {
+        const existingItem = returnObj.returnItems.find(
+          (returnItem) => returnItem.orderItem.id === itemDto.orderItemId
+        );
+        if (existingItem) {
+          // Found? => just update the quantity
+          let difference = existingItem.numberOfItems - itemDto.numberOfItems;
+          existingItem.orderItem.numberOfItems += difference;
+          await this.orderItemRepository.save(existingItem.orderItem);
+
+          await this.returnItemService.update(existingItem.id, itemDto);
+        } else {
+          // Not found? => create a new item
+          const orderItem = await this.orderItemRepository.findOneBy({
+            id: itemDto.orderItemId,
+          });
+
+          orderItem.numberOfItems -= itemDto.numberOfItems;
+          await this.orderItemRepository.save(orderItem);
+
+          const returnItem = await this.returnItemService.create(itemDto);
+          returnObj.returnItems.push(returnItem);
+        }
+      }
+
+      // Update the order //
+      if (updateReturnDto.orderId) {
+        const order = await this.orderRepository.findOneBy({
+          id: updateReturnDto.orderId,
+        });
+        if (!order) {
+          throw new NotFoundException({
+            message: `No order with ID of (${updateReturnDto.orderId})!`,
+          });
+        }
+        returnObj.order = order;
+      }
+
+      // Update the status //
+      if (updateReturnDto.statusId) {
+        const status = await this.statusRepository.findOneBy({
+          id: updateReturnDto.statusId,
+        });
+        if (!status) {
+          throw new NotFoundException({
+            message: `No status with ID of (${updateReturnDto.statusId})!`,
+          });
+        }
+        returnObj.status = status;
+      }
+
+      return await this.returnRepository.save(returnObj);
     }
   }
 
   async remove(id: number) {
-    return `This action removes a #${id} return`;
+    const returnObj = await this.findOne(id);
+    await this.returnRepository.softDelete({id});
+    return returnObj;
   }
 }
