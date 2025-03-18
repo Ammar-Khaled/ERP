@@ -1,5 +1,4 @@
 import { Order } from "src/order/entities/order.entity";
-import { ProductItem } from "src/product_item/entities/product_item.entity";
 import { ReturnItem } from "src/return_item/entities/return_item.entity";
 import { Status } from "src/status/entities/status.entity";
 import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
@@ -9,7 +8,7 @@ export class Return {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'date', default: 'CURRENT_TIMESTAMP' })
+    @Column({ type: 'date' })
     date: Date;
 
     @Column({ type: 'varchar', length: 255, default: "Not Specified" })
@@ -17,6 +16,7 @@ export class Return {
 
     @OneToMany(() => ReturnItem, (returnItem) => returnItem.return, {
         nullable: false,
+        eager: true,
     })
     returnItems: ReturnItem[];
 
@@ -27,11 +27,7 @@ export class Return {
 
     @ManyToOne(() => Status, (status) => status.returns, {
         nullable: false,
+        eager: true,
     })
     status: Status;
-
-    //# Discuss this relationship
-    // @ManyToMany(() => ProductItem, (productItems) => productItems.returns)
-    // @JoinTable()
-    // productItems: ProductItem[];
 }

@@ -63,7 +63,4 @@ export class ProductItem {
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.productItem)
   orderItem: OrderItem;
-
-  @ManyToMany(() => Return, (returns) => returns.productItems)
-  returns: Return[];
 }

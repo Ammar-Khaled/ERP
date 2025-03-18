@@ -23,8 +23,4 @@ export class CreateReturnDto {
     @IsNotEmpty()
     @IsInt()
     statusId: number;
-
-    // @IsOptional()
-    // @IsInt({ each: true })
-    // productItemIds?: number[];
 }

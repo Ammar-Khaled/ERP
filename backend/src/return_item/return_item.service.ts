@@ -16,21 +16,12 @@ export class ReturnItemService {
   ) {}
 
   async create(createReturnItemDto: CreateReturnItemDto) {
-    const existingReturnItem = await this.returnItemRepository.findOneBy({
-      name: createReturnItemDto.name,
-    });
-    if (existingReturnItem) {
-      throw new ConflictException(
-        'A return item with this name already exists',
-      );
-    }
-    
     const existingOrderItem = await this.orderItemRepository.findOneBy({
-      id: createReturnItemDto.order_item_id,
+      id: createReturnItemDto.orderItemId,
     });
     if (!existingOrderItem) {
       throw new NotFoundException(
-        `Order item with id ${createReturnItemDto.order_item_id} not found`,
+        `Order item with id ${createReturnItemDto.orderItemId} not found`,
       );
     }
 
@@ -56,13 +47,14 @@ export class ReturnItemService {
     const returnItem = await this.findOne(id);
 
     Object.assign(returnItem, updateReturnItemDto);
-    if (updateReturnItemDto.order_item_id) {
+    
+    if (updateReturnItemDto.orderItemId) {
       const existingOrderItem = await this.orderItemRepository.findOneBy({
-        id: updateReturnItemDto.order_item_id,
+        id: updateReturnItemDto.orderItemId,
       });
       if (!existingOrderItem) {
         throw new NotFoundException(
-          `Order item with id ${updateReturnItemDto.order_item_id} not found`,
+          `Order item with id ${updateReturnItemDto.orderItemId} not found`,
         );
       }
       returnItem.orderItem = existingOrderItem;

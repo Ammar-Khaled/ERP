@@ -42,7 +42,7 @@ export class OrderService {
     private productItemRepo: Repository<ProductItem>,
     private readonly orderItemService: OrderItemService,
     private readonly productItemService: ProductItemService,
-  ) {}
+  ) { }
 
   async create(createOrderDto: CreateOrderDto) {
     // Verify the existence of the branch
@@ -113,18 +113,18 @@ export class OrderService {
       orderItem.name = productItem.name;
 
       // validating the amount of items in the order and stock
-      if (orderItem.number_of_items > productItem.number_of_valid) {
+      if (orderItem.numberOfItems > productItem.number_of_valid) {
         throw new ConflictException(
           jsend.fail({
             message: `There is NO enough items of ${productItem.name}`,
           }),
         );
       }
-      productItem.number_of_valid -= orderItem.number_of_items;
+      productItem.number_of_valid -= orderItem.numberOfItems;
       await this.productItemService.update(productItem.id, productItem);
 
       // calculate total price for one order item
-      orderItem.total_price = orderItem.unit_price * orderItem.number_of_items;
+      orderItem.total_price = orderItem.unit_price * orderItem.numberOfItems;
 
       // calculate total amount of the order
       createOrderDto.total_amount += orderItem.total_price;
@@ -204,10 +204,10 @@ export class OrderService {
       for (let i = 0; i < order.items.length; ++i) {
         if (item.product_item_id === order.items[i].product_item_id) {
           // merge the new order item with the old one as they share same product item id
-          if (item.number_of_items > order.items[i].number_of_items) {
+          if (item.number_of_items > order.items[i].numberOfItems) {
             // in case of more items are needed
             let difference: number = 0;
-            difference = item.number_of_items - order.items[i].number_of_items;
+            difference = item.number_of_items - order.items[i].numberOfItems;
             if (difference > productItem.number_of_valid) {
               throw new ConflictException(
                 jsend.fail({
@@ -215,18 +215,18 @@ export class OrderService {
                 }),
               );
             }
-            order.items[i].number_of_items += difference;
+            order.items[i].numberOfItems += difference;
             order.items[i].total_price +=
               difference * order.items[i].unit_price;
             order.total_amount += difference * order.items[i].unit_price;
             productItem.number_of_valid -= difference;
             await this.productItemService.update(productItem.id, productItem);
-          } else if (item.number_of_items <= order.items[i].number_of_items) {
+          } else if (item.number_of_items <= order.items[i].numberOfItems) {
             // in case of some items are returned
             const difference =
-              order.items[i].number_of_items - item.number_of_items;
+              order.items[i].numberOfItems - item.number_of_items;
 
-            order.items[i].number_of_items -= difference;
+            order.items[i].numberOfItems -= difference;
             order.items[i].total_price -=
               difference * order.items[i].unit_price;
             order.total_amount -= difference * order.items[i].unit_price;
@@ -247,19 +247,19 @@ export class OrderService {
         orderItem.name = productItem.name;
 
         // validating the amount of items in the order and stock
-        if (orderItem.number_of_items > productItem.number_of_valid) {
+        if (orderItem.numberOfItems > productItem.number_of_valid) {
           throw new ConflictException(
             jsend.fail({
               message: `There is NO enough items of ${productItem.name}`,
             }),
           );
         }
-        productItem.number_of_valid -= orderItem.number_of_items;
+        productItem.number_of_valid -= orderItem.numberOfItems;
         await this.productItemService.update(productItem.id, productItem);
 
         // calculate total price for one order item
         orderItem.total_price =
-          orderItem.unit_price * orderItem.number_of_items;
+          orderItem.unit_price * orderItem.numberOfItems;
 
         // calculate total amount of the order
         order.total_amount += orderItem.total_price;

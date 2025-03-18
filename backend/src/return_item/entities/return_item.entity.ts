@@ -15,17 +15,16 @@ export class ReturnItem {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', unique: true, nullable: false })
+  @Column({ type: 'varchar', nullable: false })
   name: string;
 
   @Column({ type: 'int', nullable: false })
   numberOfItems: number;
 
-  // add one-to-one relation with order item module
-  @OneToOne(() => OrderItem, (orderItem) => orderItem.returnItem, {
+  @ManyToOne(() => OrderItem, (orderItem) => orderItem.returnItems, {
     nullable: false
   })
-  @JoinColumn({ name: 'order_item_id' })
+  @JoinColumn()
   orderItem: OrderItem;
   
   @ManyToOne(() => Return, (returnParam) => returnParam.returnItems)

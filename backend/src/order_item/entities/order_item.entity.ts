@@ -4,6 +4,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -20,7 +21,7 @@ export class OrderItem {
   name: string;
 
   @Column()
-  number_of_items: number;
+  numberOfItems: number;
 
   @Column({ type: 'float' })
   unit_price: number;
@@ -45,7 +46,6 @@ export class OrderItem {
   @JoinColumn({ name: 'product_item_id' })
   productItem: ProductItem;
 
-  // add one-to-one relation with return item module
-  @OneToOne(() => ReturnItem, (returnItem) => returnItem.orderItem)
-  returnItem: ReturnItem;
+  @OneToMany(() => ReturnItem, (returnItem) => returnItem.orderItem)
+  returnItems: ReturnItem;
 }
