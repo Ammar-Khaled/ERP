@@ -7,6 +7,7 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Branch } from '../../branches/entities/branch.entity';
@@ -16,6 +17,7 @@ import { Coupon } from 'src/coupon/entities/coupon.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { OrderItem } from 'src/order_item/entities/order_item.entity';
 import { Status } from 'src/status/entities/status.entity';
+import { Return } from 'src/return/entities/return.entity';
 
 @Entity()
 export class Order {
@@ -100,4 +102,7 @@ export class Order {
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
   items: OrderItem[];
+
+  @OneToMany(() => Return, (returnParam: Return) => returnParam.order)
+  returns: Return[];
 }

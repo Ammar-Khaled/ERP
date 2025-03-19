@@ -4,10 +4,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Order } from 'src/order/entities/order.entity';
 import { ProductItem } from 'src/product_item/entities/product_item.entity';
+import { ReturnItem } from 'src/return_item/entities/return_item.entity';
 
 @Entity()
 export class OrderItem {
@@ -18,7 +21,7 @@ export class OrderItem {
   name: string;
 
   @Column()
-  number_of_items: number;
+  numberOfItems: number;
 
   @Column({ type: 'float' })
   unit_price: number;
@@ -42,4 +45,7 @@ export class OrderItem {
   @ManyToOne(() => ProductItem)
   @JoinColumn({ name: 'product_item_id' })
   productItem: ProductItem;
+
+  @OneToMany(() => ReturnItem, (returnItem) => returnItem.orderItem)
+  returnItems: ReturnItem;
 }

@@ -6,22 +6,27 @@ import {
 } from '@nestjs/common';
 import { CreateReturnItemDto } from './dto/create-return_item.dto';
 import { UpdateReturnItemDto } from './dto/update-return_item.dto';
+import { ReturnItem } from './entities/return_item.entity';
 
 @Injectable()
 export class ReturnItemService {
-  constructor(@Inject('RETURN_ITEM_REPOSITORY') private returnItemRepository) {}
+  constructor(
+    @Inject('RETURN_ITEM_REPOSITORY') private returnItemRepository,
+    @Inject('ORDER_ITEM_REPOSITORY') private orderItemRepository,
+  ) {}
 
   async create(createReturnItemDto: CreateReturnItemDto) {
-    const existingReturnItem = await this.returnItemRepository.findOneBy({
-      name: createReturnItemDto.name,
+    const existingOrderItem = await this.orderItemRepository.findOneBy({
+      id: createReturnItemDto.orderItemId,
     });
-    if (existingReturnItem) {
-      throw new ConflictException(
-        'A return item with this name already exists',
+    if (!existingOrderItem) {
+      throw new NotFoundException(
+        `Order item with id ${createReturnItemDto.orderItemId} not found`,
       );
     }
 
-    const returnItem = this.returnItemRepository.create(createReturnItemDto);
+    const returnItem = await this.returnItemRepository.create(createReturnItemDto);
+    returnItem.orderItem = existingOrderItem;
     return await this.returnItemRepository.save(returnItem);
   }
 
@@ -40,7 +45,21 @@ export class ReturnItemService {
 
   async update(id: number, updateReturnItemDto: UpdateReturnItemDto) {
     const returnItem = await this.findOne(id);
+
     Object.assign(returnItem, updateReturnItemDto);
+    
+    if (updateReturnItemDto.orderItemId) {
+      const existingOrderItem = await this.orderItemRepository.findOneBy({
+        id: updateReturnItemDto.orderItemId,
+      });
+      if (!existingOrderItem) {
+        throw new NotFoundException(
+          `Order item with id ${updateReturnItemDto.orderItemId} not found`,
+        );
+      }
+      returnItem.orderItem = existingOrderItem;
+    }
+
     return await this.returnItemRepository.save(returnItem);
   }
 
