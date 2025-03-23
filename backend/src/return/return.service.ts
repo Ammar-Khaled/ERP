@@ -9,6 +9,7 @@ import { ReturnItem } from 'src/return_item/entities/return_item.entity';
 import { ReturnItemService } from 'src/return_item/return_item.service';
 import { Order } from 'src/order/entities/order.entity';
 import { Status } from 'src/status/entities/status.entity';
+import { ProductItem } from 'src/product_item/entities/product_item.entity';
 
 @Injectable()
 export class ReturnService {
@@ -22,6 +23,8 @@ export class ReturnService {
     private orderRepository: Repository<Order>,
     @Inject('STATUS_REPOSITORY')
     private statusRepository: Repository<Status>,
+    @Inject('PRODUCT_ITEM_REPOSITORY')
+    private productItemRepository: Repository<ProductItem>,
   ) { }
 
   /// Utility Functions ///
@@ -55,12 +58,26 @@ export class ReturnService {
     }
 
     // Handle return items //
+    const returnItemDtos = createReturnDto.returnItemDtos;
+    
+    // Ensure that all order item ids are valid
+    for (const itemDto of returnItemDtos) {
+      const orderItem = await this.orderItemRepository.findOneBy({
+        id: itemDto.orderItemId,
+      });
+
+      if (!orderItem) {
+        throw new NotFoundException({
+          message: `No order item with ID of (${itemDto.orderItemId})!`,
+        });
+      }
+    }
 
     // Ensure that the return items are unique based on the order item id
-    const returnItemDtos = createReturnDto.returnItemDtos;
     const uniquePurchaseItemsDtos = this.uniqueDtos(returnItemDtos);
 
-    // Ensure the quantity is available for each item
+    // Update the quantity of the product items
+    const productItemsBuffer: ProductItem[] = [];
     for (const itemDto of uniquePurchaseItemsDtos) {
       const orderItem = await this.orderItemRepository.findOneBy({
         id: itemDto.orderItemId,
@@ -70,18 +87,22 @@ export class ReturnService {
           message: `The number of items to return is greater than the number of items in the order!`,
         });
       }
+
+      const productItem = await this.productItemRepository.findOneBy({
+        id: orderItem.productItem.id,
+      });
+      
+      productItem.number_of_valid += itemDto.numberOfItems;
+      productItemsBuffer.push(productItem);
     }
 
-    // Create the items and save them
+    // Save the product items and order items
+    for (const productItem of productItemsBuffer) {
+      await this.productItemRepository.save(productItem);
+    }
+
     const returnItems: ReturnItem[] = [];
     for (const itemDto of uniquePurchaseItemsDtos) {
-      const orderItem = await this.orderItemRepository.findOneBy({
-        id: itemDto.orderItemId,
-      });
-
-      orderItem.numberOfItems -= itemDto.numberOfItems;
-      await this.orderItemRepository.save(orderItem);
-
       const returnItem = await this.returnItemService.create(itemDto);
       returnItems.push(returnItem);
     }
