@@ -6,7 +6,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -27,7 +26,7 @@ export class ReturnItem {
   })
   @JoinColumn()
   orderItem: OrderItem;
-  
+
   @ManyToOne(() => Return, (returnParam) => returnParam.returnItems)
   return: Return;
 

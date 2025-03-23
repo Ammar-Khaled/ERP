@@ -1,12 +1,6 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReturnItemDto } from './dto/create-return_item.dto';
 import { UpdateReturnItemDto } from './dto/update-return_item.dto';
-import { ReturnItem } from './entities/return_item.entity';
 
 @Injectable()
 export class ReturnItemService {
@@ -25,7 +19,8 @@ export class ReturnItemService {
       );
     }
 
-    const returnItem = await this.returnItemRepository.create(createReturnItemDto);
+    const returnItem =
+      await this.returnItemRepository.create(createReturnItemDto);
     returnItem.orderItem = existingOrderItem;
     returnItem.name = existingOrderItem.name;
     return await this.returnItemRepository.save(returnItem);
@@ -48,7 +43,7 @@ export class ReturnItemService {
     const returnItem = await this.findOne(id);
 
     Object.assign(returnItem, updateReturnItemDto);
-    
+
     if (updateReturnItemDto.orderItemId) {
       const existingOrderItem = await this.orderItemRepository.findOneBy({
         id: updateReturnItemDto.orderItemId,

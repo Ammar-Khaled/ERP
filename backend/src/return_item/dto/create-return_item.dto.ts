@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, Min } from 'class-validator';
 
 export class CreateReturnItemDto {
   @IsNotEmpty({ message: 'The number of items must not be empty.' })

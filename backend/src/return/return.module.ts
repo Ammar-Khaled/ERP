@@ -11,9 +11,7 @@ import { statusProviders } from 'src/status/status.providers';
 import { productItemProviders } from 'src/product_item/product_item.providers';
 
 @Module({
-  imports: [
-    DatabaseModule,
-  ],
+  imports: [DatabaseModule],
   controllers: [ReturnController],
   providers: [
     ReturnService,

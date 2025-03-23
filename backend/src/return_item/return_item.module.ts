@@ -8,10 +8,6 @@ import { orderItemProviders } from 'src/order_item/order_item.providers';
 @Module({
   imports: [DatabaseModule],
   controllers: [ReturnItemController],
-  providers: [
-    ReturnItemService, 
-    ...returnItemProviders,
-    ...orderItemProviders,
-  ],
+  providers: [ReturnItemService, ...returnItemProviders, ...orderItemProviders],
 })
 export class ReturnItemModule {}

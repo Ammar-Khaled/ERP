@@ -47,7 +47,7 @@ export class OrderService {
     private statusRepo: Repository<Status>,
     private readonly orderItemService: OrderItemService,
     private readonly productItemService: ProductItemService,
-  ) { }
+  ) {}
 
   async create(createOrderDto: CreateOrderDto) {
     const _newOrder = new Order();
@@ -158,8 +158,11 @@ export class OrderService {
 
       const updateProductItemDto: UpdateProductItemDto = {
         number_of_valid: productItem.number_of_valid,
-      }
-      await this.productItemService.update(productItem.id, updateProductItemDto);
+      };
+      await this.productItemService.update(
+        productItem.id,
+        updateProductItemDto,
+      );
 
       // calculate total price for one order item
       orderItem.total_price = orderItem.unit_price * orderItem.numberOfItems;
@@ -292,8 +295,7 @@ export class OrderService {
         await this.productItemService.update(productItem.id, productItem);
 
         // calculate total price for one order item
-        orderItem.total_price =
-          orderItem.unit_price * orderItem.numberOfItems;
+        orderItem.total_price = orderItem.unit_price * orderItem.numberOfItems;
 
         // calculate total amount of the order
         order.total_amount += orderItem.total_price;

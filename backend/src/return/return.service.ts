@@ -1,4 +1,9 @@
-import { ConflictException, ConsoleLogger, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateReturnDto } from './dto/create-return.dto';
 import { UpdateReturnDto } from './dto/update-return.dto';
 import { Return } from './entities/return.entity';
@@ -25,33 +30,32 @@ export class ReturnService {
     private statusRepository: Repository<Status>,
     @Inject('PRODUCT_ITEM_REPOSITORY')
     private productItemRepository: Repository<ProductItem>,
-  ) { }
+  ) {}
 
   /// Utility Functions ///
   uniqueDtos(dtos: CreateReturnItemDto[]) {
     // Returns the unique dtos
     // By merging the number of items for dtos with the same order item id
 
-    return dtos.reduce(
-      (visited, item) => {
-        const existingItem = visited.find(
-          (visitedItem) => visitedItem.orderItemId === item.orderItemId
-        );
-        if (existingItem) {
-          existingItem.numberOfItems += item.numberOfItems;
-        } else {
-          visited.push(item);
-        }
+    return dtos.reduce((visited, item) => {
+      const existingItem = visited.find(
+        (visitedItem) => visitedItem.orderItemId === item.orderItemId,
+      );
+      if (existingItem) {
+        existingItem.numberOfItems += item.numberOfItems;
+      } else {
+        visited.push(item);
+      }
 
-        return visited;
-      },
-      [] as CreateReturnItemDto[],
-    );
+      return visited;
+    }, [] as CreateReturnItemDto[]);
   }
 
   validateAllOrderItemIds(dtos: CreateReturnItemDto[]): boolean {
     // Returns true if all order item ids are valid
-    return dtos.every((item) => this.orderItemRepository.findOneBy({ id: item.orderItemId }));
+    return dtos.every((item) =>
+      this.orderItemRepository.findOneBy({ id: item.orderItemId }),
+    );
   }
 
   /// CRUD Functions ///
@@ -172,10 +176,10 @@ export class ReturnService {
       // Note: Store the data in temp lists before saving to achieve atomicity
       const productItemsBuffer: ProductItem[] = [];
       const returnItemsToUpdate: ReturnItem[] = [];
-      const returnItemsToAdd: CreateReturnItemDto[] = []; 
+      const returnItemsToAdd: CreateReturnItemDto[] = [];
       for (const itemDto of uniqueReturnItemDtos) {
         const existingItem = returnObj.returnItems.find(
-          (returnItem) => returnItem.orderItem.id === itemDto.orderItemId
+          (returnItem) => returnItem.orderItem.id === itemDto.orderItemId,
         );
 
         if (existingItem) {
@@ -187,7 +191,7 @@ export class ReturnService {
             });
           }
 
-          let difference = itemDto.numberOfItems - existingItem.numberOfItems;
+          const difference = itemDto.numberOfItems - existingItem.numberOfItems;
           productItem.number_of_valid += difference;
           productItemsBuffer.push(productItem);
 
@@ -207,7 +211,7 @@ export class ReturnService {
           const productItem = orderItem.productItem;
           productItem.number_of_valid += itemDto.numberOfItems;
           productItemsBuffer.push(productItem);
-          
+
           returnItemsToAdd.push(itemDto);
         }
       }

@@ -1,7 +1,13 @@
 import { Order } from 'src/order/entities/order.entity';
 import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
 import { Return } from 'src/return/entities/return.entity';
-import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('statuses')
 export class Status {
