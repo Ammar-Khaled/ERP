@@ -27,6 +27,7 @@ export class ReturnItemService {
 
     const returnItem = await this.returnItemRepository.create(createReturnItemDto);
     returnItem.orderItem = existingOrderItem;
+    returnItem.name = existingOrderItem.name;
     return await this.returnItemRepository.save(returnItem);
   }
 
