@@ -142,9 +142,6 @@ export class OrderService {
       });
       orderItem.productItem = productItem;
 
-      console.log('productItem: ', productItem);
-      console.log('orderItem: ', orderItem);
-
       // make the price & name of same item equal in both of order_item and product_item
       orderItem.unit_price = productItem.price;
       orderItem.name = productItem.name;
