@@ -1,7 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
-import { Address } from 'src/common/entities/address.entity';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import * as jsend from 'jsend';
@@ -11,8 +10,6 @@ export class ClientsService {
   constructor(
     @Inject('CLIENT_REPOSITORY')
     private clientRepository: Repository<Client>,
-    @Inject('ADDRESS_REPOSITORY')
-    private addressRepository: Repository<Address>,
   ) {}
 
   async create(createClientDto: CreateClientDto) {
@@ -53,29 +50,29 @@ export class ClientsService {
     return jsend.success(client);
   }
 
-  async findByEmail(email: string) {
-    const client = await this.findClientByCondition(
-      { email },
-      'Client not found',
-    );
-    return jsend.success(client);
-  }
+  // async findByEmail(email: string) {
+  //   const client = await this.findClientByCondition(
+  //     { email },
+  //     'Client not found',
+  //   );
+  //   return jsend.success(client);
+  // }
+  //
+  // async findByPhone(phoneNumber: string) {
+  //   const client = await this.findClientByCondition(
+  //     { phone_number: phoneNumber },
+  //     'Client not found',
+  //   );
+  //   return jsend.success(client);
+  // }
 
-  async findByPhone(phoneNumber: string) {
-    const client = await this.findClientByCondition(
-      { phone_number: phoneNumber },
-      'Client not found',
-    );
-    return jsend.success(client);
-  }
-
-  private async findClientByCondition(condition: object, errorMessage: string) {
+  private async findClientByCondition(condition: object) {
     const client = await this.clientRepository.findOne({
       where: condition,
       relations: ['address'],
     });
     if (!client) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException();
     }
     return client;
   }

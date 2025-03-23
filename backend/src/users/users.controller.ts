@@ -44,7 +44,7 @@ export class UsersController {
     return user;
   }
 
-  @Permissions(['UsersController:update'])
+  // @Permissions(['UsersController:update'])
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);

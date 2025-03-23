@@ -2,15 +2,12 @@ import {
   Body,
   ConflictException,
   Controller,
-  Delete,
   Get,
   Param,
   Patch,
-  Post,
 } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { Branch } from './entities/branch.entity';
-import { Public } from '../auth/auth.guard';
 
 @Controller('branches')
 export class BranchesController {
@@ -31,19 +28,18 @@ export class BranchesController {
     return branch;
   }
 
-  @Public()
-  @Post()
-  create(@Body() branch: Branch) {
-    return this.branchesService.create(branch);
-  }
+  // @Post()
+  // create(@Body() branch: Branch) {
+  //   return this.branchesService.create(branch);
+  // }
 
   @Patch(':id')
   update(@Param('id') id: number, @Body() branch: Branch) {
     return this.branchesService.update(id, branch);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.branchesService.remove(id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: number) {
+  //   return this.branchesService.remove(id);
+  // }
 }
