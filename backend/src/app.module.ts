@@ -61,8 +61,6 @@ import { ReturnModule } from './return/return.module';
     ReturnModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-  ],
+  providers: [AppService],
 })
 export class AppModule {}

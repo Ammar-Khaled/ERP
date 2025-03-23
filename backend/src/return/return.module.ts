@@ -8,11 +8,10 @@ import { returnItemProviders } from 'src/return_item/return_item.provider';
 import { ReturnItemService } from 'src/return_item/return_item.service';
 import { orderProviders } from 'src/order/order.providers';
 import { statusProviders } from 'src/status/status.providers';
+import { productItemProviders } from 'src/product_item/product_item.providers';
 
 @Module({
-  imports: [
-    DatabaseModule,
-  ],
+  imports: [DatabaseModule],
   controllers: [ReturnController],
   providers: [
     ReturnService,
@@ -22,6 +21,7 @@ import { statusProviders } from 'src/status/status.providers';
     ...returnItemProviders,
     ...orderProviders,
     ...statusProviders,
+    ...productItemProviders,
   ],
 })
 export class ReturnModule {}

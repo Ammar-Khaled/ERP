@@ -22,6 +22,7 @@ import { ProductItem } from '../product_item/entities/product_item.entity';
 import { ProductItemService } from 'src/product_item/product_item.service';
 import { CreateOrderItemDto } from 'src/order_item/dto/create-order_item.dto';
 import { Status } from 'src/status/entities/status.entity';
+import { UpdateProductItemDto } from 'src/product_item/dto/update-product_item.dto';
 
 @Injectable()
 export class OrderService {
@@ -46,7 +47,7 @@ export class OrderService {
     private statusRepo: Repository<Status>,
     private readonly orderItemService: OrderItemService,
     private readonly productItemService: ProductItemService,
-  ) { }
+  ) {}
 
   async create(createOrderDto: CreateOrderDto) {
     const _newOrder = new Order();
@@ -154,7 +155,14 @@ export class OrderService {
         );
       }
       productItem.number_of_valid -= orderItem.numberOfItems;
-      await this.productItemService.update(productItem.id, productItem);
+
+      const updateProductItemDto: UpdateProductItemDto = {
+        number_of_valid: productItem.number_of_valid,
+      };
+      await this.productItemService.update(
+        productItem.id,
+        updateProductItemDto,
+      );
 
       // calculate total price for one order item
       orderItem.total_price = orderItem.unit_price * orderItem.numberOfItems;
@@ -287,8 +295,7 @@ export class OrderService {
         await this.productItemService.update(productItem.id, productItem);
 
         // calculate total price for one order item
-        orderItem.total_price =
-          orderItem.unit_price * orderItem.numberOfItems;
+        orderItem.total_price = orderItem.unit_price * orderItem.numberOfItems;
 
         // calculate total amount of the order
         order.total_amount += orderItem.total_price;

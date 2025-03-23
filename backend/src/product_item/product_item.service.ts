@@ -191,6 +191,8 @@ export class ProductItemService {
       'Product item not found',
     );
 
+    console.log(updateProductItemDto);
+
     if (updateProductItemDto.product_id) {
       const product = await this.productRepository.findOne({
         where: { id: updateProductItemDto.product_id },

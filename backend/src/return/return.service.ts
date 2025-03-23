@@ -1,4 +1,9 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateReturnDto } from './dto/create-return.dto';
 import { UpdateReturnDto } from './dto/update-return.dto';
 import { Return } from './entities/return.entity';
@@ -9,6 +14,7 @@ import { ReturnItem } from 'src/return_item/entities/return_item.entity';
 import { ReturnItemService } from 'src/return_item/return_item.service';
 import { Order } from 'src/order/entities/order.entity';
 import { Status } from 'src/status/entities/status.entity';
+import { ProductItem } from 'src/product_item/entities/product_item.entity';
 
 @Injectable()
 export class ReturnService {
@@ -22,29 +28,37 @@ export class ReturnService {
     private orderRepository: Repository<Order>,
     @Inject('STATUS_REPOSITORY')
     private statusRepository: Repository<Status>,
-  ) { }
+    @Inject('PRODUCT_ITEM_REPOSITORY')
+    private productItemRepository: Repository<ProductItem>,
+  ) {}
 
   /// Utility Functions ///
-  uniqueDtos(dtos) {
+  uniqueDtos(dtos: CreateReturnItemDto[]) {
     // Returns the unique dtos
     // By merging the number of items for dtos with the same order item id
 
-    return dtos.reduce(
-      (visited, item) => {
-        const existingItem = visited.find(
-          (visitedItem) => visitedItem.orderItemId === item.orderItemId
-        );
-        if (existingItem) {
-          existingItem.numberOfItems += item.numberOfItems;
-        } else {
-          visited.push(item);
-        }
+    return dtos.reduce((visited, item) => {
+      const existingItem = visited.find(
+        (visitedItem) => visitedItem.orderItemId === item.orderItemId,
+      );
+      if (existingItem) {
+        existingItem.numberOfItems += item.numberOfItems;
+      } else {
+        visited.push(item);
+      }
 
-        return visited;
-      },
-      [] as CreateReturnItemDto[],
+      return visited;
+    }, [] as CreateReturnItemDto[]);
+  }
+
+  validateAllOrderItemIds(dtos: CreateReturnItemDto[]): boolean {
+    // Returns true if all order item ids are valid
+    return dtos.every((item) =>
+      this.orderItemRepository.findOneBy({ id: item.orderItemId }),
     );
   }
+
+  /// CRUD Functions ///
 
   async create(createReturnDto: CreateReturnDto) {
     const newReturn = new Return();
@@ -55,12 +69,20 @@ export class ReturnService {
     }
 
     // Handle return items //
+    const returnItemDtos = createReturnDto.returnItemDtos;
+
+    // Ensure that all order item ids are valid
+    if (!this.validateAllOrderItemIds(returnItemDtos)) {
+      throw new NotFoundException({
+        message: `One or more order item ids are invalid!`,
+      });
+    }
 
     // Ensure that the return items are unique based on the order item id
-    const returnItemDtos = createReturnDto.returnItemDtos;
     const uniquePurchaseItemsDtos = this.uniqueDtos(returnItemDtos);
 
-    // Ensure the quantity is available for each item
+    // Update the quantity of the product items
+    const productItemsBuffer: ProductItem[] = [];
     for (const itemDto of uniquePurchaseItemsDtos) {
       const orderItem = await this.orderItemRepository.findOneBy({
         id: itemDto.orderItemId,
@@ -70,18 +92,22 @@ export class ReturnService {
           message: `The number of items to return is greater than the number of items in the order!`,
         });
       }
-    }
 
-    // Create the items and save them
-    const returnItems: ReturnItem[] = [];
-    for (const itemDto of uniquePurchaseItemsDtos) {
-      const orderItem = await this.orderItemRepository.findOneBy({
-        id: itemDto.orderItemId,
+      const productItem = await this.productItemRepository.findOneBy({
+        id: orderItem.productItem.id,
       });
 
-      orderItem.numberOfItems -= itemDto.numberOfItems;
-      await this.orderItemRepository.save(orderItem);
+      productItem.number_of_valid += itemDto.numberOfItems;
+      productItemsBuffer.push(productItem);
+    }
 
+    // Save the product items and order items
+    for (const productItem of productItemsBuffer) {
+      await this.productItemRepository.save(productItem);
+    }
+
+    const returnItems: ReturnItem[] = [];
+    for (const itemDto of uniquePurchaseItemsDtos) {
       const returnItem = await this.returnItemService.create(itemDto);
       returnItems.push(returnItem);
     }
@@ -133,47 +159,73 @@ export class ReturnService {
     Object.assign(returnObj, updateReturnDto);
 
     // Handle return items //
-    if (updateReturnDto.returnItemDtos) {
-      // Ensure that the return items are unique based on the order item id
-      const returnItemDtos = updateReturnDto.returnItemDtos;
-      const uniquePurchaseItemsDtos = this.uniqueDtos(returnItemDtos);
 
-      // Ensure the quantity is available for each item
-      for (const itemDto of uniquePurchaseItemsDtos) {
-        const orderItem = await this.orderItemRepository.findOneBy({
-          id: itemDto.orderItemId,
+    if (updateReturnDto.returnItemDtos) {
+      const returnItemDtos = updateReturnDto.returnItemDtos;
+      // Ensure that all order item ids are valid
+      if (!this.validateAllOrderItemIds(returnItemDtos)) {
+        throw new NotFoundException({
+          message: `One or more order item ids are invalid!`,
         });
-        if (itemDto.numberOfItems > orderItem.numberOfItems) {
-          throw new ConflictException({
-            message: `The number of items to return is greater than the number of items in the order!`,
-          });
-        }
       }
 
-      // Update the items and save them
-      for (const itemDto of uniquePurchaseItemsDtos) {
-        const existingItem = returnObj.returnItems.find(
-          (returnItem) => returnItem.orderItem.id === itemDto.orderItemId
-        );
-        if (existingItem) {
-          // Found? => just update the quantity
-          let difference = existingItem.numberOfItems - itemDto.numberOfItems;
-          existingItem.orderItem.numberOfItems += difference;
-          await this.orderItemRepository.save(existingItem.orderItem);
+      // Ensure that the return items are unique based on the order item id
+      const uniqueReturnItemDtos = this.uniqueDtos(returnItemDtos);
 
-          await this.returnItemService.update(existingItem.id, itemDto);
+      // Update the product items and the return items
+      // Note: Store the data in temp lists before saving to achieve atomicity
+      const productItemsBuffer: ProductItem[] = [];
+      const returnItemsToUpdate: ReturnItem[] = [];
+      const returnItemsToAdd: CreateReturnItemDto[] = [];
+      for (const itemDto of uniqueReturnItemDtos) {
+        const existingItem = returnObj.returnItems.find(
+          (returnItem) => returnItem.orderItem.id === itemDto.orderItemId,
+        );
+
+        if (existingItem) {
+          // Found? => just update the quantity of both the product item and the return item
+          const productItem = existingItem.orderItem.productItem;
+          if (itemDto.numberOfItems > existingItem.orderItem.numberOfItems) {
+            throw new ConflictException({
+              message: `The number of items to return is greater than the number of items in the order of the ID (${itemDto.orderItemId})!`,
+            });
+          }
+
+          const difference = itemDto.numberOfItems - existingItem.numberOfItems;
+          productItem.number_of_valid += difference;
+          productItemsBuffer.push(productItem);
+
+          existingItem.numberOfItems = itemDto.numberOfItems;
+          returnItemsToUpdate.push(existingItem);
         } else {
           // Not found? => create a new item
           const orderItem = await this.orderItemRepository.findOneBy({
             id: itemDto.orderItemId,
           });
+          if (itemDto.numberOfItems > orderItem.numberOfItems) {
+            throw new ConflictException({
+              message: `The number of items to return is greater than the number of items in the order of the ID (${itemDto.orderItemId})!`,
+            });
+          }
 
-          orderItem.numberOfItems -= itemDto.numberOfItems;
-          await this.orderItemRepository.save(orderItem);
+          const productItem = orderItem.productItem;
+          productItem.number_of_valid += itemDto.numberOfItems;
+          productItemsBuffer.push(productItem);
 
-          const returnItem = await this.returnItemService.create(itemDto);
-          returnObj.returnItems.push(returnItem);
+          returnItemsToAdd.push(itemDto);
         }
+      }
+
+      // Save the temp lists
+      for (const productItem of productItemsBuffer) {
+        await this.productItemRepository.save(productItem);
+      }
+      for (const returnItem of returnItemsToUpdate) {
+        await this.returnItemService.update(returnItem.id, returnItem);
+      }
+      for (const returnItemDto of returnItemsToAdd) {
+        const returnItem = await this.returnItemService.create(returnItemDto);
+        returnObj.returnItems.push(returnItem);
       }
 
       // Update the order //
@@ -208,7 +260,12 @@ export class ReturnService {
 
   async remove(id: number) {
     const returnObj = await this.findOne(id);
-    await this.returnRepository.softDelete({id});
+    // delete all return items
+    //# Should we update the product item quantity?
+    for (const returnItem of returnObj.returnItems) {
+      await this.returnItemService.remove(returnItem.id);
+    }
+    await this.returnRepository.softRemove({ id });
     return returnObj;
   }
 }

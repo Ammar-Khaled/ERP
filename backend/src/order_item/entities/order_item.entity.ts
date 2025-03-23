@@ -5,7 +5,6 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Order } from 'src/order/entities/order.entity';
@@ -42,7 +41,9 @@ export class OrderItem {
   @Column()
   product_item_id: number;
 
-  @ManyToOne(() => ProductItem)
+  @ManyToOne(() => ProductItem, {
+    eager: true,
+  })
   @JoinColumn({ name: 'product_item_id' })
   productItem: ProductItem;
 

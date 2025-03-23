@@ -4,7 +4,6 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -14,7 +13,6 @@ import { Category } from '../../categories/entities/category.entity';
 import { Unit } from '../../units/entities/unit.entity';
 import { Currency } from '../../currency/entities/currency.entity';
 import { ProductItem } from '../../product_item/entities/product_item.entity'; // Add this import
-import { Return } from 'src/return/entities/return.entity';
 
 @Entity()
 export class Product {
