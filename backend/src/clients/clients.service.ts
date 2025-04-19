@@ -19,7 +19,7 @@ export class ClientsService {
 
   async update(id: number, updateClientDto: UpdateClientDto) {
     // Retrieve the client with relations
-    const client = await this.findClientByCondition({ id }, 'Client not found');
+    const client = await this.findClientByCondition({ id });
 
     // Check and handle address updates
     if (updateClientDto.address) {
@@ -40,12 +40,12 @@ export class ClientsService {
   }
 
   async findOne(id: number) {
-    const client = await this.findClientByCondition({ id }, 'Client not found');
+    const client = await this.findClientByCondition({ id });
     return jsend.success(client);
   }
 
   async remove(id: number) {
-    const client = await this.findClientByCondition({ id }, 'Client not found');
+    const client = await this.findClientByCondition({ id });
     await this.clientRepository.softRemove(client);
     return jsend.success(client);
   }
