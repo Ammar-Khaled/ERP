@@ -45,7 +45,8 @@ export class StatusService {
 
   async remove(id: number) {
     const status = await this.findOne(id);
-    await this.statusRepository.delete({ id });
+    await this.statusRepository.softDelete({ id });
+
     console.log(`Delete status with id: (${id}) successfully!`);
     return status;
   }

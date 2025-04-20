@@ -22,10 +22,10 @@ export class OrderItemService {
   }
 
   async findOne(id: number) {
-    const orderItem = await this.orderItemRepo.findOneBy({id});
-    if(!orderItem){
+    const orderItem = await this.orderItemRepo.findOneBy({ id });
+    if (!orderItem) {
       throw new NotFoundException({
-        message: `There is NO order item with id : ${id}`
+        message: `There is NO order item with id : ${id}`,
       });
     }
     return jsend.success(orderItem);
@@ -35,7 +35,7 @@ export class OrderItemService {
     return `This action updates a #${id} orderItem`;
   }
 
-  async remove(id: number){
-    await this.orderItemRepo.delete({id});
+  async remove(id: number) {
+    await this.orderItemRepo.delete({ id });
   }
 }

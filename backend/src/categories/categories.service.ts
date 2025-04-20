@@ -76,14 +76,13 @@ export class CategoriesService {
           jsend.fail({ message: 'Branch not found.' }),
         );
       }
+      category.branch = branch;
+      delete updateCategoryDto.branch_id;
     }
 
-    // Ensure there are fields to update
-    const { branch_id, ...categoryUpdates } = updateCategoryDto;
-
     // If there are updates, assign them to the category
-    if (Object.keys(categoryUpdates).length > 0) {
-      Object.assign(category, categoryUpdates);
+    if (Object.keys(updateCategoryDto).length > 0) {
+      Object.assign(category, updateCategoryDto);
 
       // Save the category
       await this.categoryRepository.save(category);

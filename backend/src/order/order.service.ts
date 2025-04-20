@@ -1,10 +1,10 @@
 import {
+  ConflictException,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
-  ConflictException
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -149,16 +149,19 @@ export class OrderService {
       orderItem.name = productItem.name;
 
       // validating the amount of items in the order and stock
-      if(orderItem.number_of_items > productItem.total_items){
+      if (orderItem.number_of_items > productItem.number_of_valid) {
         throw new ConflictException(
           jsend.fail({ message: `There is NO enough items of ${productItem.name}`})
         );
       }
-      productItem.total_items -= orderItem.number_of_items;
-      await this.productItemService.update(productItem.id,productItem);
+      productItem.number_of_valid -= orderItem.number_of_items;
+      await this.productItemService.update(productItem.id, productItem);
 
       // calculate total price for one order item
       orderItem.total_price = orderItem.unit_price * orderItem.number_of_items;
+
+      // calculate total amount of the order
+      _newOrder.total_amount += orderItem.total_price;
 
       await this.orderItemRepo.save(orderItem);
       orderItems.push(orderItem);
@@ -208,7 +211,7 @@ export class OrderService {
   }
 
   async update(id: number, updateOrderDto: UpdateOrderDto) {
-    const order = await this.findOrderByCondition({ id },'Order Not Found !');
+    const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
 
     if (updateOrderDto.coupon_id > 0) {
       // Verify the existence of the coupon
@@ -223,7 +226,7 @@ export class OrderService {
       order.coupon_id = updateOrderDto.coupon_id;
     }
 
-    if(updateOrderDto.currency_id > 0){
+    if (updateOrderDto.currency_id > 0) {
       // Verify the existence of the currency
       const currency = await this.currencyRepo.findOne({
         where: { id: updateOrderDto.currency_id },
@@ -237,7 +240,7 @@ export class OrderService {
     }
 
     const newOrderItems = [];
-    for(const item of updateOrderDto.items){
+    for (const item of updateOrderDto.items) {
       const productItem = await this.productItemRepo.findOneBy({
         id: item.product_item_id,
       });
@@ -245,42 +248,46 @@ export class OrderService {
       flag = false;
       item.unit_price = productItem.price;
 
-      // This loop determine whether if the product_item_id of the orderItem coming 
+      // This loop determine whether if the product_item_id of the orderItem coming
       // in updateOrderDto exists or not in the items of order
-      for(let i = 0;i < order.items.length;++i){
-        if(item.product_item_id === order.items[i].product_item_id){
-
+      for (let i = 0; i < order.items.length; ++i) {
+        if (item.product_item_id === order.items[i].product_item_id) {
           // merge the new order item with the old one as they share same product item id
-          if(item.number_of_items > order.items[i].number_of_items){ // in case of more items are needed
+          if (item.number_of_items > order.items[i].number_of_items) {
+            // in case of more items are needed
             let difference: number = 0;
             difference = item.number_of_items - order.items[i].number_of_items;
-            if(difference > productItem.total_items){
+            if (difference > productItem.number_of_valid) {
               throw new ConflictException(
-                jsend.fail({ message: `There is NO enough items of ${productItem.name}`})
+                jsend.fail({
+                  message: `There is NO enough items of ${productItem.name}`,
+                }),
               );
             }
             order.items[i].number_of_items += difference;
-            order.items[i].total_price += ( difference * order.items[i].unit_price );
-            order.total_amount += ( difference * order.items[i].unit_price );
-            productItem.total_items -= difference;
-            await this.productItemService.update(productItem.id,productItem);
-          }
-          else if(item.number_of_items <= order.items[i].number_of_items){ // in case of some items are returned
-            let difference: number;
-            difference = order.items[i].number_of_items - item.number_of_items;
+            order.items[i].total_price +=
+              difference * order.items[i].unit_price;
+            order.total_amount += difference * order.items[i].unit_price;
+            productItem.number_of_valid -= difference;
+            await this.productItemService.update(productItem.id, productItem);
+          } else if (item.number_of_items <= order.items[i].number_of_items) {
+            // in case of some items are returned
+            const difference =
+              order.items[i].number_of_items - item.number_of_items;
 
             order.items[i].number_of_items -= difference;
-            order.items[i].total_price -= ( difference * order.items[i].unit_price );
-            order.total_amount -= ( difference * order.items[i].unit_price );
-            productItem.total_items += difference;
-            await this.productItemService.update(productItem.id,productItem);
+            order.items[i].total_price -=
+              difference * order.items[i].unit_price;
+            order.total_amount -= difference * order.items[i].unit_price;
+            productItem.number_of_valid += difference;
+            await this.productItemService.update(productItem.id, productItem);
           }
           flag = true;
           break;
         }
       }
-      if(!flag){
-        // Add new order item that doesn't exist in old items array of order 
+      if (!flag) {
+        // Add new order item that doesn't exist in old items array of order
         const orderItem = await this.orderItemRepo.create(item);
         orderItem.productItem = productItem;
 
@@ -289,17 +296,20 @@ export class OrderService {
         orderItem.name = productItem.name;
 
         // validating the amount of items in the order and stock
-        if(orderItem.number_of_items > productItem.total_items){
+        if (orderItem.number_of_items > productItem.number_of_valid) {
           throw new ConflictException(
-            jsend.fail({ message: `There is NO enough items of ${productItem.name}`})
-          ); 
+            jsend.fail({
+              message: `There is NO enough items of ${productItem.name}`,
+            }),
+          );
         }
-        productItem.total_items -= orderItem.number_of_items;
-        await this.productItemService.update(productItem.id,productItem);
+        productItem.number_of_valid -= orderItem.number_of_items;
+        await this.productItemService.update(productItem.id, productItem);
 
         // calculate total price for one order item
-        orderItem.total_price = orderItem.unit_price * orderItem.number_of_items;
-      
+        orderItem.total_price =
+          orderItem.unit_price * orderItem.number_of_items;
+
         // calculate total amount of the order
         order.total_amount += orderItem.total_price;
 
@@ -307,17 +317,16 @@ export class OrderService {
         newOrderItems.push(orderItem);
       }
     }
-    
 
-    for(const orderItem of order.items){
+    for (const orderItem of order.items) {
       await this.orderItemRepo.save(orderItem);
     }
 
-    for(const order_item of newOrderItems){
+    for (const order_item of newOrderItems) {
       order.items.push(order_item);
     }
 
-    Object.assign(updateOrderDto,order);
+    Object.assign(updateOrderDto, order);
     try {
       const updatedOrder = await this.orderRepo.save(updateOrderDto);
       return {
@@ -341,7 +350,7 @@ export class OrderService {
 
   async remove(id: number) {
     const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
-    for(const orderItem of order.items){
+    for (const orderItem of order.items) {
       await this.orderItemRepo.softRemove(orderItem);
     }
     await this.orderRepo.softRemove(order);
@@ -355,7 +364,8 @@ export class OrderService {
 
   private async findOrderByCondition(condition: object, errorMessage: string) {
     const order = await this.orderRepo.findOne({
-      where: condition, relations:["items"]
+      where: condition,
+      relations: ['items'],
     });
     if (!order) {
       throw new NotFoundException({
