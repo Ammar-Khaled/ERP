@@ -168,14 +168,20 @@ export class OrderService {
 
     try {
       const newOrder = await this.orderRepo.save(_newOrder);
-      return jsend.success(newOrder);
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Created Successfully',
+        status: 'success',
+        data: newOrder
+      };
     } catch (error) {
       throw new HttpException(
-        jsend.error({
-          message:
-            'An unexpected error occurred while trying to save the order. Please, try again later.',
-          data: error,
-        }),
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'An unexpected error occurred while trying to save the order !',
+          status: 'error',
+          data: error
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -183,12 +189,22 @@ export class OrderService {
 
   async findAll() {
     const orders = await this.orderRepo.find({relations:["items"]});
-    return jsend.success(orders);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Found' + orders.length + 'orders',
+      status: 'success',
+      data: orders
+    };
   }
 
   async findOne(id: number) {
     const order = await this.findOrderByCondition({ id },'Order Not Found !');
-    return jsend.success(order);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Found',
+      status: 'success',
+      data: order
+    };
   }
 
   async update(id: number, updateOrderDto: UpdateOrderDto) {
@@ -303,15 +319,21 @@ export class OrderService {
 
     Object.assign(updateOrderDto,order);
     try {
-      const updatedOrder =
-        await this.orderRepo.save(updateOrderDto);
-      return jsend.success(updatedOrder);
-    } catch (err) {
+      const updatedOrder = await this.orderRepo.save(updateOrderDto);
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'updated successfully.',
+        status: 'success',
+        data: updatedOrder
+      };
+    } catch (error) {
       throw new HttpException(
-        jsend.error({
-          message: 'An error occurred while updating the Order.',
-          data: err,
-        }),
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'An unexpected error occurred while trying to updating the order !',
+          status: 'error',
+          data: error
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -323,7 +345,12 @@ export class OrderService {
       await this.orderItemRepo.softRemove(orderItem);
     }
     await this.orderRepo.softRemove(order);
-    return jsend.success(order);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'deleted successfully',
+      status: 'success',
+      data: order
+    };
   }
 
   private async findOrderByCondition(condition: object, errorMessage: string) {
@@ -331,7 +358,12 @@ export class OrderService {
       where: condition, relations:["items"]
     });
     if (!order) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: errorMessage,
+        status: 'fail',
+        data: order
+      });
     }
     return order;
   }

@@ -23,15 +23,21 @@ export class CouponService {
     const coupon = this.couponRepo.create(createCouponDto);
 
     try {
-      const new_order = await this.couponRepo.save(coupon);
-      return jsend.success(new_order);
+      const new_coupon = await this.couponRepo.save(coupon);
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'created successfully',
+        status: 'success',
+        data: new_coupon
+      };
     } catch (error) {
       throw new HttpException(
-        jsend.error({
-          message:
-            'An unexpected error occurred while trying to save the coupon. Please, try again later.',
-          data: error,
-        }),
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'An unexpected error occurred while trying to creating the coupon !',
+          status: 'error',
+          data: error
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -39,7 +45,12 @@ export class CouponService {
 
   async findAll() {
     const coupons = await this.couponRepo.find();
-    return jsend.success(coupons);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Found' + coupons.length + 'coupons',
+      status: 'success',
+      data: coupons
+    };
   }
 
   async findOne(id: number) {
@@ -47,7 +58,12 @@ export class CouponService {
       { id },
       'Coupon not found !',
     );
-    return jsend.success(coupon);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Found',
+      status: 'success',
+      data: coupon
+    };
   }
 
   async update(id: number, updateCouponDto: UpdateCouponDto) {
@@ -56,8 +72,23 @@ export class CouponService {
       'Coupon not found !',
     );
     Object.assign(coupon, updateCouponDto);
-    const updated_coupon = await this.couponRepo.save(coupon);
-    return jsend.success(updated_coupon);
+    try{
+      const updated_coupon = await this.couponRepo.save(coupon);
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'updated successfully',
+        status: 'success',
+        data: updated_coupon
+      };
+    }
+    catch(error){
+      throw new HttpException({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'An unexpected error occurred while trying to updating the coupon !',
+        status: 'error',
+        data: error
+      },HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async remove(id: number) {
@@ -66,7 +97,12 @@ export class CouponService {
       'Coupon not found !',
     );
     await this.couponRepo.softRemove(coupon);
-    return jsend.success(coupon);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'deleted successfully',
+      status: 'success',
+      data: coupon
+    };
   }
 
   private async findCouponByCondition(condition: object, errorMessage: string) {
@@ -74,7 +110,12 @@ export class CouponService {
       where: condition,
     });
     if (!coupon) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: errorMessage,
+        status: 'fail',
+        data: coupon
+      });
     }
     return coupon;
   }
