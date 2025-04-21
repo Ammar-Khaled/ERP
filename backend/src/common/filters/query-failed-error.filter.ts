@@ -8,7 +8,7 @@ import { Response } from 'express';
 import { QueryFailedError } from 'typeorm';
 
 @Catch(QueryFailedError)
-export class DatabaseExceptionFilter implements ExceptionFilter {
+export class QueryFailedErrorFilter implements ExceptionFilter {
   catch(exception: QueryFailedError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
