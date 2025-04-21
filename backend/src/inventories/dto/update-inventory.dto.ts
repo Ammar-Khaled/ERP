@@ -1,4 +1,9 @@
-import { PartialType } from '@nestjs/swagger';
+import { OmitType, PartialType } from '@nestjs/swagger';
 import { CreateInventoryDto } from './create-inventory.dto';
+import { UpdateAddressDto } from '../../common/dtos/update-address.dto';
 
-export class UpdateInventoryDto extends PartialType(CreateInventoryDto) {}
+export class UpdateInventoryDto extends PartialType(
+  OmitType(CreateInventoryDto, ['address'] as const),
+) {
+  address?: UpdateAddressDto;
+}
