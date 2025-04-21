@@ -44,12 +44,16 @@ export class User {
   @DeleteDateColumn()
   deletedAt: Date;
 
+  addressId: number;
+
   @OneToOne(() => Address, {
     eager: true,
     cascade: true,
   })
   @JoinColumn()
   address: Address;
+
+  roleIds: number[];
 
   @ManyToMany(() => Role, (role) => role.users, {
     eager: true,

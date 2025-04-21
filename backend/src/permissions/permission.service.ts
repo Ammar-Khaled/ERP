@@ -1,4 +1,9 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Permission } from './entities/permission.entity';
 import { CreatePermissionDto } from './dto/create-permission.dto';
@@ -35,7 +40,7 @@ export class PermissionService implements OnModuleInit {
       name: createPermissionDto.name,
     });
     if (existingPermission) {
-      throw new Error('Permission name already exists');
+      throw new ConflictException('Permission name already exists');
     }
 
     const roles = [];

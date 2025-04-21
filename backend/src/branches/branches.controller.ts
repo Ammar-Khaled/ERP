@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
 } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { Branch } from './entities/branch.entity';
@@ -28,10 +29,10 @@ export class BranchesController {
     return branch;
   }
 
-  // @Post()
-  // create(@Body() branch: Branch) {
-  //   return this.branchesService.create(branch);
-  // }
+  @Post()
+  create(@Body() branch: Branch) {
+    return this.branchesService.create(branch);
+  }
 
   @Patch(':id')
   update(@Param('id') id: number, @Body() branch: Branch) {

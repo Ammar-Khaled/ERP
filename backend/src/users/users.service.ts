@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -10,7 +9,6 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { hash } from 'bcrypt';
-import { error, success } from 'jsend';
 import { Role } from '../roles/entities/role.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { config } from 'dotenv';
@@ -29,7 +27,21 @@ export class UsersService {
   async findAll() {
     const users = await this.userRepository.find();
     users.forEach((user) => delete user.password);
-    return success(users);
+    users.forEach((user) => {
+      user.roleIds = [];
+      if (user.roles) {
+        user.roles.forEach((role) => {
+          user.roleIds.push(role.id);
+        });
+        delete user.roles;
+      }
+
+      if (user.address) {
+        user.addressId = user.address.id;
+        delete user.address;
+      }
+    });
+    return users;
   }
 
   async findOneByCondition(condition: object, relations?: string[]) {
@@ -45,20 +57,13 @@ export class UsersService {
       (await this.userRepository.findOneBy({
         username: createUserDto.username,
       }));
-    if (existingUser)
-      throw new ConflictException(
-        error({
-          message: 'User already exists',
-          code: HttpStatus.CONFLICT,
-          data: existingUser,
-        }),
-      );
+    if (existingUser) throw new ConflictException('User already exists');
 
     const roles = [];
     for (const id of createUserDto.roleIds || []) {
       const role = await this.roleRepository.findOneBy({ id });
       if (!role) {
-        throw new NotFoundException(error('Role not found with id: ' + id));
+        throw new NotFoundException('Role not found with id: ' + id);
       }
       roles.push(role);
     }
@@ -70,7 +75,7 @@ export class UsersService {
       });
       if (!branch) {
         throw new NotFoundException(
-          error('Branch not found with id: ' + createUserDto.branchId),
+          'Branch not found with id: ' + createUserDto.branchId,
         );
       }
     }
@@ -80,6 +85,7 @@ export class UsersService {
       Number(process.env.BCRYPT_SALT_ROUNDS),
     );
 
+    console.log(createUserDto);
     const new_user = this.userRepository.create({
       ...createUserDto,
       roles,
@@ -88,7 +94,7 @@ export class UsersService {
 
     await this.userRepository.save(new_user);
     delete new_user.password;
-    return success(new_user);
+    return new_user;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -109,7 +115,7 @@ export class UsersService {
       for (const id of updateUserDto.roleIds) {
         const role = await this.roleRepository.findOneBy({ id });
         if (!role) {
-          throw new NotFoundException(error('Role not found with id: ' + id));
+          throw new NotFoundException('Role not found with id: ' + id);
         }
         roles.push(role);
       }
@@ -123,7 +129,7 @@ export class UsersService {
       });
       if (!branch) {
         throw new NotFoundException(
-          error('Branch not found with id: ' + updateUserDto.branchId),
+          'Branch not found with id: ' + updateUserDto.branchId,
         );
       }
       user.branch = branch;

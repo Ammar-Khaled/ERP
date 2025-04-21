@@ -3,7 +3,6 @@ import { Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
-import * as jsend from 'jsend';
 
 @Injectable()
 export class ClientsService {
@@ -36,18 +35,18 @@ export class ClientsService {
     const clients = await this.clientRepository.find({
       relations: ['address'],
     });
-    return jsend.success(clients);
+    return clients;
   }
 
   async findOne(id: number) {
     const client = await this.findClientByCondition({ id });
-    return jsend.success(client);
+    return client;
   }
 
   async remove(id: number) {
     const client = await this.findClientByCondition({ id });
     await this.clientRepository.softRemove(client);
-    return jsend.success(client);
+    return client;
   }
 
   // async findByEmail(email: string) {

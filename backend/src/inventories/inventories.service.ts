@@ -10,8 +10,6 @@ import { Repository } from 'typeorm';
 import { Inventory } from './entities/inventory.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { Address } from '../common/entities/address.entity';
-import * as jsend from 'jsend';
-import { success } from 'jsend';
 import { ProductItemToInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
 import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
 import { ProductItem } from '../product_item/entities/product_item.entity';
@@ -37,7 +35,7 @@ export class InventoriesService {
         name: createInventoryDto.name,
       })
     ) {
-      throw new ConflictException(jsend.error('Inventory name already exists'));
+      throw new ConflictException('Inventory name already exists');
     }
 
     // get the branch
@@ -56,7 +54,7 @@ export class InventoriesService {
       branch,
     });
     await this.inventoryRepository.save(inventory);
-    return jsend.success(inventory);
+    return inventory;
   }
 
   async findAll() {
@@ -70,7 +68,7 @@ export class InventoriesService {
         inventories[i].total_damaged_items += pii.number_of_damaged;
       }
     }
-    return success(inventories);
+    return inventories;
   }
 
   async findOne(id: number) {
@@ -87,7 +85,7 @@ export class InventoriesService {
       inventory.total_damaged_items += pii.number_of_damaged;
     }
 
-    return jsend.success(inventory);
+    return inventory;
   }
 
   async update(id: number, updateInventoryDto: UpdateInventoryDto) {
@@ -136,10 +134,8 @@ export class InventoriesService {
     });
     if (!sourceInventory) {
       throw new ConflictException(
-        jsend.error(
-          'Source inventory not found with id: ' +
-            transferProductItemsDto.sourceInventoryId,
-        ),
+        'Source inventory not found with id: ' +
+          transferProductItemsDto.sourceInventoryId,
       );
     }
 
@@ -149,10 +145,8 @@ export class InventoriesService {
     });
     if (!targetInventory) {
       throw new ConflictException(
-        jsend.error(
-          'Target inventory not found with id: ' +
-            transferProductItemsDto.targetInventoryId,
-        ),
+        'Target inventory not found with id: ' +
+          transferProductItemsDto.targetInventoryId,
       );
     }
 
@@ -162,10 +156,8 @@ export class InventoriesService {
     });
     if (!productItem) {
       throw new ConflictException(
-        jsend.error(
-          'Product item not found with id: ' +
-            transferProductItemsDto.productItemId,
-        ),
+        'Product item not found with id: ' +
+          transferProductItemsDto.productItemId,
       );
     }
 
@@ -178,12 +170,10 @@ export class InventoriesService {
 
     if (!sourceProductItemInventory) {
       throw new ConflictException(
-        jsend.error(
-          'Product item not found with id: ' +
-            transferProductItemsDto.productItemId +
-            'in inventory with id: ' +
-            transferProductItemsDto.sourceInventoryId,
-        ),
+        'Product item not found with id: ' +
+          transferProductItemsDto.productItemId +
+          'in inventory with id: ' +
+          transferProductItemsDto.sourceInventoryId,
       );
     }
 
@@ -191,9 +181,7 @@ export class InventoriesService {
       sourceProductItemInventory.number_of_items <
       transferProductItemsDto.quantity
     ) {
-      throw new ConflictException(
-        jsend.error('Not enough items in source inventory'),
-      );
+      throw new ConflictException('Not enough items in source inventory');
     }
     sourceProductItemInventory.number_of_items -=
       transferProductItemsDto.quantity;
