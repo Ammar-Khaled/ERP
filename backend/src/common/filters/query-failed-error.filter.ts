@@ -20,61 +20,78 @@ export class QueryFailedErrorFilter implements ExceptionFilter {
       case 1062: // ER_DUP_ENTRY
         return response.status(HttpStatus.CONFLICT).json({
           statusCode: HttpStatus.CONFLICT,
+          isSuccess: false,
           message:
             'A record with the same unique value already exists: ' + sqlMessage,
+          data: null,
         });
 
       case 1451: // ER_ROW_IS_REFERENCED
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
+          isSuccess: false,
           message:
             'Cannot delete or update a parent row: a foreign key constraint fails: ' +
             sqlMessage,
+          data: null,
         });
 
       case 1452: // ER_NO_REFERENCED_ROW
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
+          isSuccess: false,
           message:
             'Cannot add or update a child row: a foreign key constraint fails: ' +
             sqlMessage,
+          data: null,
         });
 
       case 1048: // ER_BAD_NULL_ERROR
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
+          isSuccess: false,
           message: 'Column cannot be null: ' + sqlMessage,
+          data: null,
         });
 
       case 1054: // ER_BAD_FIELD_ERROR
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
+          isSuccess: false,
           message: 'Unknown column in field list: ' + sqlMessage,
+          data: null,
         });
 
       case 1146: // ER_NO_SUCH_TABLE
         return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          isSuccess: false,
           message: 'Table does not exist: ' + sqlMessage,
+          data: null,
         });
 
       case 1406: // ER_DATA_TOO_LONG
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
+          isSuccess: false,
           message: 'Data too long for column: ' + sqlMessage,
+          data: null,
         });
 
       case 1064: // ER_PARSE_ERROR
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
+          isSuccess: false,
           message: 'SQL syntax error: ' + sqlMessage,
+          data: null,
         });
 
       default:
         return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          error: 'Internal Server Error',
+          isSuccess: false,
           message: 'Database operation failed: ' + sqlMessage,
+          data: null,
         });
     }
   }
