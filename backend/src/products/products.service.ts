@@ -168,7 +168,7 @@ export class ProductsService {
       }
       product.category = category; // Associate the Category entity
     }
-
+    
     // Validate and link unit_id if provided
     if (updateProductDto.unit_id) {
       const unit = await this.unitRepository.findOne({

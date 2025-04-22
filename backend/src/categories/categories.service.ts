@@ -80,13 +80,13 @@ export class CategoriesService {
     }
 
     // Ensure there are fields to update
-    const { branch_id, ...categoryUpdates } = updateCategoryDto;
+    const { ...categoryUpdates } = updateCategoryDto;
 
     // If there are updates, assign them to the category
     if (Object.keys(categoryUpdates).length > 0) {
       Object.assign(category, categoryUpdates);
 
-      // Save the category
+      // Save the category-ol0ml, 
       await this.categoryRepository.save(category);
     }
 
