@@ -3,15 +3,12 @@ import { Repository } from 'typeorm';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { Supplier } from './entities/supplier.entity';
-import { Address } from 'src/common/entities/address.entity';
 
 @Injectable()
 export class SuppliersService {
   constructor(
     @Inject('SUPPLIER_REPOSITORY')
     private supplierRepository: Repository<Supplier>,
-    @Inject('ADDRESS_REPOSITORY')
-    private addressRepository: Repository<Address>,
   ) {}
 
   async create(createSupplierDto: CreateSupplierDto) {

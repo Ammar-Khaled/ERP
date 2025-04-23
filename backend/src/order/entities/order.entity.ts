@@ -1,4 +1,6 @@
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   DeleteDateColumn,
   Entity,
@@ -6,8 +8,6 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-  BeforeInsert,
-  BeforeUpdate,
 } from 'typeorm';
 import { Branch } from '../../branches/entities/branch.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -17,13 +17,14 @@ import { Currency } from 'src/currency/entities/currency.entity';
 import { OrderItem } from 'src/order_item/entities/order_item.entity';
 import { Status } from 'src/status/entities/status.entity';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
+import { Return } from 'src/return/entities/return.entity';
 
 @Entity()
 export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date: Date;
 
   @Column({type: 'float', default: 0.0, nullable: false})
@@ -31,9 +32,10 @@ export class Order {
 
   @BeforeInsert()
   @BeforeUpdate()
-  calculateTheTotalAmount(){
+  calculateTheTotalAmount() {
     this.total_amount = this.items.reduce(
-      (total,item) => total + item.total_price,0
+      (total, item) => total + item.total_price,
+      0,
     );
   }
 
@@ -109,4 +111,7 @@ export class Order {
 
   @OneToMany(() => OrderItem, (orderItem) => orderItem.order)
   items: OrderItem[];
+
+  @OneToMany(() => Return, (returnParam: Return) => returnParam.order)
+  returns: Return[];
 }

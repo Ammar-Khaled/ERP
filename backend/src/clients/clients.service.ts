@@ -1,18 +1,14 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
-import { Address } from 'src/common/entities/address.entity';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
-import * as jsend from 'jsend';
 
 @Injectable()
 export class ClientsService {
   constructor(
     @Inject('CLIENT_REPOSITORY')
     private clientRepository: Repository<Client>,
-    @Inject('ADDRESS_REPOSITORY')
-    private addressRepository: Repository<Address>,
   ) {}
 
   async create(createClientDto: CreateClientDto) {
@@ -22,7 +18,7 @@ export class ClientsService {
 
   async update(id: number, updateClientDto: UpdateClientDto) {
     // Retrieve the client with relations
-    const client = await this.findClientByCondition({ id }, 'Client not found');
+    const client = await this.findClientByCondition({ id });
 
     // Check and handle address updates
     if (updateClientDto.address) {
@@ -39,43 +35,43 @@ export class ClientsService {
     const clients = await this.clientRepository.find({
       relations: ['address'],
     });
-    return jsend.success(clients);
+    return clients;
   }
 
   async findOne(id: number) {
-    const client = await this.findClientByCondition({ id }, 'Client not found');
-    return jsend.success(client);
+    const client = await this.findClientByCondition({ id });
+    return client;
   }
 
   async remove(id: number) {
-    const client = await this.findClientByCondition({ id }, 'Client not found');
+    const client = await this.findClientByCondition({ id });
     await this.clientRepository.softRemove(client);
-    return jsend.success(client);
+    return client;
   }
 
-  async findByEmail(email: string) {
-    const client = await this.findClientByCondition(
-      { email },
-      'Client not found',
-    );
-    return jsend.success(client);
-  }
+  // async findByEmail(email: string) {
+  //   const client = await this.findClientByCondition(
+  //     { email },
+  //     'Client not found',
+  //   );
+  //   return jsend.success(client);
+  // }
+  //
+  // async findByPhone(phoneNumber: string) {
+  //   const client = await this.findClientByCondition(
+  //     { phone_number: phoneNumber },
+  //     'Client not found',
+  //   );
+  //   return jsend.success(client);
+  // }
 
-  async findByPhone(phoneNumber: string) {
-    const client = await this.findClientByCondition(
-      { phone_number: phoneNumber },
-      'Client not found',
-    );
-    return jsend.success(client);
-  }
-
-  private async findClientByCondition(condition: object, errorMessage: string) {
+  private async findClientByCondition(condition: object) {
     const client = await this.clientRepository.findOne({
       where: condition,
       relations: ['address'],
     });
     if (!client) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException();
     }
     return client;
   }

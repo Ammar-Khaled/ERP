@@ -8,7 +8,7 @@ import { Response } from 'express';
 import { QueryFailedError } from 'typeorm';
 
 @Catch(QueryFailedError)
-export class DatabaseExceptionFilter implements ExceptionFilter {
+export class QueryFailedErrorFilter implements ExceptionFilter {
   catch(exception: QueryFailedError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -20,78 +20,78 @@ export class DatabaseExceptionFilter implements ExceptionFilter {
       case 1062: // ER_DUP_ENTRY
         return response.status(HttpStatus.CONFLICT).json({
           statusCode: HttpStatus.CONFLICT,
-          error: 'Conflict',
-          message: 'A record with the same unique value already exists',
-          detail: sqlMessage,
+          isSuccess: false,
+          message:
+            'A record with the same unique value already exists: ' + sqlMessage,
+          data: null,
         });
 
       case 1451: // ER_ROW_IS_REFERENCED
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
-          error: 'Bad Request',
+          isSuccess: false,
           message:
-            'Cannot delete or update a parent row: a foreign key constraint fails',
-          detail: sqlMessage,
+            'Cannot delete or update a parent row: a foreign key constraint fails: ' +
+            sqlMessage,
+          data: null,
         });
 
       case 1452: // ER_NO_REFERENCED_ROW
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
-          error: 'Bad Request',
+          isSuccess: false,
           message:
-            'Cannot add or update a child row: a foreign key constraint fails',
-          detail: sqlMessage,
+            'Cannot add or update a child row: a foreign key constraint fails: ' +
+            sqlMessage,
+          data: null,
         });
 
       case 1048: // ER_BAD_NULL_ERROR
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
-          error: 'Bad Request',
-          message: 'Column cannot be null',
-          detail: sqlMessage,
+          isSuccess: false,
+          message: 'Column cannot be null: ' + sqlMessage,
+          data: null,
         });
 
       case 1054: // ER_BAD_FIELD_ERROR
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
-          error: 'Bad Request',
-          message: 'Unknown column in field list',
-          detail: sqlMessage,
+          isSuccess: false,
+          message: 'Unknown column in field list: ' + sqlMessage,
+          data: null,
         });
 
       case 1146: // ER_NO_SUCH_TABLE
         return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          error: 'Internal Server Error',
-          message: 'Table does not exist',
-          detail: sqlMessage,
+          isSuccess: false,
+          message: 'Table does not exist: ' + sqlMessage,
+          data: null,
         });
 
       case 1406: // ER_DATA_TOO_LONG
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
-          error: 'Bad Request',
-          message: 'Data too long for column',
-          detail: sqlMessage,
+          isSuccess: false,
+          message: 'Data too long for column: ' + sqlMessage,
+          data: null,
         });
 
       case 1064: // ER_PARSE_ERROR
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
-          error: 'Bad Request',
-          message: 'SQL syntax error',
-          detail: sqlMessage,
+          isSuccess: false,
+          message: 'SQL syntax error: ' + sqlMessage,
+          data: null,
         });
 
       default:
         return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
           statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          error: 'Internal Server Error',
-          message: 'Database operation failed',
-          detail:
-            process.env.NODE_ENV === 'production'
-              ? 'An unexpected database error occurred'
-              : sqlMessage,
+          isSuccess: false,
+          message: 'Database operation failed: ' + sqlMessage,
+          data: null,
         });
     }
   }

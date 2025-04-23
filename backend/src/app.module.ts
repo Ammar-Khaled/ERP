@@ -28,6 +28,8 @@ import { VariationOptionModule } from './variation_option/variation_option.modul
 import { OrderModule } from './order/order.module';
 import { OrderItemModule } from './order_item/order_item.module';
 import { CouponModule } from './coupon/coupon.module';
+import { ReturnItemModule } from './return_item/return_item.module';
+import { ReturnModule } from './return/return.module';
 
 @Module({
   imports: [
@@ -55,18 +57,10 @@ import { CouponModule } from './coupon/coupon.module';
     OrderModule,
     OrderItemModule,
     CouponModule,
+    ReturnItemModule,
+    ReturnModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: PermissionsGuard,
-    },
-  ],
+  providers: [AppService],
 })
 export class AppModule {}
