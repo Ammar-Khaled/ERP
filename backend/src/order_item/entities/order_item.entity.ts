@@ -22,7 +22,7 @@ export class OrderItem {
   @Column()
   numberOfItems: number;
 
-  @Column({ type: 'float' })
+  @Column({ type: 'float', default: 0.0 })
   unit_price: number;
 
   @Column({ type: 'float', default: 0.0 })

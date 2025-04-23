@@ -17,11 +17,12 @@ import { Coupon } from 'src/coupon/entities/coupon.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import * as jsend from 'jsend';
 import { OrderItem } from 'src/order_item/entities/order_item.entity';
-import { OrderItemService } from 'src/order_item/order_item.service';
 import { ProductItem } from '../product_item/entities/product_item.entity';
 import { ProductItemService } from 'src/product_item/product_item.service';
 import { CreateOrderItemDto } from 'src/order_item/dto/create-order_item.dto';
 import { Status } from 'src/status/entities/status.entity';
+import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
+import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
 import { UpdateProductItemDto } from 'src/product_item/dto/update-product_item.dto';
 
 @Injectable()
@@ -45,8 +46,10 @@ export class OrderService {
     private productItemRepo: Repository<ProductItem>,
     @Inject('STATUS_REPOSITORY')
     private statusRepo: Repository<Status>,
-    private readonly orderItemService: OrderItemService,
+    @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
+    private productItemInventoryRepo: Repository<ProductItemToInventory>,
     private readonly productItemService: ProductItemService,
+    private readonly productItemInventoryService: ProductItemInventoryService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -142,30 +145,33 @@ export class OrderService {
       });
       orderItem.productItem = productItem;
 
+      
+      const productItemInv = await this.productItemInventoryRepo.findOneBy({
+        product_item_id: orderItem.product_item_id,
+        inventory_id: _newOrder.inventory_id
+      });
+
       // make the price & name of same item equal in both of order_item and product_item
       orderItem.unit_price = productItem.price;
       orderItem.name = productItem.name;
 
       // validating the amount of items in the order and stock
-      if (orderItem.numberOfItems > productItem.number_of_valid) {
-        throw new ConflictException(
-          jsend.fail({
-            message: `There is NO enough items of ${productItem.name}`,
-          }),
+      if (orderItem.number_of_items > productItemInv.number_of_items) {
+        throw new ConflictException(`There are NO enough items of ${productItem.name} in this stock at the moment`)
         );
       }
-      productItem.number_of_valid -= orderItem.numberOfItems;
 
-      const updateProductItemDto: UpdateProductItemDto = {
-        number_of_valid: productItem.number_of_valid,
-      };
-      await this.productItemService.update(
-        productItem.id,
-        updateProductItemDto,
-      );
+      productItemInv.number_of_items -= orderItem.number_of_items;
+      await this.productItemInventoryService.update(productItemInv.id, productItemInv);
+
+      productItem.number_of_valid -= orderItem.number_of_items;
+      await this.productItemService.update(productItem.id, productItem);
 
       // calculate total price for one order item
-      orderItem.total_price = orderItem.unit_price * orderItem.numberOfItems;
+      orderItem.total_price = orderItem.unit_price * orderItem.number_of_items;
+
+      // calculate total amount of the order
+      _newOrder.total_amount += orderItem.total_price;
 
       await this.orderItemRepo.save(orderItem);
       orderItems.push(orderItem);
@@ -175,27 +181,43 @@ export class OrderService {
 
     try {
       const newOrder = await this.orderRepo.save(_newOrder);
-      return jsend.success(newOrder);
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Created Successfully',
+        status: 'success',
+        data: newOrder
+      };
     } catch (error) {
       throw new HttpException(
-        jsend.error({
-          message:
-            'An unexpected error occurred while trying to save the order. Please, try again later.',
-          data: error,
-        }),
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'An unexpected error occurred while trying to save the order !',
+          status: 'error',
+          data: error
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async findAll() {
-    const orders = await this.orderRepo.find({ relations: ['items'] });
-    return jsend.success(orders);
+    const orders = await this.orderRepo.find({relations:["items"]});
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Found ' + orders.length + ' orders',
+      status: 'success',
+      data: orders
+    };
   }
 
   async findOne(id: number) {
-    const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
-    return jsend.success(order);
+    const order = await this.findOrderByCondition({ id },'Order Not Found !');
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Found',
+      status: 'success',
+      data: order
+    };
   }
 
   async update(id: number, updateOrderDto: UpdateOrderDto) {
@@ -228,13 +250,23 @@ export class OrderService {
     }
 
     const newOrderItems = [];
-    for (const item of updateOrderDto.items) {
+    for (let c = 0;c < updateOrderDto.items.length;++c) {
+      let item = new OrderItem();
+      item.number_of_items = updateOrderDto.items[c].number_of_items;
+      item.product_item_id = updateOrderDto.items[c].product_item_id;
+
       const productItem = await this.productItemRepo.findOneBy({
         id: item.product_item_id,
       });
-      let flag: boolean;
-      flag = false;
+
+      const productItemInv = await this.productItemInventoryRepo.findOneBy({
+        product_item_id: item.product_item_id,
+        inventory_id: order.inventory_id
+      });
+
+      let flag: boolean  = false;
       item.unit_price = productItem.price;
+      item.name = productItem.name;
 
       // This loop determine whether if the product_item_id of the orderItem coming
       // in updateOrderDto exists or not in the items of order
@@ -243,30 +275,31 @@ export class OrderService {
           // merge the new order item with the old one as they share same product item id
           if (item.number_of_items > order.items[i].numberOfItems) {
             // in case of more items are needed
-            let difference: number = 0;
-            difference = item.number_of_items - order.items[i].numberOfItems;
-            if (difference > productItem.number_of_valid) {
-              throw new ConflictException(
-                jsend.fail({
-                  message: `There is NO enough items of ${productItem.name}`,
-                }),
-              );
+
+            let difference: number = item.number_of_items - order.items[i].number_of_items;
+            if (difference > productItemInv.number_of_items) {
+              throw new ConflictException(`There are NO enough items of ${productItem.name} in the stock`);
             }
-            order.items[i].numberOfItems += difference;
-            order.items[i].total_price +=
-              difference * order.items[i].unit_price;
+
+            order.items[i].number_of_items += difference;
+            order.items[i].total_price += difference * order.items[i].unit_price;
+
             order.total_amount += difference * order.items[i].unit_price;
+            productItemInv.number_of_items -= difference;
+            await this.productItemInventoryService.update(productItemInv.id, productItemInv);
             productItem.number_of_valid -= difference;
             await this.productItemService.update(productItem.id, productItem);
-          } else if (item.number_of_items <= order.items[i].numberOfItems) {
+          }
+          else if (item.number_of_items <= order.items[i].number_of_items) {
             // in case of some items are returned
-            const difference =
-              order.items[i].numberOfItems - item.number_of_items;
+            const difference = order.items[i].number_of_items - item.number_of_items;
 
-            order.items[i].numberOfItems -= difference;
-            order.items[i].total_price -=
-              difference * order.items[i].unit_price;
+            order.items[i].number_of_items -= difference;
+            order.items[i].total_price -= difference * order.items[i].unit_price;
+
             order.total_amount -= difference * order.items[i].unit_price;
+            productItemInv.number_of_items += difference;
+            await this.productItemInventoryService.update(productItemInv.id, productItemInv);
             productItem.number_of_valid += difference;
             await this.productItemService.update(productItem.id, productItem);
           }
@@ -284,18 +317,17 @@ export class OrderService {
         orderItem.name = productItem.name;
 
         // validating the amount of items in the order and stock
-        if (orderItem.numberOfItems > productItem.number_of_valid) {
-          throw new ConflictException(
-            jsend.fail({
-              message: `There is NO enough items of ${productItem.name}`,
-            }),
-          );
+        if (orderItem.number_of_items > productItemInv.number_of_items) {
+          throw new ConflictException(`There are NO enough items of ${productItem.name} in the stock`);
         }
-        productItem.number_of_valid -= orderItem.numberOfItems;
+
+        productItemInv.number_of_items -= orderItem.number_of_items;
+        await this.productItemInventoryService.update(productItemInv.id, productItemInv);
+        productItem.number_of_valid -= orderItem.number_of_items;
         await this.productItemService.update(productItem.id, productItem);
 
         // calculate total price for one order item
-        orderItem.total_price = orderItem.unit_price * orderItem.numberOfItems;
+        orderItem.total_price = orderItem.unit_price * orderItem.number_of_items;
 
         // calculate total amount of the order
         order.total_amount += orderItem.total_price;
@@ -316,13 +348,20 @@ export class OrderService {
     Object.assign(updateOrderDto, order);
     try {
       const updatedOrder = await this.orderRepo.save(updateOrderDto);
-      return jsend.success(updatedOrder);
-    } catch (err) {
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'updated successfully.',
+        status: 'success',
+        data: updatedOrder
+      };
+    } catch (error) {
       throw new HttpException(
-        jsend.error({
-          message: 'An error occurred while updating the Order.',
-          data: err,
-        }),
+        {
+          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: 'An unexpected error occurred while trying to updating the order !',
+          status: 'error',
+          data: error
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -334,7 +373,12 @@ export class OrderService {
       await this.orderItemRepo.softRemove(orderItem);
     }
     await this.orderRepo.softRemove(order);
-    return jsend.success(order);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'deleted successfully',
+      status: 'success',
+      data: order
+    };
   }
 
   private async findOrderByCondition(condition: object, errorMessage: string) {
@@ -343,7 +387,12 @@ export class OrderService {
       relations: ['items'],
     });
     if (!order) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException({
+        statusCode: HttpStatus.NOT_FOUND,
+        message: errorMessage,
+        status: 'fail',
+        data: order
+      });
     }
     return order;
   }
