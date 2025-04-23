@@ -20,6 +20,10 @@ export class CreateOrderDto {
 
   @IsNotEmpty()
   @IsNumber()
+  inventory_id: number;
+
+  @IsNotEmpty()
+  @IsNumber()
   user_id: number;
 
   @IsNotEmpty()

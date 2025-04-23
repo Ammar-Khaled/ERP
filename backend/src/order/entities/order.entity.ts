@@ -16,6 +16,7 @@ import { Coupon } from 'src/coupon/entities/coupon.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { OrderItem } from 'src/order_item/entities/order_item.entity';
 import { Status } from 'src/status/entities/status.entity';
+import { Inventory } from 'src/inventories/entities/inventory.entity';
 
 @Entity()
 export class Order {
@@ -25,7 +26,7 @@ export class Order {
   @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
   date: Date;
 
-  @Column({type: 'decimal', default: 0.0, nullable: false})
+  @Column({type: 'float', default: 0.0, nullable: false})
   total_amount: number;
 
   @BeforeInsert()
@@ -47,6 +48,15 @@ export class Order {
   @ManyToOne(() => Branch)
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
+
+  //----------------
+
+  @Column()
+  inventory_id: number; // Foreign key for inventory
+
+  @ManyToOne(() => Inventory)
+  @JoinColumn({ name: 'inventory_id' })
+  inventory: Inventory;
 
   //----------------
 

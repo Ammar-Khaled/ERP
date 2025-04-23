@@ -13,9 +13,12 @@ import { OrderItemService } from 'src/order_item/order_item.service';
 import { orderItemProviders } from 'src/order_item/order_item.providers';
 import { ProductItemModule } from 'src/product_item/product_item.module';
 import { statusProviders } from 'src/status/status.providers';
+import { productItemInventoryProviders } from 'src/product_item_inventory/product_item_inventory.providers';
+import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
+import { ProductItemInventoryModule } from 'src/product_item_inventory/product_item_inventory.module';
 
 @Module({
-  imports: [DatabaseModule, ProductItemModule],
+  imports: [DatabaseModule, ProductItemModule,ProductItemInventoryModule],
   controllers: [OrderController],
   providers: [
     OrderService,
@@ -28,6 +31,7 @@ import { statusProviders } from 'src/status/status.providers';
     ...productItemProviders,
     ...orderItemProviders,
     ...statusProviders,
+    ...productItemInventoryProviders,
     OrderItemService,
   ],
 })

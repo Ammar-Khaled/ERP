@@ -47,7 +47,7 @@ export class CouponService {
     const coupons = await this.couponRepo.find();
     return {
       statusCode: HttpStatus.OK,
-      message: 'Found' + coupons.length + 'coupons',
+      message: 'Found ' + coupons.length + ' coupons',
       status: 'success',
       data: coupons
     };
