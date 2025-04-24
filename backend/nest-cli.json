@@ -6,6 +6,8 @@
     "deleteOutDir": true,
     "plugins": [
       "@nestjs/swagger"
-    ]
+    ],
+    "assets": ["**/*.hbs"],
+    "watchAssets": true
   }
 }
