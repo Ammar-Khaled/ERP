@@ -71,7 +71,7 @@ export class CategoriesService {
     if (Object.keys(updateCategoryDto).length > 0) {
       Object.assign(category, updateCategoryDto);
 
-      // Save the category
+      // Save the category-ol0ml, 
       await this.categoryRepository.save(category);
     }
 

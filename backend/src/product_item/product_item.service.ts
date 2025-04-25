@@ -21,6 +21,7 @@ import { Branch } from 'src/branches/entities/branch.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Unit } from 'src/units/entities/unit.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
+import { createGunzip } from 'node:zlib';
 
 @Injectable()
 export class ProductItemService {
@@ -43,25 +44,26 @@ export class ProductItemService {
   ) {}
 
   async create(createProductItemDto: CreateProductItemDto) {
-    // Create base product item entity
-    const productItem = this.productItemRepository.create({
-      ...createProductItemDto,
-    });
-
     const product = await this.productRepository.findOne({
       where: { id: createProductItemDto.product_id },
     });
+
     if (!product) {
       throw new NotFoundException(
         jsend.fail({ message: 'Product not found.' }),
       );
     }
 
-    // Process variations in a transaction
+    // Create base product item entity
+    const productItem = this.productItemRepository.create({
+      ...createProductItemDto,
+    });
+
+    // Process everything in a transaction
     return this.productItemRepository.manager.transaction(
       async (transactionalEntityManager) => {
         try {
-          // Process variation options if provided
+          // Handle variation options
           if (createProductItemDto.variationOptions?.length) {
             const variationNames = [
               ...new Set(
@@ -71,7 +73,6 @@ export class ProductItemService {
               ),
             ];
 
-            // Get or create variations in a single query
             const existingVariations = await transactionalEntityManager
               .getRepository(Variation)
               .createQueryBuilder('variation')
@@ -81,6 +82,7 @@ export class ProductItemService {
             const newVariationNames = variationNames.filter(
               (name) => !existingVariations.some((v) => v.name === name),
             );
+
             const newVariations = newVariationNames.map((name) =>
               transactionalEntityManager
                 .getRepository(Variation)
@@ -101,7 +103,6 @@ export class ProductItemService {
               return acc;
             }, new Map<string, Variation>());
 
-            // Create variation options
             const variationOptions = createProductItemDto.variationOptions.map(
               (opt) => {
                 const variation = allVariations.get(opt.variation.name);
@@ -130,7 +131,7 @@ export class ProductItemService {
           const newProductItem =
             await transactionalEntityManager.save(productItem);
 
-          // Create inventory record if needed
+          // Add inventory record if needed
           if (createProductItemDto.inventory_id) {
             await transactionalEntityManager
               .getRepository(ProductItemToInventory)
@@ -142,9 +143,16 @@ export class ProductItemService {
               });
           }
 
+          // Update product quantity inside transaction
+          const totalNewQuantity =
+            (createProductItemDto.number_of_valid || 0) +
+            (createProductItemDto.number_of_damaged || 0);
+
+          product.quantity += totalNewQuantity;
+          await transactionalEntityManager.save(product);
+
           return jsend.success(newProductItem);
         } catch (error) {
-          // Handle unique constraint violation (barcode check)
           if (error.code === '23505' || error.code === 'ER_DUP_ENTRY') {
             throw new ConflictException(
               jsend.fail({
@@ -165,10 +173,10 @@ export class ProductItemService {
       },
     );
   }
+
   async findAll() {
     const productItems = await this.productItemRepository.find({
       relations: [
-        'productItemToInventories',
         'variationOptions',
         'variationOptions.variation',
       ], // Include the variation relation
@@ -191,8 +199,23 @@ export class ProductItemService {
       'Product item not found',
     );
 
-    console.log(updateProductItemDto);
-
+    if (updateProductItemDto.number_of_damaged) {
+      const oldNumberOfDamged = productItem.number_of_damaged;
+      const product = await this.productRepository.findOne({
+        where: { id: updateProductItemDto.product_id },
+      });
+      product.quantity += (updateProductItemDto.number_of_damaged - oldNumberOfDamged);
+      await this.productRepository.save(product);
+    }
+    if (updateProductItemDto.number_of_valid) {
+      const oldNumberOfValid = productItem.number_of_valid;
+      const product = await this.productRepository.findOne({
+        where: { id: updateProductItemDto.product_id },
+      });
+      product.quantity += (updateProductItemDto.number_of_valid - oldNumberOfValid);
+      await this.productRepository.save(product);
+    }
+    
     if (updateProductItemDto.product_id) {
       const product = await this.productRepository.findOne({
         where: { id: updateProductItemDto.product_id },
@@ -202,7 +225,7 @@ export class ProductItemService {
           jsend.fail({ message: 'Product not found.' }),
         );
       }
-      productItem.product = product; // Associate the Branch entity
+      productItem.product = product;  // possible?
     }
 
     // Handle variation options - Keep existing ones & add new ones
@@ -288,7 +311,7 @@ export class ProductItemService {
   ) {
     const productItem = await this.productItemRepository.findOne({
       where: condition,
-      relations: ['variationOptions', 'variationOptions.variation'], // ✅ Removed 'product'
+      relations: ['variationOptions', 'variationOptions.variation'], // 
     });
     if (!productItem) {
       throw new NotFoundException(jsend.fail({ message: errorMessage }));

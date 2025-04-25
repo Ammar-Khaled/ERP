@@ -116,10 +116,6 @@ export class ProductsService {
   async findAll() {
     const products = await this.productRepository.find({
       relations: [
-        'branch',
-        'category',
-        'unit',
-        'currency',
         'productItems',
         'productItems.variationOptions',
         'productItems.variationOptions.variation',
@@ -170,7 +166,7 @@ export class ProductsService {
       product.category = category; // Associate the Category entity
       delete updateProductDto.category_id;
     }
-
+    
     // Validate and link unit_id if provided
     if (updateProductDto.unit_id) {
       const unit = await this.unitRepository.findOne({
@@ -220,10 +216,6 @@ export class ProductsService {
     const product = await this.productRepository.findOne({
       where: condition,
       relations: [
-        'branch',
-        'category',
-        'unit',
-        'currency',
         'productItems',
         'productItems.variationOptions',
         'productItems.variationOptions.variation',
