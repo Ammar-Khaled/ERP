@@ -12,7 +12,6 @@ import { Branch } from 'src/branches/entities/branch.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import * as jsend from 'jsend';
 import { Unit } from 'src/units/entities/unit.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { ProductItemService } from 'src/product_item/product_item.service';
@@ -38,41 +37,35 @@ export class ProductsService {
       where: { name: createProductDto.name },
     });
     if (existingProduct) {
-      throw new ConflictException(
-        jsend.fail({ message: 'The product already exists.' }),
-      );
+      throw new ConflictException('The product already exists.');
     }
 
     const branch = await this.branchRepository.findOne({
       where: { id: createProductDto.branch_id },
     });
     if (!branch) {
-      throw new NotFoundException(jsend.fail({ message: 'Branch not found.' }));
+      throw new NotFoundException('Branch not found.');
     }
 
     const category = await this.categoryRepository.findOne({
       where: { id: createProductDto.category_id },
     });
     if (!category) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Category not found.' }),
-      );
+      throw new NotFoundException('Category not found.');
     }
 
     const unit = await this.unitRepository.findOne({
       where: { id: createProductDto.unit_id },
     });
     if (!unit) {
-      throw new NotFoundException(jsend.fail({ message: 'Unit not found.' }));
+      throw new NotFoundException('Unit not found.');
     }
 
     const currency = await this.currencyRepository.findOne({
       where: { id: createProductDto.currency_id },
     });
     if (!currency) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Currency not found.' }),
-      );
+      throw new NotFoundException('Currency not found.');
     }
 
     const product = this.productRepository.create(createProductDto);
@@ -90,25 +83,17 @@ export class ProductsService {
 
         // Create ProductItem via ProductItemService
         const result = await this.productItemService.create(modifiedItemDto);
-        productItems.push(result.data);
+        productItems.push(result);
       }
 
       // Assign the created product items to the response
       newProduct.productItems = productItems;
 
-      return jsend.success(newProduct);
+      return newProduct;
     } catch (err) {
-      // Handle specific error cases
-      if (err instanceof ConflictException) {
-        throw err;
-      }
       throw new HttpException(
-        jsend.error({
-          message:
-            'An unexpected error occurred while creating the product. Please try again later.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.message,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -121,7 +106,7 @@ export class ProductsService {
         'productItems.variationOptions.variation',
       ], // Include branch and category relations
     });
-    return jsend.success(products);
+    return products;
   }
 
   async findOne(id: number) {
@@ -129,7 +114,7 @@ export class ProductsService {
       { id },
       'Product not found',
     );
-    return jsend.success(product);
+    return product;
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
@@ -145,9 +130,7 @@ export class ProductsService {
         where: { id: updateProductDto.branch_id },
       });
       if (!branch) {
-        throw new NotFoundException(
-          jsend.fail({ message: 'Branch not found.' }),
-        );
+        throw new NotFoundException('Branch not found.');
       }
       product.branch = branch; // Associate the Branch entity
       delete updateProductDto.branch_id;
@@ -159,21 +142,19 @@ export class ProductsService {
         where: { id: updateProductDto.category_id },
       });
       if (!category) {
-        throw new NotFoundException(
-          jsend.fail({ message: 'Category not found.' }),
-        );
+        throw new NotFoundException('Category not found.');
       }
       product.category = category; // Associate the Category entity
       delete updateProductDto.category_id;
     }
-    
+
     // Validate and link unit_id if provided
     if (updateProductDto.unit_id) {
       const unit = await this.unitRepository.findOne({
         where: { id: updateProductDto.unit_id },
       });
       if (!unit) {
-        throw new NotFoundException(jsend.fail({ message: 'unit not found.' }));
+        throw new NotFoundException('unit not found.');
       }
       product.unit = unit; // Associate the Category entity
     }
@@ -184,9 +165,7 @@ export class ProductsService {
         where: { id: updateProductDto.currency_id },
       });
       if (!currency) {
-        throw new NotFoundException(
-          jsend.fail({ message: 'currency not found.' }),
-        );
+        throw new NotFoundException('currency not found.');
       }
       product.currency = currency; // Associate the Category entity
     }
@@ -197,7 +176,7 @@ export class ProductsService {
     // Save the updated product with relations
     await this.productRepository.save(product);
 
-    return jsend.success(product);
+    return product;
   }
 
   async remove(id: number) {
@@ -206,7 +185,7 @@ export class ProductsService {
       'Product not found',
     );
     await this.productRepository.delete({ id });
-    return jsend.success(product);
+    return product;
   }
 
   private async findProductByCondition(
@@ -222,7 +201,7 @@ export class ProductsService {
       ], // Include relations for completeness
     });
     if (!product) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException(errorMessage);
     }
     return product;
   }

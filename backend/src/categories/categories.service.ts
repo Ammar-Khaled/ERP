@@ -41,8 +41,7 @@ export class CategoriesService {
 
     try {
       // Save the new category and associate it with the branch
-      const newCategory = await this.categoryRepository.save(category);
-      return newCategory;
+      return await this.categoryRepository.save(category);
     } catch (err) {
       throw new HttpException(err.message, err.status || 500);
     }
@@ -64,31 +63,23 @@ export class CategoriesService {
         throw new NotFoundException('Branch not found.');
       }
       category.branch = branch;
-      delete updateCategoryDto.branch_id;
     }
 
     // If there are updates, assign them to the category
     if (Object.keys(updateCategoryDto).length > 0) {
       Object.assign(category, updateCategoryDto);
-
-      // Save the category-ol0ml, 
-      await this.categoryRepository.save(category);
     }
 
+    await this.categoryRepository.save(category);
     return category;
   }
 
   async findAll() {
-    const categories = await this.categoryRepository.find();
-    return categories;
+    return await this.categoryRepository.find();
   }
 
   async findOne(id: number) {
-    const category = await this.findCategoryByCondition(
-      { id },
-      'Category not found',
-    );
-    return category;
+    return await this.findCategoryByCondition({ id }, 'Category not found');
   }
 
   async remove(id: number) {

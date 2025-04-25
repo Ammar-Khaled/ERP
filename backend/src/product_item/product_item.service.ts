@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   HttpStatus,
@@ -11,7 +12,6 @@ import { ProductItem } from './entities/product_item.entity';
 import { Product } from '../products/entities/product.entity';
 import { CreateProductItemDto } from './dto/create-product_item.dto';
 import { UpdateProductItemDto } from './dto/update-product_item.dto';
-import * as jsend from 'jsend';
 import { UpdateDamagedDto } from './dto/update-damaged.dto';
 import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Import the VariationOption entity
 import { Variation } from 'src/variation/entities/variation.entity'; // Import the Variation entity
@@ -21,7 +21,6 @@ import { Branch } from 'src/branches/entities/branch.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Unit } from 'src/units/entities/unit.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
-import { createGunzip } from 'node:zlib';
 
 @Injectable()
 export class ProductItemService {
@@ -49,15 +48,11 @@ export class ProductItemService {
     });
 
     if (!product) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Product not found.' }),
-      );
+      throw new NotFoundException('Product not found.');
     }
 
     // Create base product item entity
-    const productItem = this.productItemRepository.create({
-      ...createProductItemDto,
-    });
+    const productItem = this.productItemRepository.create(createProductItemDto);
 
     // Process everything in a transaction
     return this.productItemRepository.manager.transaction(
@@ -108,9 +103,7 @@ export class ProductItemService {
                 const variation = allVariations.get(opt.variation.name);
                 if (!variation) {
                   throw new NotFoundException(
-                    jsend.fail({
-                      message: `Variation ${opt.variation.name} not found`,
-                    }),
+                    `Variation ${opt.variation.name} not found`,
                   );
                 }
                 return transactionalEntityManager
@@ -151,23 +144,17 @@ export class ProductItemService {
           product.quantity += totalNewQuantity;
           await transactionalEntityManager.save(product);
 
-          return jsend.success(newProductItem);
+          return newProductItem;
         } catch (error) {
           if (error.code === '23505' || error.code === 'ER_DUP_ENTRY') {
             throw new ConflictException(
-              jsend.fail({
-                message: `Product item with barcode '${createProductItemDto.barcode}' already exists`,
-              }),
+              `Product item with barcode '${createProductItemDto.barcode}' already exists`,
             );
           }
 
           throw new HttpException(
-            jsend.error({
-              message:
-                'An unexpected error occurred while creating the product item.',
-              data: error,
-            }),
-            HttpStatus.INTERNAL_SERVER_ERROR,
+            error.message,
+            error.status || HttpStatus.INTERNAL_SERVER_ERROR,
           );
         }
       },
@@ -176,12 +163,9 @@ export class ProductItemService {
 
   async findAll() {
     const productItems = await this.productItemRepository.find({
-      relations: [
-        'variationOptions',
-        'variationOptions.variation',
-      ], // Include the variation relation
+      relations: ['variationOptions', 'variationOptions.variation'], // Include the variation relation
     });
-    return jsend.success(productItems);
+    return productItems;
   }
 
   async findOne(id: number) {
@@ -189,7 +173,7 @@ export class ProductItemService {
       { id },
       'Product item not found',
     );
-    return jsend.success(productItem);
+    return productItem;
   }
 
   async update(id: number, updateProductItemDto: UpdateProductItemDto) {
@@ -204,7 +188,8 @@ export class ProductItemService {
       const product = await this.productRepository.findOne({
         where: { id: updateProductItemDto.product_id },
       });
-      product.quantity += (updateProductItemDto.number_of_damaged - oldNumberOfDamged);
+      product.quantity +=
+        updateProductItemDto.number_of_damaged - oldNumberOfDamged;
       await this.productRepository.save(product);
     }
     if (updateProductItemDto.number_of_valid) {
@@ -212,20 +197,19 @@ export class ProductItemService {
       const product = await this.productRepository.findOne({
         where: { id: updateProductItemDto.product_id },
       });
-      product.quantity += (updateProductItemDto.number_of_valid - oldNumberOfValid);
+      product.quantity +=
+        updateProductItemDto.number_of_valid - oldNumberOfValid;
       await this.productRepository.save(product);
     }
-    
+
     if (updateProductItemDto.product_id) {
       const product = await this.productRepository.findOne({
         where: { id: updateProductItemDto.product_id },
       });
       if (!product) {
-        throw new NotFoundException(
-          jsend.fail({ message: 'Product not found.' }),
-        );
+        throw new NotFoundException('Product not found.');
       }
-      productItem.product = product;  // possible?
+      productItem.product = product; // possible?
     }
 
     // Handle variation options - Keep existing ones & add new ones
@@ -275,23 +259,20 @@ export class ProductItemService {
     }
 
     // Handle other fields update
-    const { variationOptions, ...productItemUpdates } = updateProductItemDto;
+    delete updateProductItemDto.variationOptions;
 
     // Ensure the provided fields are updated correctly
-    Object.assign(productItem, productItemUpdates);
+    Object.assign(productItem, updateProductItemDto);
 
     // Save the updated product item
     try {
       const updatedProductItem =
         await this.productItemRepository.save(productItem);
-      return jsend.success(updatedProductItem);
+      return updatedProductItem;
     } catch (err) {
       throw new HttpException(
-        jsend.error({
-          message: 'An error occurred while updating the product item.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.message,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -302,7 +283,7 @@ export class ProductItemService {
       'Product item not found',
     );
     await this.productItemRepository.delete({ id });
-    return jsend.success(productItem);
+    return productItem;
   }
 
   private async findProductItemByCondition(
@@ -311,10 +292,10 @@ export class ProductItemService {
   ) {
     const productItem = await this.productItemRepository.findOne({
       where: condition,
-      relations: ['variationOptions', 'variationOptions.variation'], // 
+      relations: ['variationOptions', 'variationOptions.variation'], //
     });
     if (!productItem) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException(errorMessage);
     }
     return productItem;
   }
@@ -324,17 +305,11 @@ export class ProductItemService {
 
     // Validate inputs
     if (!product_item_id || isNaN(product_item_id)) {
-      throw new HttpException(
-        jsend.fail({ message: 'Invalid product_item_id.' }),
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('Invalid product_item_id.');
     }
 
     if (!numberOfDamaged || isNaN(numberOfDamaged)) {
-      throw new HttpException(
-        jsend.fail({ message: 'Invalid numberOfDamaged.' }),
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('Invalid numberOfDamaged.');
     }
 
     // Find the product item by ID
@@ -351,14 +326,11 @@ export class ProductItemService {
       // Save the updated product item
       const updatedProductItem =
         await this.productItemRepository.save(productItem);
-      return jsend.success(updatedProductItem);
+      return updatedProductItem;
     } catch (err) {
       throw new HttpException(
-        jsend.error({
-          message: 'An error occurred while updating the damaged count.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.message,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -368,6 +340,6 @@ export class ProductItemService {
     const damagedItems = await this.productItemRepository.find({
       where: { number_of_damaged: MoreThan(0) }, // Filter by number_of_damaged > 0
     });
-    return jsend.success(damagedItems);
+    return damagedItems;
   }
 }
