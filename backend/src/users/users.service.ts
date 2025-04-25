@@ -35,13 +35,28 @@ export class UsersService {
         });
         delete user.roles;
       }
-
-      if (user.address) {
-        user.addressId = user.address.id;
-        delete user.address;
-      }
     });
     return users;
+  }
+
+  async findOne(id: number) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['roles'],
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    delete user.password;
+
+    user.roleIds = [];
+    if (user.roles) {
+      user.roles.forEach((role) => {
+        user.roleIds.push(role.id);
+      });
+      delete user.roles;
+    }
+
+    return user;
   }
 
   async findOneByCondition(condition: object, relations?: string[]) {
@@ -85,16 +100,13 @@ export class UsersService {
       Number(process.env.BCRYPT_SALT_ROUNDS),
     );
 
-    console.log(createUserDto);
     const new_user = this.userRepository.create({
       ...createUserDto,
       roles,
       branch,
     });
-
     await this.userRepository.save(new_user);
-    delete new_user.password;
-    return new_user;
+    return await this.findOne(new_user.id);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -120,7 +132,6 @@ export class UsersService {
         roles.push(role);
       }
       user.roles = roles;
-      delete updateUserDto.roleIds;
     }
 
     if (updateUserDto.branchId) {
@@ -133,7 +144,6 @@ export class UsersService {
         );
       }
       user.branch = branch;
-      delete updateUserDto.branchId;
     }
 
     if (updateUserDto.address) {
@@ -143,7 +153,8 @@ export class UsersService {
     }
 
     Object.assign(user, updateUserDto);
-    return await this.userRepository.save(user);
+    await this.userRepository.save(user);
+    return await this.findOne(user.id);
   }
 
   async remove(id: number) {
@@ -153,6 +164,6 @@ export class UsersService {
     }
 
     await this.userRepository.softRemove(user);
-    return user;
+    return await this.findOne(user.id);
   }
 }

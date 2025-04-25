@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpCode,
-  NotFoundException,
   Param,
   Patch,
   Post,
@@ -40,11 +39,7 @@ export class UsersController {
   // @Permissions(['UsersController:findOneById'])
   @Get(':id')
   async findOneById(@Param('id') id: number) {
-    const user = await this.usersService.findOneByCondition({ id });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return user;
+    return await this.usersService.findOne(id);
   }
 
   // @Permissions(['UsersController:update'])
