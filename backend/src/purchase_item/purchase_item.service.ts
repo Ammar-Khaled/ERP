@@ -5,15 +5,12 @@ import { config } from 'dotenv';
 import { PurchaseItem } from './entities/purchase_item.entity';
 import { Repository } from 'typeorm';
 import { PurchaseEntity } from 'src/purchase_entity/entities/purchase_entity.entity';
-import { PurchaseEntityService } from 'src/purchase_entity/purchase_entity.service';
-import { CreatePurchaseEntityDto } from 'src/purchase_entity/dto/create-purchase_entity.dto';
 
 config();
 
 @Injectable()
 export class PurchaseItemService {
   constructor(
-    private readonly purchaseEntityService: PurchaseEntityService,
     @Inject('PURCHASE_ITEM_REPOSITORY')
     private purchaseItemRepository: Repository<PurchaseItem>,
     @Inject('PURCHASE_ENTITY_REPOSITORY')
@@ -21,29 +18,25 @@ export class PurchaseItemService {
   ) {}
 
   async create(createPurchaseItemDto: CreatePurchaseItemDto) {
-    // Ensure there is a purchase entity with that name:
+    const newPurchaseItem = new PurchaseItem();
+
+    // Check if the purchase entity name exists in the database:
     const existedEntity = await this.purchaseEntityRepository.findOne({
-      where: { name: createPurchaseItemDto.name },
+      where: { name: createPurchaseItemDto.purchaseEntityName },
     });
-
     if (!existedEntity) {
-      // Create an entity, then take items from itself:
-      const newEntityDto = new CreatePurchaseEntityDto();
-      newEntityDto.name = createPurchaseItemDto.name;
-
-      const newEntity =
-        await this.purchaseEntityRepository.create(newEntityDto);
-      await this.purchaseEntityRepository.save(newEntity);
-
-      createPurchaseItemDto.purchaseEntity = newEntity;
+      throw new NotFoundException(
+        `There is no purchase entity with name "${createPurchaseItemDto.purchaseEntityName}". Please create it first!`,
+      );
     }
 
+    newPurchaseItem.purchaseEntity = existedEntity;
+    newPurchaseItem.number_of_items = createPurchaseItemDto.number_of_items;
+    newPurchaseItem.discount = createPurchaseItemDto.discount || 0;
+
     // Create the item and save it:
-    const newItem = await this.purchaseItemRepository.create(
-      createPurchaseItemDto,
-    );
     console.log('Created purchase item successfully!');
-    return await this.purchaseItemRepository.save(newItem);
+    return await this.purchaseItemRepository.save(newPurchaseItem);
   }
 
   async findAll() {
@@ -59,35 +52,19 @@ export class PurchaseItemService {
     return item;
   }
 
-  async findOneByName(name: string) {
-    // # should I search here or inside the entity?!
-    const item = await this.purchaseItemRepository.findOneBy({ name });
-    if (!item)
-      throw new NotFoundException(`There is no purchase item with that name!`);
-    return item;
+  async update(id: number, updatePurchaseItemDto: UpdatePurchaseItemDto) {
+    const purchaseItem = await this.findOne(id);
+    Object.assign(purchaseItem, updatePurchaseItemDto);
+
+    console.log(`Updated purchase item "${id}" successfully!`);
+    return await this.purchaseItemRepository.save(purchaseItem);
   }
 
-  async update(name: string, updatePurchaseItemDto: UpdatePurchaseItemDto) {
-    const item = await this.findOneByName(name);
+  async remove(id: number) {
+    const purchaseItem = await this.findOne(id);
+    await this.purchaseItemRepository.softDelete({ id });
 
-    if (!item) {
-      throw new NotFoundException(`Purchase item "${name}" not found.`);
-    }
-
-    Object.assign(item, updatePurchaseItemDto);
-    console.log(`Updated purchase item "${name}" successfully!`);
-    return await this.purchaseItemRepository.save(item);
-  }
-
-  async remove(name: string) {
-    const item = await this.findOneByName(name);
-
-    if (!item) {
-      throw new NotFoundException(`Purchase item "${name}" not found.`);
-    }
-
-    await this.purchaseItemRepository.delete({ name });
-    console.log(`Removed purchase item "${name}" successfully!`);
-    return item;
+    console.log(`Removed purchase item "${id}" successfully!`);
+    return purchaseItem;
   }
 }

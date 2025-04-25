@@ -1,4 +1,9 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Role } from './entities/role.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
@@ -44,7 +49,7 @@ export class RolesService {
     for (const id of userIds || []) {
       const user = await this.userRepository.findOneBy({ id });
       if (!user) {
-        throw new ConflictException(`User with id ${id} not found`);
+        throw new NotFoundException(`User with id ${id} not found`);
       }
       users.push(user);
     }
@@ -55,7 +60,7 @@ export class RolesService {
         id,
       });
       if (!permission) {
-        throw new ConflictException(`Permission with id ${id} not found`);
+        throw new NotFoundException(`Permission with id ${id} not found`);
       }
       permissions.push(permission);
     }
@@ -76,7 +81,7 @@ export class RolesService {
       name: updateRoleDto.name,
     });
     if (!existingRole) {
-      throw new ConflictException('Role not found');
+      throw new NotFoundException('Role not found');
     }
 
     if (updateRoleDto.userIds) {
@@ -84,7 +89,7 @@ export class RolesService {
       for (const id of updateRoleDto.userIds) {
         const user = await this.userRepository.findOneBy({ id });
         if (!user) {
-          throw new ConflictException(`User with id ${id} not found`);
+          throw new NotFoundException(`User with id ${id} not found`);
         }
         users.push(user);
       }
@@ -98,7 +103,7 @@ export class RolesService {
           id,
         });
         if (!permission) {
-          throw new ConflictException(`Permission with id ${id} not found`);
+          throw new NotFoundException(`Permission with id ${id} not found`);
         }
         permissions.push(permission);
       }
@@ -109,7 +114,12 @@ export class RolesService {
     return existingRole;
   }
 
-  async remove(id: number): Promise<void> {
-    await this.roleRepository.delete(id);
+  async remove(id: number): Promise<Role> {
+    const role = await this.findOneByCondition({ id });
+    if (!role) {
+      throw new NotFoundException('Role not found');
+    }
+
+    return await this.roleRepository.softRemove(role);
   }
 }

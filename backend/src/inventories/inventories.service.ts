@@ -1,14 +1,18 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Repository } from 'typeorm';
 import { Inventory } from './entities/inventory.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { Address } from '../common/entities/address.entity';
-import * as jsend from 'jsend';
-import { success } from 'jsend';
 import { ProductItemToInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
 import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
+import { ProductItem } from '../product_item/entities/product_item.entity';
 
 @Injectable()
 export class InventoriesService {
@@ -19,6 +23,8 @@ export class InventoriesService {
     private branchRepository: Repository<Branch>,
     @Inject('ADDRESS_REPOSITORY')
     private addressRepository: Repository<Address>,
+    @Inject('PRODUCT_ITEM_REPOSITORY')
+    private productItemRepository: Repository<ProductItem>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
     private productItemInventoryRepository: Repository<ProductItemToInventory>,
   ) {}
@@ -29,7 +35,7 @@ export class InventoriesService {
         name: createInventoryDto.name,
       })
     ) {
-      throw new ConflictException(jsend.error('Inventory name already exists'));
+      throw new ConflictException('Inventory name already exists');
     }
 
     // get the branch
@@ -37,8 +43,8 @@ export class InventoriesService {
       id: createInventoryDto.branchId,
     });
     if (!branch) {
-      throw new ConflictException(
-        jsend.error('Branch not found with id: ' + createInventoryDto.branchId),
+      throw new NotFoundException(
+        'Branch not found with id: ' + createInventoryDto.branchId,
       );
     }
 
@@ -48,7 +54,7 @@ export class InventoriesService {
       branch,
     });
     await this.inventoryRepository.save(inventory);
-    return jsend.success(inventory);
+    return inventory;
   }
 
   async findAll() {
@@ -57,30 +63,35 @@ export class InventoriesService {
     });
     for (let i = 0; i < inventories.length; i++) {
       const piis = inventories[i].productItemToInventories;
-      inventories[i].total_product_items = 0;
-      inventories[i].total_damaged_items = 0;
       for (const pii of piis) {
         inventories[i].total_product_items += pii.number_of_items;
         inventories[i].total_damaged_items += pii.number_of_damaged;
       }
     }
-    return success(inventories);
+    return inventories;
   }
 
   async findOne(id: number) {
     const inventory = await this.inventoryRepository.findOne({
       where: { id },
-      relations: ['branch'],
+      relations: ['branch', 'productItemToInventories'],
     });
-    return jsend.success(inventory);
+    if (!inventory) {
+      throw new NotFoundException('Inventory not found with id: ' + id);
+    }
+
+    for (const pii of inventory.productItemToInventories) {
+      inventory.total_product_items += pii.number_of_items;
+      inventory.total_damaged_items += pii.number_of_damaged;
+    }
+
+    return inventory;
   }
 
   async update(id: number, updateInventoryDto: UpdateInventoryDto) {
     const inventory = await this.inventoryRepository.findOneBy({ id });
     if (!inventory) {
-      throw new ConflictException(
-        jsend.error('Inventory not found with id: ' + id),
-      );
+      throw new NotFoundException('Inventory not found with id: ' + id);
     }
 
     // update the branch
@@ -89,10 +100,8 @@ export class InventoriesService {
         id: updateInventoryDto.branchId,
       });
       if (!branch) {
-        throw new ConflictException(
-          jsend.error(
-            'Branch not found with id: ' + updateInventoryDto.branchId,
-          ),
+        throw new NotFoundException(
+          'Branch not found with id: ' + updateInventoryDto.branchId,
         );
       }
       inventory.branch = branch;
@@ -112,15 +121,10 @@ export class InventoriesService {
   async remove(id: number) {
     const inventory = await this.inventoryRepository.findOneBy({ id });
     if (!inventory) {
-      throw new ConflictException(
-        jsend.error('Inventory not found with id: ' + id),
-      );
+      throw new NotFoundException('Inventory not found with id: ' + id);
     }
 
-    const addressId = inventory.address?.id;
-    await this.inventoryRepository.remove(inventory);
-    await this.addressRepository.delete({ id: addressId });
-    return jsend.success(inventory);
+    return await this.inventoryRepository.softRemove(inventory);
   }
 
   async transferProductItems(transferProductItemsDto: TransferProductItemsDto) {
@@ -130,10 +134,8 @@ export class InventoriesService {
     });
     if (!sourceInventory) {
       throw new ConflictException(
-        jsend.error(
-          'Source inventory not found with id: ' +
-            transferProductItemsDto.sourceInventoryId,
-        ),
+        'Source inventory not found with id: ' +
+          transferProductItemsDto.sourceInventoryId,
       );
     }
 
@@ -143,10 +145,19 @@ export class InventoriesService {
     });
     if (!targetInventory) {
       throw new ConflictException(
-        jsend.error(
-          'Target inventory not found with id: ' +
-            transferProductItemsDto.targetInventoryId,
-        ),
+        'Target inventory not found with id: ' +
+          transferProductItemsDto.targetInventoryId,
+      );
+    }
+
+    // validate the product item
+    const productItem = await this.productItemRepository.findOneBy({
+      id: transferProductItemsDto.productItemId,
+    });
+    if (!productItem) {
+      throw new ConflictException(
+        'Product item not found with id: ' +
+          transferProductItemsDto.productItemId,
       );
     }
 
@@ -159,12 +170,10 @@ export class InventoriesService {
 
     if (!sourceProductItemInventory) {
       throw new ConflictException(
-        jsend.error(
-          'Product item not found with id: ' +
-            transferProductItemsDto.productItemId +
-            'in inventory with id: ' +
-            transferProductItemsDto.sourceInventoryId,
-        ),
+        'Product item not found with id: ' +
+          transferProductItemsDto.productItemId +
+          'in inventory with id: ' +
+          transferProductItemsDto.sourceInventoryId,
       );
     }
 
@@ -172,9 +181,7 @@ export class InventoriesService {
       sourceProductItemInventory.number_of_items <
       transferProductItemsDto.quantity
     ) {
-      throw new ConflictException(
-        jsend.error('Not enough items in source inventory'),
-      );
+      throw new ConflictException('Not enough items in source inventory');
     }
     sourceProductItemInventory.number_of_items -=
       transferProductItemsDto.quantity;

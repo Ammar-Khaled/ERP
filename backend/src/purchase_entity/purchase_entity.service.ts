@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreatePurchaseEntityDto } from './dto/create-purchase_entity.dto';
 import { UpdatePurchaseEntityDto } from './dto/update-purchase_entity.dto';
@@ -15,7 +20,13 @@ export class PurchaseEntityService {
   ) {}
 
   async create(createPurchaseEntityDto: CreatePurchaseEntityDto) {
-    //# to fix: check if existed
+    const existedEntity = await this.purchaseEntityRepository.findOneBy({
+      name: createPurchaseEntityDto.name,
+    });
+    if (existedEntity)
+      throw new ConflictException(
+        `Purchase entity with name "${createPurchaseEntityDto.name}" already existed.`,
+      );
 
     const newPurchase = this.purchaseEntityRepository.create(
       createPurchaseEntityDto,
@@ -50,32 +61,19 @@ export class PurchaseEntityService {
     return purchaseEntity;
   }
 
-  async update(name: string, updatePurchaseEntityDto: UpdatePurchaseEntityDto) {
-    const purchaseEntity = await this.findOneByName(name);
-
-    if (!purchaseEntity) {
-      throw new NotFoundException(
-        `Purchase entity with name "${name}" not found.`,
-      );
-    }
-
+  async update(id: number, updatePurchaseEntityDto: UpdatePurchaseEntityDto) {
+    const purchaseEntity = await this.findOne(id);
     Object.assign(purchaseEntity, updatePurchaseEntityDto);
-    console.log(`Updated the "${name}" purchase entity successfully!`);
+
+    console.log(`Updated the purchase entity with id of ${id} successfully!`);
     return await this.purchaseEntityRepository.save(purchaseEntity);
   }
 
-  async remove(name: string) {
-    const purchaseEntity = await this.findOneByName(name);
+  async remove(id: number) {
+    const purchaseEntity = await this.findOne(id);
+    await this.purchaseEntityRepository.softDelete({ id });
 
-    if (!purchaseEntity) {
-      throw new NotFoundException(
-        `Purchase entity with name "${name}" not found.`,
-      );
-    }
-
-    await this.purchaseEntityRepository.remove(purchaseEntity);
-    console.log(`Removed the "${name}" purchase entity successfully!`);
-
+    console.log(`Removed the purchase entity with id of ${id} successfully!`);
     return purchaseEntity;
   }
 }

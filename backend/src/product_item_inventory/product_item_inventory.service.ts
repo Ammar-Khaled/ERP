@@ -1,17 +1,10 @@
-import {
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ProductItemToInventory } from './entities/product_item_inventory.entity';
 import { ProductItem } from '../product_item/entities/product_item.entity';
 import { Inventory } from '../inventories/entities/inventory.entity';
 import { CreateProductItemInventoryDto } from './dto/create-product_item_inventory.dto';
 import { UpdateProductItemInventoryDto } from './dto/update-product_item_inventory.dto';
-import * as jsend from 'jsend';
 
 @Injectable()
 export class ProductItemInventoryService {
@@ -32,9 +25,7 @@ export class ProductItemInventoryService {
       where: { id: product_item_id },
     });
     if (!productItem) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Product item not found.' }),
-      );
+      throw new NotFoundException('Product item not found.');
     }
 
     // Validate inventory_id
@@ -42,31 +33,33 @@ export class ProductItemInventoryService {
       where: { id: inventory_id },
     });
     if (!inventory) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Inventory not found.' }),
-      );
+      throw new NotFoundException('Inventory not found.');
     }
 
-    // Create and save the new ProductItemInventory
-    const productItemInventory = this.productItemInventoryRepository.create({
-      ...createProductItemInventoryDto,
-      productItem,
-      inventory,
-    });
+    // Check if the ProductItemInventory already exists
+    const existingProductItemInventory =
+      await this.productItemInventoryRepository.findOne({
+        where: { productItem, inventory },
+      });
 
-    try {
-      const newProductItemInventory =
-        await this.productItemInventoryRepository.save(productItemInventory);
-      return jsend.success(newProductItemInventory);
-    } catch (err) {
-      throw new HttpException(
-        jsend.error({
-          message:
-            'An unexpected error occurred while creating the ProductItemInventory. Please try again later.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+    if (existingProductItemInventory) {
+      existingProductItemInventory.number_of_damaged +=
+        createProductItemInventoryDto.number_of_damaged;
+      existingProductItemInventory.number_of_items +=
+        createProductItemInventoryDto.number_of_items;
+      await this.productItemInventoryRepository.save(
+        existingProductItemInventory,
       );
+      return existingProductItemInventory;
+    } else {
+      // Create and save the new ProductItemInventory
+      const productItemInventory = this.productItemInventoryRepository.create({
+        ...createProductItemInventoryDto,
+        productItem,
+        inventory,
+      });
+      await this.productItemInventoryRepository.save(productItemInventory);
+      return productItemInventory;
     }
   }
 
@@ -75,7 +68,7 @@ export class ProductItemInventoryService {
       await this.productItemInventoryRepository.find({
         relations: ['productItem', 'inventory'], // Include related entities
       });
-    return jsend.success(productItemInventories);
+    return productItemInventories;
   }
 
   async findOne(id: number) {
@@ -83,7 +76,7 @@ export class ProductItemInventoryService {
       { id },
       'ProductItemInventory not found',
     );
-    return jsend.success(productItemInventory);
+    return productItemInventory;
   }
 
   async update(
@@ -105,9 +98,7 @@ export class ProductItemInventoryService {
         where: { id: product_item_id },
       });
       if (!productItem) {
-        throw new NotFoundException(
-          jsend.fail({ message: 'Product item not found.' }),
-        );
+        throw new NotFoundException('Product item not found.');
       }
       productItemInventory.productItem = productItem;
     }
@@ -118,9 +109,7 @@ export class ProductItemInventoryService {
         where: { id: inventory_id },
       });
       if (!inventory) {
-        throw new NotFoundException(
-          jsend.fail({ message: 'Inventory not found.' }),
-        );
+        throw new NotFoundException('Inventory not found.');
       }
       productItemInventory.inventory = inventory;
     }
@@ -131,7 +120,7 @@ export class ProductItemInventoryService {
     // Save the updated entity
     await this.productItemInventoryRepository.save(productItemInventory);
 
-    return jsend.success(productItemInventory);
+    return productItemInventory;
   }
 
   async remove(id: number) {
@@ -140,7 +129,7 @@ export class ProductItemInventoryService {
       'ProductItemInventory not found',
     );
     await this.productItemInventoryRepository.delete({ id });
-    return jsend.success(productItemInventory);
+    return productItemInventory;
   }
 
   private async findProductItemInventoryByCondition(
@@ -153,7 +142,7 @@ export class ProductItemInventoryService {
         relations: ['productItem', 'inventory'], // Include related entities
       });
     if (!productItemInventory) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException(errorMessage);
     }
     return productItemInventory;
   }

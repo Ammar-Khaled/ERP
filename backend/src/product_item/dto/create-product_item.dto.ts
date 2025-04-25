@@ -39,7 +39,7 @@ export class CreateProductItemDto {
   @IsNotEmpty()
   @IsNumber()
   inventory_id: number;
-  
+
   @IsOptional()
   @IsNotEmpty()
   @IsNumber()

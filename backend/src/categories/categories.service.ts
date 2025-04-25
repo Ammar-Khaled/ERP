@@ -1,7 +1,6 @@
 import {
   ConflictException,
   HttpException,
-  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -11,7 +10,6 @@ import { Category } from './entities/category.entity';
 import { Branch } from 'src/branches/entities/branch.entity'; // Assuming you have a Branch entity
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import * as jsend from 'jsend';
 
 @Injectable()
 export class CategoriesService {
@@ -28,9 +26,7 @@ export class CategoriesService {
       where: { name: createCategoryDto.name },
     });
     if (existingCategory) {
-      throw new ConflictException(
-        jsend.fail({ message: 'The category already exists.' }),
-      );
+      throw new ConflictException('The category already exists.');
     }
 
     // Check if the branch_id exists in the Branch table
@@ -38,7 +34,7 @@ export class CategoriesService {
       where: { id: createCategoryDto.branch_id },
     });
     if (!branch) {
-      throw new NotFoundException(jsend.fail({ message: 'Branch not found.' }));
+      throw new NotFoundException('Branch not found.');
     }
 
     const category = this.categoryRepository.create(createCategoryDto);
@@ -46,16 +42,9 @@ export class CategoriesService {
     try {
       // Save the new category and associate it with the branch
       const newCategory = await this.categoryRepository.save(category);
-      return jsend.success(newCategory);
+      return newCategory;
     } catch (err) {
-      throw new HttpException(
-        jsend.error({
-          message:
-            'An unexpected error occurred while creating the category. Please try again later.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException(err.message, err.status || 500);
     }
   }
 
@@ -72,30 +61,26 @@ export class CategoriesService {
         where: { id: updateCategoryDto.branch_id },
       });
       if (!branch) {
-        throw new NotFoundException(
-          jsend.fail({ message: 'Branch not found.' }),
-        );
+        throw new NotFoundException('Branch not found.');
       }
       category.branch = branch;
+      delete updateCategoryDto.branch_id;
     }
 
-    // Ensure there are fields to update
-    const { ...categoryUpdates } = updateCategoryDto;
-
     // If there are updates, assign them to the category
-    if (Object.keys(categoryUpdates).length > 0) {
-      Object.assign(category, categoryUpdates);
+    if (Object.keys(updateCategoryDto).length > 0) {
+      Object.assign(category, updateCategoryDto);
 
       // Save the category-ol0ml, 
       await this.categoryRepository.save(category);
     }
 
-    return jsend.success(category);
+    return category;
   }
 
   async findAll() {
     const categories = await this.categoryRepository.find();
-    return jsend.success(categories);
+    return categories;
   }
 
   async findOne(id: number) {
@@ -103,7 +88,7 @@ export class CategoriesService {
       { id },
       'Category not found',
     );
-    return jsend.success(category);
+    return category;
   }
 
   async remove(id: number) {
@@ -112,7 +97,7 @@ export class CategoriesService {
       'Category not found',
     );
     await this.categoryRepository.delete({ id });
-    return jsend.success(category);
+    return category;
   }
 
   private async findCategoryByCondition(
@@ -123,7 +108,7 @@ export class CategoriesService {
       where: condition,
     });
     if (!category) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException(errorMessage);
     }
     return category;
   }

@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   JoinTable,
@@ -40,8 +41,10 @@ export class User {
   @Column({ type: 'boolean', default: false })
   isBlocked: boolean;
 
-  @Column({ type: 'boolean', default: false })
-  isDeleted: boolean;
+  @DeleteDateColumn()
+  deletedAt: Date;
+
+  addressId: number;
 
   @OneToOne(() => Address, {
     eager: true,
@@ -49,6 +52,8 @@ export class User {
   })
   @JoinColumn()
   address: Address;
+
+  roleIds: number[];
 
   @ManyToMany(() => Role, (role) => role.users, {
     eager: true,
@@ -61,7 +66,6 @@ export class User {
   roles: Role[];
 
   @ManyToOne(() => Branch, (branch) => branch.users, {
-    eager: true,
     nullable: true,
   })
   @JoinColumn()

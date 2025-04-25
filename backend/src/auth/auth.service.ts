@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcrypt';
@@ -36,10 +32,6 @@ export class AuthService {
 
     if (user.isBlocked) {
       throw new UnauthorizedException('User is blocked');
-    }
-
-    if (user.isDeleted) {
-      throw new ConflictException('User is deleted');
     }
 
     const payload = {

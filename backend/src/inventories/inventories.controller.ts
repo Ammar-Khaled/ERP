@@ -11,7 +11,6 @@ import { InventoriesService } from './inventories.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
-import { Public } from 'src/auth/auth.guard';
 
 @Controller('inventories')
 export class InventoriesController {

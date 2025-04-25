@@ -150,6 +150,7 @@ export class ProductsService {
         );
       }
       product.branch = branch; // Associate the Branch entity
+      delete updateProductDto.branch_id;
     }
 
     // Validate and link category_id if provided
@@ -163,6 +164,7 @@ export class ProductsService {
         );
       }
       product.category = category; // Associate the Category entity
+      delete updateProductDto.category_id;
     }
     
     // Validate and link unit_id if provided
@@ -190,8 +192,7 @@ export class ProductsService {
     }
 
     // Update other fields from the DTO
-    const { branch_id, category_id, ...productUpdates } = updateProductDto;
-    Object.assign(product, productUpdates);
+    Object.assign(product, updateProductDto);
 
     // Save the updated product with relations
     await this.productRepository.save(product);

@@ -198,6 +198,7 @@ export class ProductItemService {
       { id },
       'Product item not found',
     );
+
     if (updateProductItemDto.number_of_damaged) {
       const oldNumberOfDamged = productItem.number_of_damaged;
       const product = await this.productRepository.findOne({
@@ -224,7 +225,7 @@ export class ProductItemService {
           jsend.fail({ message: 'Product not found.' }),
         );
       }
-      productItem.product = product; // Associate the Branch entity
+      productItem.product = product;  // possible?
     }
 
     // Handle variation options - Keep existing ones & add new ones

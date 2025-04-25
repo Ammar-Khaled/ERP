@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
   Patch,
@@ -12,39 +13,47 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { RolesGuard } from '../auth/roles.guard';
-import { Public } from '../auth/auth.guard';
+import { PermissionsGuard } from '../auth/permissions.guard';
+import { AuthGuard, Public } from '../auth/auth.guard';
+
+// import { Permissions } from '../decorators/permissions.decorator';
 
 @Controller('users')
-@UseGuards(RolesGuard)
+@UseGuards(AuthGuard, PermissionsGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
   @Public()
+  // @Permissions(['UsersController:create'])
+  @Post()
+  @HttpCode(201)
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
+  // @Permissions(['UsersController:findAll'])
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll() {
+    return await this.usersService.findAll();
   }
 
+  // @Permissions(['UsersController:findOneById'])
   @Get(':id')
-  findOneById(@Param('id') id: number) {
-    const user = this.usersService.findOneByCondition({ id });
+  async findOneById(@Param('id') id: number) {
+    const user = await this.usersService.findOneByCondition({ id });
     if (!user) {
       throw new NotFoundException('User not found');
     }
     return user;
   }
 
+  // @Permissions(['UsersController:update'])
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
+  // @Permissions(['UsersController:remove'])
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);

@@ -1,18 +1,30 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Permission } from './entities/permission.entity';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { Role } from '../roles/entities/role.entity';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
+import { PermissionsSeeder } from './permissions.seeder';
 
 @Injectable()
-export class PermissionService {
+export class PermissionService implements OnModuleInit {
   constructor(
     @Inject('PERMISSION_REPOSITORY')
     private readonly permissionRepository: Repository<Permission>,
     @Inject('ROLE_REPOSITORY')
     private readonly roleRepository: Repository<Role>,
+    private permissionsSeeder: PermissionsSeeder,
   ) {}
+
+  async onModuleInit() {
+    await this.permissionsSeeder.seed();
+    console.log('Permissions seeded successfully');
+  }
 
   findAll(): Promise<Permission[]> {
     return this.permissionRepository.find();
@@ -28,7 +40,7 @@ export class PermissionService {
       name: createPermissionDto.name,
     });
     if (existingPermission) {
-      throw new Error('Permission name already exists');
+      throw new ConflictException('Permission name already exists');
     }
 
     const roles = [];

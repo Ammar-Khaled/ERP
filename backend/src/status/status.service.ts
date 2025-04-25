@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateStatusDto } from './dto/create-status.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { Status } from './entities/status.entity';
@@ -16,18 +16,38 @@ export class StatusService {
   }
 
   async findAll() {
-    return `This action returns all status`;
+    return this.statusRepository.find();
   }
 
   async findOne(id: number) {
-    return `This action returns a #${id} status`;
+    const status = await this.statusRepository.findOneBy({ id });
+    if (!status)
+      throw new NotFoundException({ message: `No status with ID of (${id})!` });
+    return status;
+  }
+
+  async findOneByName(name: string) {
+    const status = await this.statusRepository.findOneBy({ name });
+    if (!status)
+      throw new NotFoundException({
+        message: `No status with name of "${name}"!`,
+      });
+    return status;
   }
 
   async update(id: number, updateStatusDto: UpdateStatusDto) {
-    return `This action updates a #${id} status`;
+    const status = await this.findOne(id);
+    Object.assign(status, updateStatusDto);
+
+    console.log(`Update status with id: ${id} successfully!`);
+    return await this.statusRepository.save(status);
   }
 
   async remove(id: number) {
-    return `This action removes a #${id} status`;
+    const status = await this.findOne(id);
+    await this.statusRepository.softDelete({ id });
+
+    console.log(`Delete status with id: (${id}) successfully!`);
+    return status;
   }
 }

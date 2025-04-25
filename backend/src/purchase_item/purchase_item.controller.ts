@@ -30,21 +30,16 @@ export class PurchaseItemController {
     return this.purchaseItemService.findOne(+id);
   }
 
-  @Get('find-by-name/:name')
-  findOneByName(@Param('name') name: string) {
-    return this.purchaseItemService.findOneByName(name);
-  }
-
-  @Patch('update/:name')
+  @Patch('update/:id')
   update(
-    @Param('name') name: string,
+    @Param('id') id: string,
     @Body() updatePurchaseItemDto: UpdatePurchaseItemDto,
   ) {
-    return this.purchaseItemService.update(name, updatePurchaseItemDto);
+    return this.purchaseItemService.update(+id, updatePurchaseItemDto);
   }
 
-  @Delete('delete/:name')
-  remove(@Param('name') name: string) {
-    return this.purchaseItemService.remove(name);
+  @Delete('delete/:id')
+  remove(@Param('id') id: number) {
+    return this.purchaseItemService.remove(+id);
   }
 }

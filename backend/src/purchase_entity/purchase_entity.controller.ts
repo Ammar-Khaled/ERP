@@ -35,16 +35,16 @@ export class PurchaseEntityController {
     return this.purchaseEntityService.findOneByName(name);
   }
 
-  @Patch('update/:name')
+  @Patch('update/:id')
   update(
-    @Param('name') name: string,
+    @Param('id') id: string,
     @Body() updatePurchaseEntityDto: UpdatePurchaseEntityDto,
   ) {
-    return this.purchaseEntityService.update(name, updatePurchaseEntityDto);
+    return this.purchaseEntityService.update(+id, updatePurchaseEntityDto);
   }
 
-  @Delete('delete/:name')
-  remove(@Param('name') name: string) {
-    return this.purchaseEntityService.remove(name);
+  @Delete('delete/:id')
+  remove(@Param('id') id: string) {
+    return this.purchaseEntityService.remove(+id);
   }
 }

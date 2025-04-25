@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -10,12 +9,10 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { hash } from 'bcrypt';
-import { error, success } from 'jsend';
 import { Role } from '../roles/entities/role.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { config } from 'dotenv';
 import * as process from 'node:process';
-import { Address } from '../common/entities/address.entity';
 
 config();
 
@@ -25,14 +22,26 @@ export class UsersService {
     @Inject('USER_REPOSITORY') private userRepository: Repository<User>,
     @Inject('ROLE_REPOSITORY') private roleRepository: Repository<Role>,
     @Inject('BRANCH_REPOSITORY') private branchRepository: Repository<Branch>,
-    @Inject('ADDRESS_REPOSITORY')
-    private addressRepository: Repository<Address>,
   ) {}
 
   async findAll() {
     const users = await this.userRepository.find();
     users.forEach((user) => delete user.password);
-    return success(users);
+    users.forEach((user) => {
+      user.roleIds = [];
+      if (user.roles) {
+        user.roles.forEach((role) => {
+          user.roleIds.push(role.id);
+        });
+        delete user.roles;
+      }
+
+      if (user.address) {
+        user.addressId = user.address.id;
+        delete user.address;
+      }
+    });
+    return users;
   }
 
   async findOneByCondition(condition: object, relations?: string[]) {
@@ -48,20 +57,13 @@ export class UsersService {
       (await this.userRepository.findOneBy({
         username: createUserDto.username,
       }));
-    if (existingUser)
-      throw new ConflictException(
-        error({
-          message: 'User already exists',
-          code: HttpStatus.CONFLICT,
-          data: existingUser,
-        }),
-      );
+    if (existingUser) throw new ConflictException('User already exists');
 
     const roles = [];
     for (const id of createUserDto.roleIds || []) {
       const role = await this.roleRepository.findOneBy({ id });
       if (!role) {
-        throw new ConflictException(error('Role not found with id: ' + id));
+        throw new NotFoundException('Role not found with id: ' + id);
       }
       roles.push(role);
     }
@@ -72,8 +74,8 @@ export class UsersService {
         id: createUserDto.branchId,
       });
       if (!branch) {
-        throw new ConflictException(
-          error('Branch not found with id: ' + createUserDto.branchId),
+        throw new NotFoundException(
+          'Branch not found with id: ' + createUserDto.branchId,
         );
       }
     }
@@ -83,6 +85,7 @@ export class UsersService {
       Number(process.env.BCRYPT_SALT_ROUNDS),
     );
 
+    console.log(createUserDto);
     const new_user = this.userRepository.create({
       ...createUserDto,
       roles,
@@ -91,7 +94,7 @@ export class UsersService {
 
     await this.userRepository.save(new_user);
     delete new_user.password;
-    return success(new_user);
+    return new_user;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -112,7 +115,7 @@ export class UsersService {
       for (const id of updateUserDto.roleIds) {
         const role = await this.roleRepository.findOneBy({ id });
         if (!role) {
-          throw new ConflictException(error('Role not found with id: ' + id));
+          throw new NotFoundException('Role not found with id: ' + id);
         }
         roles.push(role);
       }
@@ -125,8 +128,8 @@ export class UsersService {
         id: updateUserDto.branchId,
       });
       if (!branch) {
-        throw new ConflictException(
-          error('Branch not found with id: ' + updateUserDto.branchId),
+        throw new NotFoundException(
+          'Branch not found with id: ' + updateUserDto.branchId,
         );
       }
       user.branch = branch;
@@ -149,9 +152,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    const addressId = user.address?.id;
-    await this.userRepository.remove(user);
-    await this.addressRepository.delete({ id: addressId });
-    return success(user);
+    await this.userRepository.softRemove(user);
+    return user;
   }
 }

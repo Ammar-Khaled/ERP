@@ -1,4 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('addresses')
 export class Address {
@@ -25,4 +30,7 @@ export class Address {
 
   @Column({ type: 'float', nullable: true })
   latitude: number;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 }

@@ -1,18 +1,39 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Order } from 'src/order/entities/order.entity';
+import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
+import { Return } from 'src/return/entities/return.entity';
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('statuses')
 export class Status {
   @PrimaryGeneratedColumn()
-  status_id: number;
+  id: number;
 
   @Column({ type: 'varchar', length: 10, unique: true, nullable: false })
-  statusName: string;
+  name: string;
 
   @Column({
     type: 'varchar',
     length: 50,
-    default: 'Transaction Initiated',
+    default: 'Status Description',
     nullable: true,
   })
-  statusDescription: string;
+  description: string;
+
+  @OneToMany(() => PurchaseRequest, (purchaseRequest) => purchaseRequest.status)
+  purchaseRequests: PurchaseRequest[];
+
+  @OneToMany(() => Return, (returns) => returns.status)
+  returns: Return[];
+
+  @DeleteDateColumn() // Add DeleteDateColumn for soft delete
+  deletedAt?: Date;
+
+  @OneToMany(() => Order, (order) => order.status)
+  orders: Order[];
 }
