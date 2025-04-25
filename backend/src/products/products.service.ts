@@ -116,10 +116,6 @@ export class ProductsService {
   async findAll() {
     const products = await this.productRepository.find({
       relations: [
-        'branch',
-        'category',
-        'unit',
-        'currency',
         'productItems',
         'productItems.variationOptions',
         'productItems.variationOptions.variation',
@@ -219,10 +215,6 @@ export class ProductsService {
     const product = await this.productRepository.findOne({
       where: condition,
       relations: [
-        'branch',
-        'category',
-        'unit',
-        'currency',
         'productItems',
         'productItems.variationOptions',
         'productItems.variationOptions.variation',
