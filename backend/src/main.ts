@@ -29,8 +29,8 @@ async function bootstrap() {
       },
     }),
   );
-  app.useGlobalFilters(new QueryFailedErrorFilter());
   app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalFilters(new QueryFailedErrorFilter());
   app.useGlobalInterceptors(new SuccessInterceptor());
   await app.listen(process.env.PORT ?? 3000);
 }
