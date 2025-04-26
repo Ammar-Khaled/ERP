@@ -9,7 +9,6 @@ import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Repository } from 'typeorm';
 import { Inventory } from './entities/inventory.entity';
 import { Branch } from '../branches/entities/branch.entity';
-import { Address } from '../common/entities/address.entity';
 import { ProductItemToInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
 import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
 import { ProductItem } from '../product_item/entities/product_item.entity';
@@ -21,8 +20,6 @@ export class InventoriesService {
     private inventoryRepository: Repository<Inventory>,
     @Inject('BRANCH_REPOSITORY')
     private branchRepository: Repository<Branch>,
-    @Inject('ADDRESS_REPOSITORY')
-    private addressRepository: Repository<Address>,
     @Inject('PRODUCT_ITEM_REPOSITORY')
     private productItemRepository: Repository<ProductItem>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
@@ -30,36 +27,15 @@ export class InventoriesService {
   ) {}
 
   async create(createInventoryDto: CreateInventoryDto) {
-    if (
-      await this.inventoryRepository.findOneBy({
-        name: createInventoryDto.name,
-      })
-    ) {
-      throw new ConflictException('Inventory name already exists');
-    }
-
-    // get the branch
-    const branch = await this.branchRepository.findOneBy({
-      id: createInventoryDto.branchId,
-    });
-    if (!branch) {
-      throw new NotFoundException(
-        'Branch not found with id: ' + createInventoryDto.branchId,
-      );
-    }
-
-    // create the inventory
-    const inventory = this.inventoryRepository.create({
-      ...createInventoryDto,
-      branch,
-    });
+    const inventory = this.inventoryRepository.create(createInventoryDto);
     await this.inventoryRepository.save(inventory);
+    delete inventory.address;
     return inventory;
   }
 
   async findAll() {
     const inventories = await this.inventoryRepository.find({
-      relations: ['branch', 'productItemToInventories'],
+      relations: ['productItemToInventories'],
     });
     for (let i = 0; i < inventories.length; i++) {
       const piis = inventories[i].productItemToInventories;
@@ -74,7 +50,7 @@ export class InventoriesService {
   async findOne(id: number) {
     const inventory = await this.inventoryRepository.findOne({
       where: { id },
-      relations: ['branch', 'productItemToInventories'],
+      relations: ['productItemToInventories'],
     });
     if (!inventory) {
       throw new NotFoundException('Inventory not found with id: ' + id);
@@ -104,8 +80,6 @@ export class InventoriesService {
           'Branch not found with id: ' + updateInventoryDto.branchId,
         );
       }
-      inventory.branch = branch;
-      delete updateInventoryDto.branchId;
     }
 
     if (updateInventoryDto.address) {
@@ -115,7 +89,8 @@ export class InventoriesService {
     }
 
     Object.assign(inventory, updateInventoryDto);
-    return await this.inventoryRepository.save(inventory);
+    await this.inventoryRepository.save(inventory);
+    return inventory;
   }
 
   async remove(id: number) {
