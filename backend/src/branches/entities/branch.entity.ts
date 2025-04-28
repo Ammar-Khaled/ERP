@@ -32,8 +32,11 @@ export class Branch {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  @OneToOne(() => Address, { eager: true, cascade: true })
-  @JoinColumn()
+  @Column()
+  addressId: number;
+
+  @OneToOne(() => Address, { cascade: true })
+  @JoinColumn({ name: 'addressId' })
   address: Address;
 
   @OneToMany(() => User, (user) => user.branch)

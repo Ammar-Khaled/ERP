@@ -1,52 +1,60 @@
-import {
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Branch } from './entities/branch.entity';
 import { CreateBranchDto } from './dto/create-branch.dto';
-import { Address } from '../common/entities/address.entity';
 
 @Injectable()
 export class BranchesService {
   constructor(
     @Inject('BRANCH_REPOSITORY')
     private readonly branchRepository: Repository<Branch>,
-    @Inject('ADDRESS_REPOSITORY')
-    private readonly addressRepository: Repository<Address>,
   ) {}
 
   async findAll(): Promise<Branch[]> {
     return this.branchRepository.find();
   }
 
-  async findOneByCondition(
-    condition: object,
-    relations?: string[],
-  ): Promise<Branch> {
-    return await this.branchRepository.findOne({
-      where: condition,
-      relations: relations,
+  async findOne(id: number) {
+    const branch = await this.branchRepository.findOne({
+      where: { id },
+      relations: {
+        users: true,
+        inventories: true,
+        purchaseRequests: true,
+      },
+      select: {
+        // users: {
+        //   id: true,
+        // },
+        inventories: {
+          id: true,
+        },
+        purchaseRequests: {
+          id: true,
+        },
+      },
     });
+
+    if (!branch) throw new NotFoundException('Branch not found');
+
+    const userIds = branch.users.map((user) => user.id);
+    delete branch.users;
+    const inventoryIds = branch.inventories.map((inventory) => inventory.id);
+    delete branch.inventories;
+    const purchaseRequestIds = branch.purchaseRequests.map(
+      (purchaseRequest) => purchaseRequest.id,
+    );
+    delete branch.purchaseRequests;
+    return { ...branch, userIds, inventoryIds, purchaseRequestIds };
   }
 
-  async create(
-    createBranchDto: CreateBranchDto,
-  ): Promise<Promise<Branch> | ConflictException> {
-    const existingBranch = await this.findOneByCondition({
-      name: createBranchDto.name,
-    });
-    if (existingBranch) {
-      throw new ConflictException('Branch already exists');
-    }
-
-    return this.branchRepository.save(createBranchDto);
+  async create(createBranchDto: CreateBranchDto) {
+    const branch = this.branchRepository.create(createBranchDto);
+    return await this.branchRepository.save(branch);
   }
 
   async update(id: number, updatedBranchDto: Branch): Promise<Branch> {
-    const branch = await this.findOneByCondition({ id });
+    const branch = await this.branchRepository.findOneBy({ id });
     if (!branch) {
       throw new NotFoundException('Branch not found');
     }
@@ -62,7 +70,7 @@ export class BranchesService {
   }
 
   async remove(id: number): Promise<Branch> {
-    let branch = await this.findOneByCondition({ id });
+    let branch = await this.branchRepository.findOneBy({ id });
     if (!branch) {
       throw new NotFoundException('Branch not found');
     }
