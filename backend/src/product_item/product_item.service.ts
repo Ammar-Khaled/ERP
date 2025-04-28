@@ -129,10 +129,10 @@ export class ProductItemService {
             await transactionalEntityManager
               .getRepository(ProductItemToInventory)
               .insert({
-                number_of_items: createProductItemDto.number_of_valid,
-                number_of_damaged: createProductItemDto.number_of_damaged || 0,
-                product_item_id: newProductItem.id,
-                inventory_id: createProductItemDto.inventory_id,
+                numberOfValid: createProductItemDto.number_of_valid,
+                numberOfDamaged: createProductItemDto.number_of_damaged || 0,
+                productItemId: newProductItem.id,
+                inventoryId: createProductItemDto.inventory_id,
               });
           }
 

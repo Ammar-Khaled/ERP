@@ -132,8 +132,8 @@ export class OrderService {
       orderItem.productItem = productItem;
 
       const productItemInv = await this.productItemInventoryRepo.findOneBy({
-        product_item_id: orderItem.product_item_id,
-        inventory_id: _newOrder.inventory_id,
+        productItemId: orderItem.product_item_id,
+        inventoryId: _newOrder.inventory_id,
       });
 
       // make the price & name of same item equal in both of order_item and product_item
@@ -141,13 +141,13 @@ export class OrderService {
       orderItem.name = productItem.name;
 
       // validating the amount of items in the order and stock
-      if (orderItem.numberOfItems > productItemInv.number_of_items) {
+      if (orderItem.numberOfItems > productItemInv.numberOfValid) {
         throw new ConflictException(
           `There are NO enough items of ${productItem.name} in this stock at the moment`,
         );
       }
 
-      productItemInv.number_of_items -= orderItem.numberOfItems;
+      productItemInv.numberOfValid -= orderItem.numberOfItems;
       await this.productItemInventoryService.update(
         productItemInv.id,
         productItemInv,
@@ -219,8 +219,8 @@ export class OrderService {
       });
 
       const productItemInv = await this.productItemInventoryRepo.findOneBy({
-        product_item_id: item.product_item_id,
-        inventory_id: order.inventory_id,
+        productItemId: item.product_item_id,
+        inventoryId: order.inventory_id,
       });
 
       let flag: boolean = false;
@@ -237,7 +237,7 @@ export class OrderService {
 
             const difference: number =
               item.numberOfItems - order.items[i].numberOfItems;
-            if (difference > productItemInv.number_of_items) {
+            if (difference > productItemInv.numberOfValid) {
               throw new ConflictException(
                 `There are NO enough items of ${productItem.name} in the stock`,
               );
@@ -248,7 +248,7 @@ export class OrderService {
               difference * order.items[i].unit_price;
 
             order.total_amount += difference * order.items[i].unit_price;
-            productItemInv.number_of_items -= difference;
+            productItemInv.numberOfValid -= difference;
             await this.productItemInventoryService.update(
               productItemInv.id,
               productItemInv,
@@ -265,7 +265,7 @@ export class OrderService {
               difference * order.items[i].unit_price;
 
             order.total_amount -= difference * order.items[i].unit_price;
-            productItemInv.number_of_items += difference;
+            productItemInv.numberOfValid += difference;
             await this.productItemInventoryService.update(
               productItemInv.id,
               productItemInv,
@@ -287,13 +287,13 @@ export class OrderService {
         orderItem.name = productItem.name;
 
         // validating the amount of items in the order and stock
-        if (orderItem.numberOfItems > productItemInv.number_of_items) {
+        if (orderItem.numberOfItems > productItemInv.numberOfValid) {
           throw new ConflictException(
             `There are NO enough items of ${productItem.name} in the stock`,
           );
         }
 
-        productItemInv.number_of_items -= orderItem.numberOfItems;
+        productItemInv.numberOfValid -= orderItem.numberOfItems;
         await this.productItemInventoryService.update(
           productItemInv.id,
           productItemInv,

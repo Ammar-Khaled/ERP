@@ -15,5 +15,9 @@ export class TransferProductItemsDto {
 
   @IsInt()
   @IsPositive()
-  quantity: number;
+  numberOfValid: number;
+
+  @IsInt()
+  @IsPositive()
+  numberOfDamaged: number;
 }

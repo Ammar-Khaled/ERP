@@ -18,11 +18,11 @@ export class ProductItemInventoryService {
   ) {}
 
   async create(createProductItemInventoryDto: CreateProductItemInventoryDto) {
-    const { product_item_id, inventory_id } = createProductItemInventoryDto;
+    const { productItemId, inventoryId } = createProductItemInventoryDto;
 
     // Validate product_item_id
     const productItem = await this.productItemRepository.findOne({
-      where: { id: product_item_id },
+      where: { id: productItemId },
     });
     if (!productItem) {
       throw new NotFoundException('Product item not found.');
@@ -30,7 +30,7 @@ export class ProductItemInventoryService {
 
     // Validate inventory_id
     const inventory = await this.inventoryRepository.findOne({
-      where: { id: inventory_id },
+      where: { id: inventoryId },
     });
     if (!inventory) {
       throw new NotFoundException('Inventory not found.');
@@ -43,10 +43,10 @@ export class ProductItemInventoryService {
       });
 
     if (existingProductItemInventory) {
-      existingProductItemInventory.number_of_damaged +=
-        createProductItemInventoryDto.number_of_damaged;
-      existingProductItemInventory.number_of_items +=
-        createProductItemInventoryDto.number_of_items;
+      existingProductItemInventory.numberOfDamaged +=
+        createProductItemInventoryDto.numberOfDamaged;
+      existingProductItemInventory.numberOfValid +=
+        createProductItemInventoryDto.numberOfValid;
       await this.productItemInventoryRepository.save(
         existingProductItemInventory,
       );
@@ -89,13 +89,13 @@ export class ProductItemInventoryService {
       'ProductItemInventory not found',
     );
 
-    const { product_item_id, inventory_id, ...updates } =
+    const { productItemId, inventoryId, ...updates } =
       updateProductItemInventoryDto;
 
     // Validate and associate product_item_id if provided
-    if (product_item_id) {
+    if (productItemId) {
       const productItem = await this.productItemRepository.findOne({
-        where: { id: product_item_id },
+        where: { id: productItemId },
       });
       if (!productItem) {
         throw new NotFoundException('Product item not found.');
@@ -104,9 +104,9 @@ export class ProductItemInventoryService {
     }
 
     // Validate and associate inventory_id if provided
-    if (inventory_id) {
+    if (inventoryId) {
       const inventory = await this.inventoryRepository.findOne({
-        where: { id: inventory_id },
+        where: { id: inventoryId },
       });
       if (!inventory) {
         throw new NotFoundException('Inventory not found.');

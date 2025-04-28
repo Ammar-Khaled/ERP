@@ -40,8 +40,8 @@ export class InventoriesService {
     for (let i = 0; i < inventories.length; i++) {
       const piis = inventories[i].productItemToInventories;
       for (const pii of piis) {
-        inventories[i].total_product_items += pii.number_of_items;
-        inventories[i].total_damaged_items += pii.number_of_damaged;
+        inventories[i].total_product_items += pii.numberOfValid;
+        inventories[i].total_damaged_items += pii.numberOfDamaged;
       }
     }
     return inventories;
@@ -57,8 +57,8 @@ export class InventoriesService {
     }
 
     for (const pii of inventory.productItemToInventories) {
-      inventory.total_product_items += pii.number_of_items;
-      inventory.total_damaged_items += pii.number_of_damaged;
+      inventory.total_product_items += pii.numberOfValid;
+      inventory.total_damaged_items += pii.numberOfDamaged;
     }
 
     return inventory;
@@ -125,6 +125,13 @@ export class InventoriesService {
       );
     }
 
+    // validate the source and target inventories
+    if (sourceInventory.id === targetInventory.id) {
+      throw new ConflictException(
+        'Source and target inventories cannot be the same',
+      );
+    }
+
     // validate the product item
     const productItem = await this.productItemRepository.findOneBy({
       id: transferProductItemsDto.productItemId,
@@ -139,8 +146,8 @@ export class InventoriesService {
     // get the source product item inventory
     const sourceProductItemInventory =
       await this.productItemInventoryRepository.findOneBy({
-        inventory_id: transferProductItemsDto.sourceInventoryId,
-        product_item_id: transferProductItemsDto.productItemId,
+        inventoryId: transferProductItemsDto.sourceInventoryId,
+        productItemId: transferProductItemsDto.productItemId,
       });
 
     if (!sourceProductItemInventory) {
@@ -153,35 +160,41 @@ export class InventoriesService {
     }
 
     if (
-      sourceProductItemInventory.number_of_items <
-      transferProductItemsDto.quantity
+      sourceProductItemInventory.numberOfValid <
+        transferProductItemsDto.numberOfValid ||
+      sourceProductItemInventory.numberOfDamaged <
+        transferProductItemsDto.numberOfDamaged
     ) {
       throw new ConflictException('Not enough items in source inventory');
     }
-    sourceProductItemInventory.number_of_items -=
-      transferProductItemsDto.quantity;
+    sourceProductItemInventory.numberOfValid -=
+      transferProductItemsDto.numberOfValid;
+    sourceProductItemInventory.numberOfDamaged -=
+      transferProductItemsDto.numberOfDamaged;
     await this.productItemInventoryRepository.save(sourceProductItemInventory);
 
     // get the target product item inventory
     const targetProductItemInventory =
       await this.productItemInventoryRepository.findOneBy({
-        inventory_id: transferProductItemsDto.targetInventoryId,
-        product_item_id: transferProductItemsDto.productItemId,
+        inventoryId: transferProductItemsDto.targetInventoryId,
+        productItemId: transferProductItemsDto.productItemId,
       });
 
     if (targetProductItemInventory) {
-      targetProductItemInventory.number_of_items +=
-        transferProductItemsDto.quantity;
+      targetProductItemInventory.numberOfValid +=
+        transferProductItemsDto.numberOfValid;
+      targetProductItemInventory.numberOfDamaged +=
+        transferProductItemsDto.numberOfDamaged;
       return await this.productItemInventoryRepository.save(
         targetProductItemInventory,
       );
     } else {
       const newProductItemInventory =
         this.productItemInventoryRepository.create({
-          inventory_id: transferProductItemsDto.targetInventoryId,
-          product_item_id: transferProductItemsDto.productItemId,
-          number_of_items: transferProductItemsDto.quantity,
-          number_of_damaged: 0,
+          inventoryId: transferProductItemsDto.targetInventoryId,
+          productItemId: transferProductItemsDto.productItemId,
+          numberOfValid: transferProductItemsDto.numberOfValid,
+          numberOfDamaged: transferProductItemsDto.numberOfDamaged,
         });
       return await this.productItemInventoryRepository.save(
         newProductItemInventory,
