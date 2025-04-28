@@ -27,11 +27,14 @@ export class Supplier {
   @DeleteDateColumn()
   deletedAt: Date;
 
+  @Column()
+  addressId: number;
+
   @OneToOne(() => Address, {
     cascade: true,
-    eager: true,
+    eager: false,
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'addressId' })
   address: Address;
 
   @OneToMany(
