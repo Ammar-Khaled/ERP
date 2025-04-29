@@ -1,9 +1,9 @@
 import {
   IsArray,
+  IsDate,
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsDate,
 } from 'class-validator';
 import { CreateOrderItemDto } from 'src/order_item/dto/create-order_item.dto';
 import { Type } from 'class-transformer';
@@ -16,31 +16,31 @@ export class CreateOrderDto {
 
   @IsNotEmpty()
   @IsNumber()
-  branch_id: number;
+  branchId: number;
 
   @IsNotEmpty()
   @IsNumber()
-  inventory_id: number;
+  inventoryId: number;
 
   @IsNotEmpty()
   @IsNumber()
-  user_id: number;
+  userId: number;
 
   @IsNotEmpty()
   @IsNumber()
-  client_id: number;
+  clientId: number;
 
   @IsNotEmpty()
   @IsNumber()
-  status_id: number;
+  statusId: number;
 
   @IsOptional()
   @IsNumber()
-  coupon_id: number;
+  couponId: number;
 
   @IsNotEmpty()
   @IsNumber()
-  currency_id: number;
+  currencyId: number;
 
   @IsNotEmpty()
   @IsArray()

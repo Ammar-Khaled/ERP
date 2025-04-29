@@ -40,8 +40,8 @@ export class InventoriesService {
     for (let i = 0; i < inventories.length; i++) {
       const piis = inventories[i].productItemToInventories;
       for (const pii of piis) {
-        inventories[i].total_product_items += pii.numberOfValid;
-        inventories[i].total_damaged_items += pii.numberOfDamaged;
+        inventories[i].numberOfValid += pii.numberOfValid;
+        inventories[i].numberOfDamaged += pii.numberOfDamaged;
       }
     }
     return inventories;
@@ -57,8 +57,8 @@ export class InventoriesService {
     }
 
     for (const pii of inventory.productItemToInventories) {
-      inventory.total_product_items += pii.numberOfValid;
-      inventory.total_damaged_items += pii.numberOfDamaged;
+      inventory.numberOfValid += pii.numberOfValid;
+      inventory.numberOfDamaged += pii.numberOfDamaged;
     }
 
     return inventory;

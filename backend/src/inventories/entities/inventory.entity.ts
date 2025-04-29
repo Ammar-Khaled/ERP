@@ -26,9 +26,9 @@ export class Inventory {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  total_product_items: number = 0;
+  numberOfValid: number = 0;
 
-  total_damaged_items: number = 0;
+  numberOfDamaged: number = 0;
 
   @Column()
   addressId: number;

@@ -23,10 +23,10 @@ export class OrderItem {
   numberOfItems: number;
 
   @Column({ type: 'float', default: 0.0 })
-  unit_price: number;
+  unitPrice: number;
 
   @Column({ type: 'float', default: 0.0 })
-  total_price: number;
+  totalPrice: number;
 
   @DeleteDateColumn()
   deletedAt: Date;
@@ -39,12 +39,12 @@ export class OrderItem {
   //---------------
 
   @Column()
-  product_item_id: number;
+  productItemId: number;
 
   @ManyToOne(() => ProductItem, {
     eager: true,
   })
-  @JoinColumn({ name: 'product_item_id' })
+  @JoinColumn({ name: 'productItemId' })
   productItem: ProductItem;
 
   @OneToMany(() => ReturnItem, (returnItem) => returnItem.orderItem)
