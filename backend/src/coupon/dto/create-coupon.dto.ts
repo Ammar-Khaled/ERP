@@ -7,31 +7,31 @@ export class CreateCouponDto {
 
   @IsString()
   @IsNotEmpty()
-  start_date: string;
+  startDate: string;
 
   @IsString()
   @IsNotEmpty()
-  end_date: string;
+  endDate: string;
 
   @IsNumber()
   @IsNotEmpty()
-  discount_percentage: number;
+  discountPercentage: number;
 
   @IsNumber()
   @IsNotEmpty()
-  max_allowed: number;
+  maxAllowed: number;
 
   @IsNumber()
   @IsNotEmpty()
-  current_usage: number;
+  currentUsage: number;
 
   @IsNumber()
   @IsNotEmpty()
-  number_of_usage_time_per_user: number;
+  numberOfUsageTimePerUser: number;
 
   @IsNumber()
   @IsNotEmpty()
-  min_invoice_total: number;
+  minInvoiceTotal: number;
 
   @IsBoolean()
   isActive;

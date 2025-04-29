@@ -184,7 +184,7 @@ export class ProductItemService {
     );
 
     if (updateProductItemDto.number_of_damaged) {
-      const oldNumberOfDamged = productItem.number_of_damaged;
+      const oldNumberOfDamged = productItem.numberOfDamaged;
       const product = await this.productRepository.findOne({
         where: { id: updateProductItemDto.product_id },
       });
@@ -193,7 +193,7 @@ export class ProductItemService {
       await this.productRepository.save(product);
     }
     if (updateProductItemDto.number_of_valid) {
-      const oldNumberOfValid = productItem.number_of_valid;
+      const oldNumberOfValid = productItem.numberOfValid;
       const product = await this.productRepository.findOne({
         where: { id: updateProductItemDto.product_id },
       });
@@ -319,8 +319,8 @@ export class ProductItemService {
     );
 
     // Update the number_of_damaged
-    productItem.number_of_damaged =
-      (productItem.number_of_damaged || 0) + Number(numberOfDamaged);
+    productItem.numberOfDamaged =
+      (productItem.numberOfDamaged || 0) + Number(numberOfDamaged);
 
     try {
       // Save the updated product item
@@ -338,7 +338,7 @@ export class ProductItemService {
   async getDamaged() {
     // Query all product items where number_of_damaged is greater than 0
     const damagedItems = await this.productItemRepository.find({
-      where: { number_of_damaged: MoreThan(0) }, // Filter by number_of_damaged > 0
+      where: { numberOfDamaged: MoreThan(0) }, // Filter by number_of_damaged > 0
     });
     return damagedItems;
   }

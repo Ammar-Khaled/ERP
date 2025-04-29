@@ -9,7 +9,6 @@ import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
 import { Coupon } from './entities/coupon.entity';
 import { Repository } from 'typeorm';
-import * as jsend from 'jsend';
 
 @Injectable()
 export class CouponService {
@@ -23,47 +22,21 @@ export class CouponService {
     const coupon = this.couponRepo.create(createCouponDto);
 
     try {
-      const new_coupon = await this.couponRepo.save(coupon);
-      return {
-        statusCode: HttpStatus.OK,
-        message: 'created successfully',
-        status: 'success',
-        data: new_coupon
-      };
+      return await this.couponRepo.save(coupon);
     } catch (error) {
       throw new HttpException(
-        {
-          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'An unexpected error occurred while trying to creating the coupon !',
-          status: 'error',
-          data: error
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async findAll() {
-    const coupons = await this.couponRepo.find();
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Found ' + coupons.length + ' coupons',
-      status: 'success',
-      data: coupons
-    };
+    return await this.couponRepo.find();
   }
 
   async findOne(id: number) {
-    const coupon = await this.findCouponByCondition(
-      { id },
-      'Coupon not found !',
-    );
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Found',
-      status: 'success',
-      data: coupon
-    };
+    return await this.findCouponByCondition({ id }, 'Coupon not found !');
   }
 
   async update(id: number, updateCouponDto: UpdateCouponDto) {
@@ -72,22 +45,13 @@ export class CouponService {
       'Coupon not found !',
     );
     Object.assign(coupon, updateCouponDto);
-    try{
-      const updated_coupon = await this.couponRepo.save(coupon);
-      return {
-        statusCode: HttpStatus.OK,
-        message: 'updated successfully',
-        status: 'success',
-        data: updated_coupon
-      };
-    }
-    catch(error){
-      throw new HttpException({
-        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'An unexpected error occurred while trying to updating the coupon !',
-        status: 'error',
-        data: error
-      },HttpStatus.INTERNAL_SERVER_ERROR);
+    try {
+      return await this.couponRepo.save(coupon);
+    } catch (error) {
+      throw new HttpException(
+        error.message,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -97,12 +61,7 @@ export class CouponService {
       'Coupon not found !',
     );
     await this.couponRepo.softRemove(coupon);
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'deleted successfully',
-      status: 'success',
-      data: coupon
-    };
+    return coupon;
   }
 
   private async findCouponByCondition(condition: object, errorMessage: string) {
@@ -110,12 +69,7 @@ export class CouponService {
       where: condition,
     });
     if (!coupon) {
-      throw new NotFoundException({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: errorMessage,
-        status: 'fail',
-        data: coupon
-      });
+      throw new NotFoundException(errorMessage);
     }
     return coupon;
   }

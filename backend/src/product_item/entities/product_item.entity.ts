@@ -28,10 +28,10 @@ export class ProductItem {
   price: number; // Selling price of the product item
 
   @Column('int')
-  number_of_valid: number; // Total quantity of this product item in stock
+  numberOfValid: number; // Total quantity of this product item in stock
 
   @Column('int')
-  number_of_damaged: number = 0; // Number of damaged items in stock
+  numberOfDamaged: number = 0; // Number of damaged items in stock
 
   @Column()
   name: string; // Name of the product item (e.g., variant name)

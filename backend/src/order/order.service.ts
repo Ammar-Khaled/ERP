@@ -153,7 +153,7 @@ export class OrderService {
         productItemInv,
       );
 
-      productItem.number_of_valid -= orderItem.numberOfItems;
+      productItem.numberOfValid -= orderItem.numberOfItems;
       await this.productItemService.update(productItem.id, productItem);
 
       // calculate total price for one order item
@@ -253,7 +253,7 @@ export class OrderService {
               productItemInv.id,
               productItemInv,
             );
-            productItem.number_of_valid -= difference;
+            productItem.numberOfValid -= difference;
             await this.productItemService.update(productItem.id, productItem);
           } else if (item.numberOfItems <= order.items[i].numberOfItems) {
             // in case of some items are returned
@@ -270,7 +270,7 @@ export class OrderService {
               productItemInv.id,
               productItemInv,
             );
-            productItem.number_of_valid += difference;
+            productItem.numberOfValid += difference;
             await this.productItemService.update(productItem.id, productItem);
           }
           flag = true;
@@ -298,7 +298,7 @@ export class OrderService {
           productItemInv.id,
           productItemInv,
         );
-        productItem.number_of_valid -= orderItem.numberOfItems;
+        productItem.numberOfValid -= orderItem.numberOfItems;
         await this.productItemService.update(productItem.id, productItem);
 
         // calculate total price for one order item

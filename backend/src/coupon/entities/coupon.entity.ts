@@ -14,25 +14,25 @@ export class Coupon {
   name: string;
 
   @Column()
-  start_date: string;
+  startDate: string;
 
   @Column()
-  end_date: string;
+  endDate: string;
 
   @Column({ type: 'float' })
-  discount_percentage: number;
+  discountPercentage: number;
 
   @Column()
-  max_allowed: number;
+  maxAllowed: number;
 
   @Column()
-  current_usage: number;
+  currentUsage: number;
 
   @Column()
-  number_of_usage_time_per_user: number;
+  numberOfUsageTimePerUser: number;
 
   @Column()
-  min_invoice_total: number;
+  minInvoiceTotal: number;
 
   @Column()
   isActive: boolean;

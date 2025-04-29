@@ -97,7 +97,7 @@ export class ReturnService {
         id: orderItem.productItem.id,
       });
 
-      productItem.number_of_valid += itemDto.numberOfItems;
+      productItem.numberOfValid += itemDto.numberOfItems;
       productItemsBuffer.push(productItem);
     }
 
@@ -192,7 +192,7 @@ export class ReturnService {
           }
 
           const difference = itemDto.numberOfItems - existingItem.numberOfItems;
-          productItem.number_of_valid += difference;
+          productItem.numberOfValid += difference;
           productItemsBuffer.push(productItem);
 
           existingItem.numberOfItems = itemDto.numberOfItems;
@@ -209,7 +209,7 @@ export class ReturnService {
           }
 
           const productItem = orderItem.productItem;
-          productItem.number_of_valid += itemDto.numberOfItems;
+          productItem.numberOfValid += itemDto.numberOfItems;
           productItemsBuffer.push(productItem);
 
           returnItemsToAdd.push(itemDto);
