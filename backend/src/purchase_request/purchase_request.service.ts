@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreatePurchaseRequestDto } from './dto/create-purchase_request.dto';
 import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
@@ -38,7 +43,7 @@ export class PurchaseRequestService {
       id: createPurchaseRequestDto.userId,
     });
     if (!user)
-      throw new NotFoundException({ message: `This username is not found!` });
+      throw new NotFoundException({ message: `This user is not found!` });
     newPurchaseRequest.user = user;
 
     // Handle the branch
@@ -47,7 +52,7 @@ export class PurchaseRequestService {
     });
     if (!branch)
       throw new NotFoundException({
-        message: `This branch name is not found!`,
+        message: `This branch is not found!`,
       });
     newPurchaseRequest.branch = branch;
 
@@ -57,7 +62,7 @@ export class PurchaseRequestService {
     });
     if (!supplier)
       throw new NotFoundException({
-        message: `This supplier name is not found!`,
+        message: `This supplier is not found!`,
       });
     newPurchaseRequest.supplier = supplier;
 
@@ -67,7 +72,7 @@ export class PurchaseRequestService {
     });
     if (!status)
       throw new NotFoundException({
-        message: `This status name is not found!`,
+        message: `This status is not found!`,
       });
     newPurchaseRequest.status = status;
 
@@ -77,7 +82,7 @@ export class PurchaseRequestService {
     });
     if (!currency)
       throw new NotFoundException({
-        message: `This currency name is not found!`,
+        message: `This currency is not found!`,
       });
     newPurchaseRequest.currency = currency;
 
@@ -111,28 +116,29 @@ export class PurchaseRequestService {
   }
 
   async findAll() {
-    return await this.purchaseRequestRepository.find({});
+    return await this.purchaseRequestRepository.find();
   }
 
   async findOne(id: number) {
-    const purchaseRequest = await this.purchaseRequestRepository.findOneBy({
-      id,
+    const purchaseRequest = await this.purchaseRequestRepository.findOne({
+      where: { id },
+      relations: ['purchaseItems'],
     });
+
     if (!purchaseRequest)
-      throw new NotFoundException({
-        message: `No purchase request with ID of (${id})!`,
-      });
+      throw new NotFoundException(`No purchase request with ID of (${id})!`);
+
     return purchaseRequest;
   }
 
   async update(id: number, updatePurchaseRequestDto: UpdatePurchaseRequestDto) {
-    const purchaseRequest = await this.purchaseRequestRepository.findOneBy({
-      id,
+    const purchaseRequest = await this.purchaseRequestRepository.findOne({
+      where: { id },
+      relations: ['purchaseItems'],
     });
+
     if (!purchaseRequest) {
-      throw new NotFoundException({
-        message: `No purchase request with ID of (${id})!`,
-      });
+      throw new NotFoundException(`No purchase request with ID of (${id})!`);
     }
 
     // Update related entities if necessary
@@ -140,8 +146,7 @@ export class PurchaseRequestService {
       const user = await this.userRepository.findOneBy({
         id: updatePurchaseRequestDto.userId,
       });
-      if (!user)
-        throw new NotFoundException({ message: `This username is not found!` });
+      if (!user) throw new NotFoundException(`This username is not found!`);
       purchaseRequest.user = user;
     }
 
@@ -216,9 +221,17 @@ export class PurchaseRequestService {
       purchaseRequest.purchaseItems = purchaseItems;
     }
 
-    Object.assign(purchaseRequest, updatePurchaseRequestDto);
-    console.log(`Updated purchase request with ID: ${id} successfully!`);
-    return await this.purchaseRequestRepository.save(purchaseRequest);
+    try {
+      Object.assign(purchaseRequest, updatePurchaseRequestDto);
+      // console.log(purchaseRequest); // debug
+      await this.purchaseRequestRepository.save(purchaseRequest);
+
+      console.log(`Updated purchase request with ID: ${id} successfully!`);
+      return purchaseRequest;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(error.message, error.status || 500);
+    }
   }
 
   async remove(id: number) {

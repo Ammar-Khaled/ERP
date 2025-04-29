@@ -16,11 +16,14 @@ export class PurchaseItem {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  purchaseEntityId: number;
+
   @ManyToOne(() => PurchaseEntity, (entity) => entity.purchaseItems, {
-    eager: true,
+    eager: false,
     nullable: false,
   })
-  @JoinColumn({ name: 'purchase_entity_id' })
+  @JoinColumn({ name: 'purchaseEntityId' })
   purchaseEntity: PurchaseEntity;
 
   @Column({ type: 'int', nullable: false })

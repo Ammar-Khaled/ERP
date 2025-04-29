@@ -32,7 +32,7 @@ export class Branch {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  @Column()
+  @Column({ nullable: true })
   addressId: number;
 
   @OneToOne(() => Address, { cascade: true })

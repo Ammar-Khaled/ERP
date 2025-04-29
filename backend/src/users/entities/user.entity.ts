@@ -66,7 +66,7 @@ export class User {
   })
   roles: Role[];
 
-  @Column({ nullable: false })
+  @Column({ nullable: true })
   branchId: number;
 
   @ManyToOne(() => Branch, (branch) => branch.users, {
@@ -74,6 +74,8 @@ export class User {
   })
   @JoinColumn({ name: 'branchId' })
   branch: Branch;
+
+  purchaseRequestIds: number[];
 
   @OneToMany(() => PurchaseRequest, (purchaseRequests) => purchaseRequests.user)
   purchaseRequests: PurchaseRequest[];

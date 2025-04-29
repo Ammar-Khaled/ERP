@@ -25,16 +25,17 @@ export class UsersService {
   ) {}
 
   async findAll() {
-    const users = await this.userRepository.find();
+    const users = await this.userRepository.find({
+      relations: ['roles', 'purchaseRequests'],
+    });
     users.forEach((user) => delete user.password);
     users.forEach((user) => {
-      user.roleIds = [];
-      if (user.roles) {
-        user.roles.forEach((role) => {
-          user.roleIds.push(role.id);
-        });
-        delete user.roles;
-      }
+      user.roleIds = user.roles.map((role) => role.id);
+      delete user.roles;
+      user.purchaseRequestIds = user.purchaseRequests.map(
+        (purchaseRequest) => purchaseRequest.id,
+      );
+      delete user.purchaseRequests;
     });
     return users;
   }
@@ -42,19 +43,19 @@ export class UsersService {
   async findOne(id: number) {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['roles'],
+      relations: ['roles', 'purchaseRequests'],
     });
     if (!user) throw new NotFoundException('User not found');
 
     delete user.password;
 
-    user.roleIds = [];
-    if (user.roles) {
-      user.roles.forEach((role) => {
-        user.roleIds.push(role.id);
-      });
-      delete user.roles;
-    }
+    user.roleIds = user.roles.map((role) => role.id);
+    delete user.roles;
+
+    user.purchaseRequestIds = user.purchaseRequests.map(
+      (purchaseRequest) => purchaseRequest.id,
+    );
+    delete user.purchaseRequests;
 
     return user;
   }
@@ -100,13 +101,13 @@ export class UsersService {
       Number(process.env.BCRYPT_SALT_ROUNDS),
     );
 
-    const new_user = this.userRepository.create({
+    const newUser = this.userRepository.create({
       ...createUserDto,
       roles,
       branch,
     });
-    await this.userRepository.save(new_user);
-    return await this.findOne(new_user.id);
+    await this.userRepository.save(newUser);
+    return await this.findOne(newUser.id);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {

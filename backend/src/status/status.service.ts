@@ -20,10 +20,18 @@ export class StatusService {
   }
 
   async findOne(id: number) {
-    const status = await this.statusRepository.findOneBy({ id });
+    const status = await this.statusRepository.findOne({
+      where: { id },
+      relations: ['purchaseRequests'],
+    });
     if (!status)
       throw new NotFoundException({ message: `No status with ID of (${id})!` });
-    return status;
+
+    const purchaseRequestIds = status.purchaseRequests.map(
+      (purchaseRequest) => purchaseRequest.id,
+    );
+    delete status.purchaseRequests;
+    return { ...status, purchaseRequestIds };
   }
 
   async findOneByName(name: string) {

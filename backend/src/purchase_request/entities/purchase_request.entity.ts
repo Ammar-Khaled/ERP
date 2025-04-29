@@ -36,34 +36,39 @@ export class PurchaseRequest {
     );
   }
 
-  @ManyToOne(() => User, (user) => user.purchaseRequests, {
-    nullable: false,
-  })
-  @JoinColumn({ name: 'user_id' })
+  @Column({ type: 'int', nullable: false })
+  userId: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'userId' })
   user: User;
 
-  @ManyToOne(() => Branch, (branch) => branch.purchaseRequests, {
-    nullable: false,
-  })
-  @JoinColumn({ name: 'branch_id' })
+  @Column({ type: 'int', nullable: false })
+  branchId: number;
+
+  @ManyToOne(() => Branch)
+  @JoinColumn({ name: 'branchId' })
   branch: Branch;
 
-  @ManyToOne(() => Supplier, (supplier) => supplier.purchaseRequests, {
-    nullable: false,
-  })
-  @JoinColumn({ name: 'supplier_id' })
+  @Column({ type: 'int', nullable: false })
+  supplierId: number;
+
+  @ManyToOne(() => Supplier)
+  @JoinColumn({ name: 'supplierId' })
   supplier: Supplier;
 
-  @ManyToOne(() => Status, (status) => status.purchaseRequests, {
-    nullable: false,
-  })
-  @JoinColumn({ name: 'status_id' })
+  @Column({ type: 'int', nullable: false })
+  statusId: number;
+
+  @ManyToOne(() => Status)
+  @JoinColumn({ name: 'statusId' })
   status: Status;
 
-  @ManyToOne(() => Currency, (currency) => currency.purchaseRequests, {
-    nullable: false,
-  })
-  @JoinColumn({ name: 'currency_id' })
+  @Column({ type: 'int', nullable: false })
+  currencyId: number;
+
+  @ManyToOne(() => Currency)
+  @JoinColumn({ name: 'currencyId' })
   currency: Currency;
 
   @OneToMany(() => PurchaseItem, (item) => item.purchaseRequest, {
