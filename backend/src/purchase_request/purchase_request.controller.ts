@@ -6,15 +6,19 @@ import {
   Param,
   Patch,
   Post,
+  Res,
 } from '@nestjs/common';
 import { PurchaseRequestService } from './purchase_request.service';
 import { CreatePurchaseRequestDto } from './dto/create-purchase_request.dto';
 import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
+import { PdfService } from 'src/common/pdf/pdf.service';
+import { Response } from 'express';
 
 @Controller('purchase-requests')
 export class PurchaseRequestController {
   constructor(
     private readonly purchaseRequestService: PurchaseRequestService,
+    private readonly pdfService: PdfService,
   ) {}
 
   @Post('create')
@@ -43,5 +47,22 @@ export class PurchaseRequestController {
   @Delete('delete/:id')
   remove(@Param('id') id: string) {
     return this.purchaseRequestService.remove(+id);
+  }
+
+  @Get(':id/pdf')
+  async generatePdf(
+    @Param('id') id: string,
+    @Res() res: Response,
+  ) {
+    // Fetch the purchase request
+    const purchaseRequest = await this.purchaseRequestService.findOne(+id, true);
+
+    // Generate the pdf
+    const pdfBuffer = await this.pdfService.generatePdf('purchase_request', purchaseRequest);
+
+    // Send the response
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=purchase-request-${id}.pdf`);
+    res.send(pdfBuffer);
   }
 }
