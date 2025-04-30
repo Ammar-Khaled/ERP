@@ -27,10 +27,10 @@ export class CreateProductItemDto {
 
   @IsOptional()
   @IsNumber()
-  number_of_valid: number; // Total items in stock for this product item
+  numberOfValid: number; // Total items in stock for this product item
 
   @IsOptional()
-  number_of_damaged: number;
+  numberOfDamaged: number;
 
   @IsNotEmpty()
   @IsString()
@@ -38,12 +38,12 @@ export class CreateProductItemDto {
 
   @IsNotEmpty()
   @IsNumber()
-  inventory_id: number;
+  inventoryId: number;
 
   @IsOptional()
   @IsNotEmpty()
   @IsNumber()
-  product_id: number;
+  productId: number;
 
   // Add this to specify multiple variation options for the product item
   @IsArray()

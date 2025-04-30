@@ -10,6 +10,7 @@ import { QueryFailedError } from 'typeorm';
 @Catch(QueryFailedError)
 export class QueryFailedErrorFilter implements ExceptionFilter {
   catch(exception: QueryFailedError, host: ArgumentsHost) {
+    console.error(exception);
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const errno = (exception as any).errno;
@@ -62,14 +63,6 @@ export class QueryFailedErrorFilter implements ExceptionFilter {
           data: null,
         });
 
-      case 1146: // ER_NO_SUCH_TABLE
-        return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          isSuccess: false,
-          message: 'Table does not exist: ' + sqlMessage,
-          data: null,
-        });
-
       case 1406: // ER_DATA_TOO_LONG
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
@@ -78,11 +71,11 @@ export class QueryFailedErrorFilter implements ExceptionFilter {
           data: null,
         });
 
-      case 1064: // ER_PARSE_ERROR
+      case 1364: // ER_NO_DEFAULT_FOR_FIELD
         return response.status(HttpStatus.BAD_REQUEST).json({
           statusCode: HttpStatus.BAD_REQUEST,
           isSuccess: false,
-          message: 'SQL syntax error: ' + sqlMessage,
+          message: 'Field does not have a default value: ' + sqlMessage,
           data: null,
         });
 

@@ -10,7 +10,6 @@ import { Repository } from 'typeorm';
 import { Currency } from './entities/currency.entity';
 import { CreateCurrencyDto } from './dto/create-currency.dto';
 import { UpdateCurrencyDto } from './dto/update-currency.dto';
-import * as jsend from 'jsend';
 
 @Injectable()
 export class CurrencyService {
@@ -26,31 +25,24 @@ export class CurrencyService {
       where: { name: createCurrencyDto.name },
     });
     if (existingCurrency) {
-      throw new ConflictException(
-        jsend.fail({ message: 'The currency already exists.' }),
-      );
+      throw new ConflictException('The currency already exists.');
     }
 
     // Create and save the new currency
     const currency = this.currencyRepository.create(createCurrencyDto);
     try {
-      const newCurrency = await this.currencyRepository.save(currency);
-      return jsend.success(newCurrency);
+      return await this.currencyRepository.save(currency);
     } catch (err) {
       throw new HttpException(
-        jsend.error({
-          message: 'An unexpected error occurred while creating the currency.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.message,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   // Get all currencies
   async findAll() {
-    const currencies = await this.currencyRepository.find();
-    return jsend.success(currencies);
+    return await this.currencyRepository.find();
   }
 
   // Get one currency by its ID
@@ -60,12 +52,14 @@ export class CurrencyService {
     });
 
     if (!currency) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Currency not found.' }),
-      );
+      throw new NotFoundException('Currency not found.');
     }
 
-    return jsend.success(currency);
+    const purchaseRequestIds = currency.purchaseRequests.map(
+      (purchaseRequest) => purchaseRequest.id,
+    );
+    delete currency.purchaseRequests;
+    return { ...currency, purchaseRequestIds };
   }
 
   // Update a currency by its ID
@@ -75,24 +69,18 @@ export class CurrencyService {
     });
 
     if (!currency) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Currency not found.' }),
-      );
+      throw new NotFoundException('Currency not found.');
     }
 
     // Apply updates to the currency
     Object.assign(currency, updateCurrencyDto);
 
     try {
-      await this.currencyRepository.save(currency);
-      return jsend.success(currency);
+      return await this.currencyRepository.save(currency);
     } catch (err) {
       throw new HttpException(
-        jsend.error({
-          message: 'An unexpected error occurred while updating the currency.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.message,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -104,12 +92,10 @@ export class CurrencyService {
     });
 
     if (!currency) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Currency not found.' }),
-      );
+      throw new NotFoundException('Currency not found.');
     }
 
     await this.currencyRepository.remove(currency);
-    return jsend.success(currency);
+    return currency;
   }
 }

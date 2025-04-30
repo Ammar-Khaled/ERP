@@ -26,19 +26,25 @@ export class Inventory {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  total_product_items: number = 0;
+  numberOfValid: number = 0;
 
-  total_damaged_items: number = 0;
+  numberOfDamaged: number = 0;
+
+  @Column()
+  addressId: number;
 
   @OneToOne(() => Address, {
-    eager: true,
+    eager: false,
     cascade: true,
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'addressId' })
   address: Address;
 
+  @Column()
+  branchId: number;
+
   @ManyToOne(() => Branch, (branch) => branch.inventories)
-  @JoinColumn()
+  @JoinColumn({ name: 'branchId' })
   branch: Branch;
 
   @OneToMany(

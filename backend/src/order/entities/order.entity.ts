@@ -27,14 +27,14 @@ export class Order {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   date: Date;
 
-  @Column({type: 'float', default: 0.0, nullable: false})
-  total_amount: number;
+  @Column({ type: 'float', default: 0.0, nullable: false })
+  totalAmount: number;
 
   @BeforeInsert()
   @BeforeUpdate()
   calculateTheTotalAmount() {
-    this.total_amount = this.items.reduce(
-      (total, item) => total + item.total_price,
+    this.totalAmount = this.items.reduce(
+      (total, item) => total + item.totalPrice,
       0,
     );
   }
@@ -45,66 +45,66 @@ export class Order {
   //----------------
 
   @Column()
-  branch_id: number; // Foreign key for branch
+  branchId: number; // Foreign key for branch
 
   @ManyToOne(() => Branch)
-  @JoinColumn({ name: 'branch_id' })
+  @JoinColumn({ name: 'branchId' })
   branch: Branch;
 
   //----------------
 
   @Column()
-  inventory_id: number; // Foreign key for inventory
+  inventoryId: number; // Foreign key for inventory
 
   @ManyToOne(() => Inventory)
-  @JoinColumn({ name: 'inventory_id' })
+  @JoinColumn({ name: 'inventoryId' })
   inventory: Inventory;
 
   //----------------
 
   @Column()
-  user_id: number; // Foreign key for user
+  userId: number; // Foreign key for user
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   //----------------
 
   @Column()
-  client_id: number; // Foreign key for client
+  clientId: number; // Foreign key for client
 
   @ManyToOne(() => Client)
-  @JoinColumn({ name: 'client_id' })
+  @JoinColumn({ name: 'clientId' })
   client: Client;
 
   //----------------
 
   @Column()
-  status_id: number;
+  statusId: number;
 
   @ManyToOne(() => Status, (status) => status.orders, {
     nullable: false,
   })
-  @JoinColumn({ name: 'status_id' })
+  @JoinColumn({ name: 'statusId' })
   status: Status;
 
   //----------------
 
   @Column()
-  coupon_id: number; // Foreign key for coupon
+  couponId: number; // Foreign key for coupon
 
   @ManyToOne(() => Coupon)
-  @JoinColumn({ name: 'coupon_id' })
+  @JoinColumn({ name: 'couponId' })
   coupon: Coupon;
 
   //----------------
 
   @Column()
-  currency_id: number; // Foreign key for currency
+  currencyId: number; // Foreign key for currency
 
   @ManyToOne(() => Currency)
-  @JoinColumn({ name: 'currency_id' })
+  @JoinColumn({ name: 'currencyId' })
   currency: Currency;
 
   //-----------------

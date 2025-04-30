@@ -10,7 +10,6 @@ import { Repository } from 'typeorm';
 import { Variation } from './entities/variation.entity';
 import { CreateVariationDto } from './dto/create-variation.dto';
 import { UpdateVariationDto } from './dto/update-variation.dto';
-import * as jsend from 'jsend';
 
 @Injectable()
 export class VariationService {
@@ -26,39 +25,27 @@ export class VariationService {
     });
 
     if (existingVariation) {
-      throw new ConflictException(
-        jsend.fail({ message: 'The variation already exists.' }),
-      );
+      throw new ConflictException('The variation already exists.');
     }
 
     const variation = this.variationRepository.create(createVariationDto);
 
     try {
-      const newVariation = await this.variationRepository.save(variation);
-      return jsend.success(newVariation);
+      return await this.variationRepository.save(variation);
     } catch (err) {
       throw new HttpException(
-        jsend.error({
-          message:
-            'An unexpected error occurred while creating the variation. Please try again later.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.message,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async findAll() {
-    const variations = await this.variationRepository.find();
-    return jsend.success(variations);
+    return await this.variationRepository.find();
   }
 
   async findOne(id: number) {
-    const variation = await this.findVariationByCondition(
-      { id },
-      'Variation not found',
-    );
-    return jsend.success(variation);
+    return await this.findVariationByCondition({ id }, 'Variation not found');
   }
 
   async update(id: number, updateVariationDto: UpdateVariationDto) {
@@ -69,8 +56,7 @@ export class VariationService {
 
     Object.assign(variation, updateVariationDto);
     await this.variationRepository.save(variation);
-
-    return jsend.success(variation);
+    return variation;
   }
 
   async remove(id: number) {
@@ -79,7 +65,7 @@ export class VariationService {
       'Variation not found',
     );
     await this.variationRepository.delete({ id });
-    return jsend.success(variation);
+    return variation;
   }
 
   private async findVariationByCondition(
@@ -90,7 +76,7 @@ export class VariationService {
       where: condition,
     });
     if (!variation) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException(errorMessage);
     }
     return variation;
   }

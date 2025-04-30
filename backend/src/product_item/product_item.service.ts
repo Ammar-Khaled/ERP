@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   HttpStatus,
@@ -11,7 +12,6 @@ import { ProductItem } from './entities/product_item.entity';
 import { Product } from '../products/entities/product.entity';
 import { CreateProductItemDto } from './dto/create-product_item.dto';
 import { UpdateProductItemDto } from './dto/update-product_item.dto';
-import * as jsend from 'jsend';
 import { UpdateDamagedDto } from './dto/update-damaged.dto';
 import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Import the VariationOption entity
 import { Variation } from 'src/variation/entities/variation.entity'; // Import the Variation entity
@@ -43,25 +43,22 @@ export class ProductItemService {
   ) {}
 
   async create(createProductItemDto: CreateProductItemDto) {
-    // Create base product item entity
-    const productItem = this.productItemRepository.create({
-      ...createProductItemDto,
+    const product = await this.productRepository.findOne({
+      where: { id: createProductItemDto.productId },
     });
 
-    const product = await this.productRepository.findOne({
-      where: { id: createProductItemDto.product_id },
-    });
     if (!product) {
-      throw new NotFoundException(
-        jsend.fail({ message: 'Product not found.' }),
-      );
+      throw new NotFoundException('Product not found.');
     }
 
-    // Process variations in a transaction
+    // Create base product item entity
+    const productItem = this.productItemRepository.create(createProductItemDto);
+
+    // Process everything in a transaction
     return this.productItemRepository.manager.transaction(
       async (transactionalEntityManager) => {
         try {
-          // Process variation options if provided
+          // Handle variation options
           if (createProductItemDto.variationOptions?.length) {
             const variationNames = [
               ...new Set(
@@ -71,7 +68,6 @@ export class ProductItemService {
               ),
             ];
 
-            // Get or create variations in a single query
             const existingVariations = await transactionalEntityManager
               .getRepository(Variation)
               .createQueryBuilder('variation')
@@ -81,6 +77,7 @@ export class ProductItemService {
             const newVariationNames = variationNames.filter(
               (name) => !existingVariations.some((v) => v.name === name),
             );
+
             const newVariations = newVariationNames.map((name) =>
               transactionalEntityManager
                 .getRepository(Variation)
@@ -101,15 +98,12 @@ export class ProductItemService {
               return acc;
             }, new Map<string, Variation>());
 
-            // Create variation options
             const variationOptions = createProductItemDto.variationOptions.map(
               (opt) => {
                 const variation = allVariations.get(opt.variation.name);
                 if (!variation) {
                   throw new NotFoundException(
-                    jsend.fail({
-                      message: `Variation ${opt.variation.name} not found`,
-                    }),
+                    `Variation ${opt.variation.name} not found`,
                   );
                 }
                 return transactionalEntityManager
@@ -130,50 +124,48 @@ export class ProductItemService {
           const newProductItem =
             await transactionalEntityManager.save(productItem);
 
-          // Create inventory record if needed
-          if (createProductItemDto.inventory_id) {
+          // Add inventory record if needed
+          if (createProductItemDto.inventoryId) {
             await transactionalEntityManager
               .getRepository(ProductItemToInventory)
               .insert({
-                number_of_items: createProductItemDto.number_of_valid,
-                number_of_damaged: createProductItemDto.number_of_damaged || 0,
-                product_item_id: newProductItem.id,
-                inventory_id: createProductItemDto.inventory_id,
+                numberOfValid: createProductItemDto.numberOfValid,
+                numberOfDamaged: createProductItemDto.numberOfDamaged || 0,
+                productItemId: newProductItem.id,
+                inventoryId: createProductItemDto.inventoryId,
               });
           }
 
-          return jsend.success(newProductItem);
+          // Update product quantity inside transaction
+          const totalNewQuantity =
+            (createProductItemDto.numberOfValid || 0) +
+            (createProductItemDto.numberOfDamaged || 0);
+
+          product.quantity += totalNewQuantity;
+          await transactionalEntityManager.save(product);
+
+          return newProductItem;
         } catch (error) {
-          // Handle unique constraint violation (barcode check)
           if (error.code === '23505' || error.code === 'ER_DUP_ENTRY') {
             throw new ConflictException(
-              jsend.fail({
-                message: `Product item with barcode '${createProductItemDto.barcode}' already exists`,
-              }),
+              `Product item with barcode '${createProductItemDto.barcode}' already exists`,
             );
           }
 
           throw new HttpException(
-            jsend.error({
-              message:
-                'An unexpected error occurred while creating the product item.',
-              data: error,
-            }),
-            HttpStatus.INTERNAL_SERVER_ERROR,
+            error.message,
+            error.status || HttpStatus.INTERNAL_SERVER_ERROR,
           );
         }
       },
     );
   }
+
   async findAll() {
     const productItems = await this.productItemRepository.find({
-      relations: [
-        'productItemToInventories',
-        'variationOptions',
-        'variationOptions.variation',
-      ], // Include the variation relation
+      relations: ['variationOptions', 'variationOptions.variation'], // Include the variation relation
     });
-    return jsend.success(productItems);
+    return productItems;
   }
 
   async findOne(id: number) {
@@ -181,7 +173,7 @@ export class ProductItemService {
       { id },
       'Product item not found',
     );
-    return jsend.success(productItem);
+    return productItem;
   }
 
   async update(id: number, updateProductItemDto: UpdateProductItemDto) {
@@ -191,18 +183,32 @@ export class ProductItemService {
       'Product item not found',
     );
 
-    console.log(updateProductItemDto);
-
-    if (updateProductItemDto.product_id) {
+    if (updateProductItemDto.numberOfDamaged) {
+      const oldNumberOfDamged = productItem.numberOfDamaged;
       const product = await this.productRepository.findOne({
-        where: { id: updateProductItemDto.product_id },
+        where: { id: updateProductItemDto.productId },
+      });
+      product.quantity +=
+        updateProductItemDto.numberOfDamaged - oldNumberOfDamged;
+      await this.productRepository.save(product);
+    }
+    if (updateProductItemDto.numberOfValid) {
+      const oldNumberOfValid = productItem.numberOfValid;
+      const product = await this.productRepository.findOne({
+        where: { id: updateProductItemDto.productId },
+      });
+      product.quantity += updateProductItemDto.numberOfValid - oldNumberOfValid;
+      await this.productRepository.save(product);
+    }
+
+    if (updateProductItemDto.productId) {
+      const product = await this.productRepository.findOne({
+        where: { id: updateProductItemDto.productId },
       });
       if (!product) {
-        throw new NotFoundException(
-          jsend.fail({ message: 'Product not found.' }),
-        );
+        throw new NotFoundException('Product not found.');
       }
-      productItem.product = product; // Associate the Branch entity
+      productItem.product = product; // possible?
     }
 
     // Handle variation options - Keep existing ones & add new ones
@@ -252,23 +258,20 @@ export class ProductItemService {
     }
 
     // Handle other fields update
-    const { variationOptions, ...productItemUpdates } = updateProductItemDto;
+    delete updateProductItemDto.variationOptions;
 
     // Ensure the provided fields are updated correctly
-    Object.assign(productItem, productItemUpdates);
+    Object.assign(productItem, updateProductItemDto);
 
     // Save the updated product item
     try {
       const updatedProductItem =
         await this.productItemRepository.save(productItem);
-      return jsend.success(updatedProductItem);
+      return updatedProductItem;
     } catch (err) {
       throw new HttpException(
-        jsend.error({
-          message: 'An error occurred while updating the product item.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.message,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -279,7 +282,7 @@ export class ProductItemService {
       'Product item not found',
     );
     await this.productItemRepository.delete({ id });
-    return jsend.success(productItem);
+    return productItem;
   }
 
   private async findProductItemByCondition(
@@ -288,54 +291,45 @@ export class ProductItemService {
   ) {
     const productItem = await this.productItemRepository.findOne({
       where: condition,
-      relations: ['variationOptions', 'variationOptions.variation'], // ✅ Removed 'product'
+      relations: ['variationOptions', 'variationOptions.variation'], //
     });
     if (!productItem) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException(errorMessage);
     }
     return productItem;
   }
 
   async updateDamaged(updateDamagedDto: UpdateDamagedDto) {
-    const { product_item_id, numberOfDamaged } = updateDamagedDto;
+    const { productItemId, numberOfDamaged } = updateDamagedDto;
 
     // Validate inputs
-    if (!product_item_id || isNaN(product_item_id)) {
-      throw new HttpException(
-        jsend.fail({ message: 'Invalid product_item_id.' }),
-        HttpStatus.BAD_REQUEST,
-      );
+    if (!productItemId || isNaN(productItemId)) {
+      throw new BadRequestException('Invalid productItemId.');
     }
 
     if (!numberOfDamaged || isNaN(numberOfDamaged)) {
-      throw new HttpException(
-        jsend.fail({ message: 'Invalid numberOfDamaged.' }),
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('Invalid numberOfDamaged.');
     }
 
     // Find the product item by ID
     const productItem = await this.findProductItemByCondition(
-      { id: product_item_id },
+      { id: productItemId },
       'Product item not found.',
     );
 
     // Update the number_of_damaged
-    productItem.number_of_damaged =
-      (productItem.number_of_damaged || 0) + Number(numberOfDamaged);
+    productItem.numberOfDamaged =
+      (productItem.numberOfDamaged || 0) + Number(numberOfDamaged);
 
     try {
       // Save the updated product item
       const updatedProductItem =
         await this.productItemRepository.save(productItem);
-      return jsend.success(updatedProductItem);
+      return updatedProductItem;
     } catch (err) {
       throw new HttpException(
-        jsend.error({
-          message: 'An error occurred while updating the damaged count.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.message,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -343,8 +337,8 @@ export class ProductItemService {
   async getDamaged() {
     // Query all product items where number_of_damaged is greater than 0
     const damagedItems = await this.productItemRepository.find({
-      where: { number_of_damaged: MoreThan(0) }, // Filter by number_of_damaged > 0
+      where: { numberOfDamaged: MoreThan(0) }, // Filter by number_of_damaged > 0
     });
-    return jsend.success(damagedItems);
+    return damagedItems;
   }
 }

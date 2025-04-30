@@ -14,14 +14,14 @@ export class ProductItemToInventory {
   id: number; // Primary key
 
   @Column('int')
-  number_of_items: number; // Total number of items
+  numberOfValid: number;
 
   @Column('int')
-  number_of_damaged: number = 0; // Total number of damaged items
+  numberOfDamaged: number = 0;
 
   // Foreign key for ProductItem
   @Column()
-  product_item_id: number;
+  productItemId: number;
 
   @ManyToOne(
     () => ProductItem,
@@ -30,12 +30,12 @@ export class ProductItemToInventory {
       onDelete: 'CASCADE',
     },
   )
-  @JoinColumn({ name: 'product_item_id' }) // Explicitly defining the foreign key column
+  @JoinColumn({ name: 'productItemId' }) // Explicitly defining the foreign key column
   productItem: ProductItem;
 
   // Foreign key for Inventory
   @Column()
-  inventory_id: number;
+  inventoryId: number;
 
   @ManyToOne(
     () => Inventory,
@@ -44,6 +44,6 @@ export class ProductItemToInventory {
       onDelete: 'CASCADE',
     },
   )
-  @JoinColumn({ name: 'inventory_id' }) // Explicitly defining the foreign key column
+  @JoinColumn({ name: 'inventoryId' }) // Explicitly defining the foreign key column
   inventory: Inventory;
 }

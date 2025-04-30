@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
 import { CreateClientDto } from './dto/create-client.dto';
@@ -17,10 +17,10 @@ export class ClientsService {
   }
 
   async update(id: number, updateClientDto: UpdateClientDto) {
-    // Retrieve the client with relations
-    const client = await this.findClientByCondition({ id });
+    // Retrieve the client
+    const client = await this.clientRepository.findOneBy({ id });
 
-    // Check and handle address updates
+    // Check and handle address updates by the cascading
     if (updateClientDto.address) {
       if (client.address?.id) {
         updateClientDto.address.id = client.address.id;
@@ -32,19 +32,15 @@ export class ClientsService {
   }
 
   async findAll() {
-    const clients = await this.clientRepository.find({
-      relations: ['address'],
-    });
-    return clients;
+    return await this.clientRepository.find();
   }
 
   async findOne(id: number) {
-    const client = await this.findClientByCondition({ id });
-    return client;
+    return await this.clientRepository.findOneBy({ id });
   }
 
   async remove(id: number) {
-    const client = await this.findClientByCondition({ id });
+    const client = await this.clientRepository.findOneBy({ id });
     await this.clientRepository.softRemove(client);
     return client;
   }
@@ -64,15 +60,4 @@ export class ClientsService {
   //   );
   //   return jsend.success(client);
   // }
-
-  private async findClientByCondition(condition: object) {
-    const client = await this.clientRepository.findOne({
-      where: condition,
-      relations: ['address'],
-    });
-    if (!client) {
-      throw new NotFoundException();
-    }
-    return client;
-  }
 }

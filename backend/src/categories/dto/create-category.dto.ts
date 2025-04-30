@@ -10,5 +10,5 @@ export class CreateCategoryDto {
   description?: string;
 
   @IsNotEmpty({ message: 'The branch ID must not be empty.' })
-  branch_id: number;
+  branchId: number;
 }

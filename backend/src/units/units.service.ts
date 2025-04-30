@@ -10,7 +10,6 @@ import { Repository } from 'typeorm';
 import { Unit } from './entities/unit.entity';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
-import * as jsend from 'jsend';
 
 @Injectable()
 export class UnitsService {
@@ -25,37 +24,28 @@ export class UnitsService {
       where: { name: createUnitDto.name },
     });
     if (existingUnit) {
-      throw new ConflictException(
-        jsend.fail({ message: 'The unit already exists.' }),
-      );
+      throw new ConflictException('The unit already exists.');
     }
 
     const unit = this.unitRepository.create(createUnitDto);
 
     try {
       // Save the new unit
-      const newUnit = await this.unitRepository.save(unit);
-      return jsend.success(newUnit);
+      return await this.unitRepository.save(unit);
     } catch (err) {
       throw new HttpException(
-        jsend.error({
-          message:
-            'An unexpected error occurred while creating the unit. Please try again later.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.message,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   async findAll() {
-    const units = await this.unitRepository.find();
-    return jsend.success(units);
+    return await this.unitRepository.find();
   }
 
   async findOne(id: number) {
-    const unit = await this.findUnitByCondition({ id }, 'Unit not found');
-    return jsend.success(unit);
+    return await this.findUnitByCondition({ id }, 'Unit not found');
   }
 
   async update(id: number, updateUnitDto: UpdateUnitDto) {
@@ -64,16 +54,11 @@ export class UnitsService {
     Object.assign(unit, updateUnitDto);
 
     try {
-      const updatedUnit = await this.unitRepository.save(unit);
-      return jsend.success(updatedUnit);
+      return await this.unitRepository.save(unit);
     } catch (err) {
       throw new HttpException(
-        jsend.error({
-          message:
-            'An unexpected error occurred while updating the unit. Please try again later.',
-          data: err,
-        }),
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.message,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -81,13 +66,13 @@ export class UnitsService {
   async remove(id: number) {
     const unit = await this.findUnitByCondition({ id }, 'Unit not found');
     await this.unitRepository.delete({ id });
-    return jsend.success(unit);
+    return unit;
   }
 
   private async findUnitByCondition(condition: object, errorMessage: string) {
     const unit = await this.unitRepository.findOne({ where: condition });
     if (!unit) {
-      throw new NotFoundException(jsend.fail({ message: errorMessage }));
+      throw new NotFoundException(errorMessage);
     }
     return unit;
   }

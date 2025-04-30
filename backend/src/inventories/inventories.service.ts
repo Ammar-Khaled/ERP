@@ -9,7 +9,6 @@ import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Repository } from 'typeorm';
 import { Inventory } from './entities/inventory.entity';
 import { Branch } from '../branches/entities/branch.entity';
-import { Address } from '../common/entities/address.entity';
 import { ProductItemToInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
 import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
 import { ProductItem } from '../product_item/entities/product_item.entity';
@@ -21,8 +20,6 @@ export class InventoriesService {
     private inventoryRepository: Repository<Inventory>,
     @Inject('BRANCH_REPOSITORY')
     private branchRepository: Repository<Branch>,
-    @Inject('ADDRESS_REPOSITORY')
-    private addressRepository: Repository<Address>,
     @Inject('PRODUCT_ITEM_REPOSITORY')
     private productItemRepository: Repository<ProductItem>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
@@ -30,42 +27,21 @@ export class InventoriesService {
   ) {}
 
   async create(createInventoryDto: CreateInventoryDto) {
-    if (
-      await this.inventoryRepository.findOneBy({
-        name: createInventoryDto.name,
-      })
-    ) {
-      throw new ConflictException('Inventory name already exists');
-    }
-
-    // get the branch
-    const branch = await this.branchRepository.findOneBy({
-      id: createInventoryDto.branchId,
-    });
-    if (!branch) {
-      throw new NotFoundException(
-        'Branch not found with id: ' + createInventoryDto.branchId,
-      );
-    }
-
-    // create the inventory
-    const inventory = this.inventoryRepository.create({
-      ...createInventoryDto,
-      branch,
-    });
+    const inventory = this.inventoryRepository.create(createInventoryDto);
     await this.inventoryRepository.save(inventory);
+    delete inventory.address;
     return inventory;
   }
 
   async findAll() {
     const inventories = await this.inventoryRepository.find({
-      relations: ['branch', 'productItemToInventories'],
+      relations: ['productItemToInventories'],
     });
     for (let i = 0; i < inventories.length; i++) {
       const piis = inventories[i].productItemToInventories;
       for (const pii of piis) {
-        inventories[i].total_product_items += pii.number_of_items;
-        inventories[i].total_damaged_items += pii.number_of_damaged;
+        inventories[i].numberOfValid += pii.numberOfValid;
+        inventories[i].numberOfDamaged += pii.numberOfDamaged;
       }
     }
     return inventories;
@@ -74,15 +50,15 @@ export class InventoriesService {
   async findOne(id: number) {
     const inventory = await this.inventoryRepository.findOne({
       where: { id },
-      relations: ['branch', 'productItemToInventories'],
+      relations: ['productItemToInventories'],
     });
     if (!inventory) {
       throw new NotFoundException('Inventory not found with id: ' + id);
     }
 
     for (const pii of inventory.productItemToInventories) {
-      inventory.total_product_items += pii.number_of_items;
-      inventory.total_damaged_items += pii.number_of_damaged;
+      inventory.numberOfValid += pii.numberOfValid;
+      inventory.numberOfDamaged += pii.numberOfDamaged;
     }
 
     return inventory;
@@ -104,8 +80,6 @@ export class InventoriesService {
           'Branch not found with id: ' + updateInventoryDto.branchId,
         );
       }
-      inventory.branch = branch;
-      delete updateInventoryDto.branchId;
     }
 
     if (updateInventoryDto.address) {
@@ -115,7 +89,8 @@ export class InventoriesService {
     }
 
     Object.assign(inventory, updateInventoryDto);
-    return await this.inventoryRepository.save(inventory);
+    await this.inventoryRepository.save(inventory);
+    return inventory;
   }
 
   async remove(id: number) {
@@ -150,6 +125,13 @@ export class InventoriesService {
       );
     }
 
+    // validate the source and target inventories
+    if (sourceInventory.id === targetInventory.id) {
+      throw new ConflictException(
+        'Source and target inventories cannot be the same',
+      );
+    }
+
     // validate the product item
     const productItem = await this.productItemRepository.findOneBy({
       id: transferProductItemsDto.productItemId,
@@ -164,8 +146,8 @@ export class InventoriesService {
     // get the source product item inventory
     const sourceProductItemInventory =
       await this.productItemInventoryRepository.findOneBy({
-        inventory_id: transferProductItemsDto.sourceInventoryId,
-        product_item_id: transferProductItemsDto.productItemId,
+        inventoryId: transferProductItemsDto.sourceInventoryId,
+        productItemId: transferProductItemsDto.productItemId,
       });
 
     if (!sourceProductItemInventory) {
@@ -178,35 +160,41 @@ export class InventoriesService {
     }
 
     if (
-      sourceProductItemInventory.number_of_items <
-      transferProductItemsDto.quantity
+      sourceProductItemInventory.numberOfValid <
+        transferProductItemsDto.numberOfValid ||
+      sourceProductItemInventory.numberOfDamaged <
+        transferProductItemsDto.numberOfDamaged
     ) {
       throw new ConflictException('Not enough items in source inventory');
     }
-    sourceProductItemInventory.number_of_items -=
-      transferProductItemsDto.quantity;
+    sourceProductItemInventory.numberOfValid -=
+      transferProductItemsDto.numberOfValid;
+    sourceProductItemInventory.numberOfDamaged -=
+      transferProductItemsDto.numberOfDamaged;
     await this.productItemInventoryRepository.save(sourceProductItemInventory);
 
     // get the target product item inventory
     const targetProductItemInventory =
       await this.productItemInventoryRepository.findOneBy({
-        inventory_id: transferProductItemsDto.targetInventoryId,
-        product_item_id: transferProductItemsDto.productItemId,
+        inventoryId: transferProductItemsDto.targetInventoryId,
+        productItemId: transferProductItemsDto.productItemId,
       });
 
     if (targetProductItemInventory) {
-      targetProductItemInventory.number_of_items +=
-        transferProductItemsDto.quantity;
+      targetProductItemInventory.numberOfValid +=
+        transferProductItemsDto.numberOfValid;
+      targetProductItemInventory.numberOfDamaged +=
+        transferProductItemsDto.numberOfDamaged;
       return await this.productItemInventoryRepository.save(
         targetProductItemInventory,
       );
     } else {
       const newProductItemInventory =
         this.productItemInventoryRepository.create({
-          inventory_id: transferProductItemsDto.targetInventoryId,
-          product_item_id: transferProductItemsDto.productItemId,
-          number_of_items: transferProductItemsDto.quantity,
-          number_of_damaged: 0,
+          inventoryId: transferProductItemsDto.targetInventoryId,
+          productItemId: transferProductItemsDto.productItemId,
+          numberOfValid: transferProductItemsDto.numberOfValid,
+          numberOfDamaged: transferProductItemsDto.numberOfDamaged,
         });
       return await this.productItemInventoryRepository.save(
         newProductItemInventory,

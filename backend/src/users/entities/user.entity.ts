@@ -44,13 +44,14 @@ export class User {
   @DeleteDateColumn()
   deletedAt: Date;
 
+  @Column()
   addressId: number;
 
   @OneToOne(() => Address, {
-    eager: true,
+    eager: false,
     cascade: true,
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'addressId' })
   address: Address;
 
   roleIds: number[];
@@ -60,16 +61,21 @@ export class User {
   })
   @JoinTable({
     name: 'users_roles',
-    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'roleId', referencedColumnName: 'id' },
   })
   roles: Role[];
+
+  @Column({ nullable: true })
+  branchId: number;
 
   @ManyToOne(() => Branch, (branch) => branch.users, {
     nullable: true,
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'branchId' })
   branch: Branch;
+
+  purchaseRequestIds: number[];
 
   @OneToMany(() => PurchaseRequest, (purchaseRequests) => purchaseRequests.user)
   purchaseRequests: PurchaseRequest[];

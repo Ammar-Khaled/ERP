@@ -16,21 +16,24 @@ export class PurchaseItem {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column()
+  purchaseEntityId: number;
+
   @ManyToOne(() => PurchaseEntity, (entity) => entity.purchaseItems, {
-    eager: true,
+    eager: false,
     nullable: false,
   })
-  @JoinColumn({ name: 'purchase_entity_id' })
+  @JoinColumn({ name: 'purchaseEntityId' })
   purchaseEntity: PurchaseEntity;
 
   @Column({ type: 'int', nullable: false })
-  number_of_items: number;
+  numberOfItems: number;
 
   @Column({ type: 'decimal', nullable: true, default: 0 })
   discount: number;
 
   @Column({ type: 'decimal', nullable: false })
-  total_price: number;
+  totalPrice: number;
 
   @ManyToOne(() => PurchaseRequest, (request) => request.purchaseItems)
   purchaseRequest: PurchaseRequest;
@@ -39,8 +42,8 @@ export class PurchaseItem {
   @BeforeInsert()
   @BeforeUpdate()
   calculateTotalPrice() {
-    this.total_price =
-      this.number_of_items * this.purchaseEntity.unit_price - this.discount;
+    this.totalPrice =
+      this.numberOfItems * this.purchaseEntity.unitPrice - this.discount;
   }
 
   @DeleteDateColumn() // Add DeleteDateColumn for soft delete

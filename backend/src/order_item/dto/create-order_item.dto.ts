@@ -1,12 +1,11 @@
 import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class CreateOrderItemDto {
+  @IsNotEmpty()
+  @IsNumber()
+  numberOfItems: number;
 
   @IsNotEmpty()
   @IsNumber()
-  number_of_items: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  product_item_id: number;
+  productItemId: number;
 }

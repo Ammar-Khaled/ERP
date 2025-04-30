@@ -25,23 +25,39 @@ export class UsersService {
   ) {}
 
   async findAll() {
-    const users = await this.userRepository.find();
+    const users = await this.userRepository.find({
+      relations: ['roles', 'purchaseRequests'],
+    });
     users.forEach((user) => delete user.password);
     users.forEach((user) => {
-      user.roleIds = [];
-      if (user.roles) {
-        user.roles.forEach((role) => {
-          user.roleIds.push(role.id);
-        });
-        delete user.roles;
-      }
-
-      if (user.address) {
-        user.addressId = user.address.id;
-        delete user.address;
-      }
+      user.roleIds = user.roles.map((role) => role.id);
+      delete user.roles;
+      user.purchaseRequestIds = user.purchaseRequests.map(
+        (purchaseRequest) => purchaseRequest.id,
+      );
+      delete user.purchaseRequests;
     });
     return users;
+  }
+
+  async findOne(id: number) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['roles', 'purchaseRequests'],
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    delete user.password;
+
+    user.roleIds = user.roles.map((role) => role.id);
+    delete user.roles;
+
+    user.purchaseRequestIds = user.purchaseRequests.map(
+      (purchaseRequest) => purchaseRequest.id,
+    );
+    delete user.purchaseRequests;
+
+    return user;
   }
 
   async findOneByCondition(condition: object, relations?: string[]) {
@@ -85,16 +101,13 @@ export class UsersService {
       Number(process.env.BCRYPT_SALT_ROUNDS),
     );
 
-    console.log(createUserDto);
-    const new_user = this.userRepository.create({
+    const newUser = this.userRepository.create({
       ...createUserDto,
       roles,
       branch,
     });
-
-    await this.userRepository.save(new_user);
-    delete new_user.password;
-    return new_user;
+    await this.userRepository.save(newUser);
+    return await this.findOne(newUser.id);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -120,7 +133,6 @@ export class UsersService {
         roles.push(role);
       }
       user.roles = roles;
-      delete updateUserDto.roleIds;
     }
 
     if (updateUserDto.branchId) {
@@ -133,7 +145,6 @@ export class UsersService {
         );
       }
       user.branch = branch;
-      delete updateUserDto.branchId;
     }
 
     if (updateUserDto.address) {
@@ -143,7 +154,8 @@ export class UsersService {
     }
 
     Object.assign(user, updateUserDto);
-    return await this.userRepository.save(user);
+    await this.userRepository.save(user);
+    return await this.findOne(user.id);
   }
 
   async remove(id: number) {
@@ -153,6 +165,6 @@ export class UsersService {
     }
 
     await this.userRepository.softRemove(user);
-    return user;
+    return await this.findOne(user.id);
   }
 }

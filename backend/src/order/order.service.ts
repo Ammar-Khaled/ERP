@@ -56,7 +56,7 @@ export class OrderService {
 
     // Verify the existence of the branch
     const branch = await this.branchRepo.findOne({
-      where: { id: createOrderDto.branch_id },
+      where: { id: createOrderDto.branchId },
     });
     if (!branch) {
       throw new NotFoundException('There is NO branch with that id !!');
@@ -65,7 +65,7 @@ export class OrderService {
 
     // Verify the existence of the user
     const user = await this.userRepo.findOne({
-      where: { id: createOrderDto.user_id },
+      where: { id: createOrderDto.userId },
     });
     if (!user) {
       throw new NotFoundException('There is NO user with that id !!');
@@ -74,7 +74,7 @@ export class OrderService {
 
     // Verify the existence of the client
     const client = await this.clientRepo.findOne({
-      where: { id: createOrderDto.client_id },
+      where: { id: createOrderDto.clientId },
     });
     if (!client) {
       throw new NotFoundException('There is NO client with that id !!');
@@ -83,7 +83,7 @@ export class OrderService {
 
     // Verify the existence of the status
     const status = await this.statusRepo.findOneBy({
-      id: createOrderDto.status_id,
+      id: createOrderDto.statusId,
     });
     if (!status)
       throw new NotFoundException('There is NO status with that id !!');
@@ -92,10 +92,10 @@ export class OrderService {
     // the order doesn't necessarily has coupons,
     // so that, coupon_id is optional.
     // if its value doesn't equal to zero, we will check the existence of the coupon.
-    if (createOrderDto.coupon_id > 0) {
+    if (createOrderDto.couponId > 0) {
       // Verify the existence of the coupon
       const coupon = await this.couponRepo.findOne({
-        where: { id: createOrderDto.coupon_id },
+        where: { id: createOrderDto.couponId },
       });
       if (!coupon) {
         throw new NotFoundException('There is NO coupon with that id !!');
@@ -105,7 +105,7 @@ export class OrderService {
 
     // Verify the existence of the currency
     const currency = await this.currencyRepo.findOne({
-      where: { id: createOrderDto.currency_id },
+      where: { id: createOrderDto.currencyId },
     });
     if (!currency) {
       throw new NotFoundException('There is NO currency with that id !!');
@@ -115,9 +115,9 @@ export class OrderService {
     const _orderItems = createOrderDto.items;
     const uniqueOrderItems = _orderItems.reduce((merged, item) => {
       const existingItem = merged.find(
-        (i) => i.product_item_id === item.product_item_id,
+        (i) => i.productItemId === item.productItemId,
       );
-      if (existingItem) existingItem.number_of_items += item.number_of_items;
+      if (existingItem) existingItem.numberOfItems += item.numberOfItems;
       else merged.push(item);
 
       return merged;
@@ -127,40 +127,40 @@ export class OrderService {
     for (const item of uniqueOrderItems) {
       const orderItem = await this.orderItemRepo.create(item);
       const productItem = await this.productItemRepo.findOneBy({
-        id: item.product_item_id,
+        id: item.productItemId,
       });
       orderItem.productItem = productItem;
 
       const productItemInv = await this.productItemInventoryRepo.findOneBy({
-        product_item_id: orderItem.product_item_id,
-        inventory_id: _newOrder.inventory_id,
+        productItemId: orderItem.productItemId,
+        inventoryId: _newOrder.inventoryId,
       });
 
       // make the price & name of same item equal in both of order_item and product_item
-      orderItem.unit_price = productItem.price;
+      orderItem.unitPrice = productItem.price;
       orderItem.name = productItem.name;
 
       // validating the amount of items in the order and stock
-      if (orderItem.numberOfItems > productItemInv.number_of_items) {
+      if (orderItem.numberOfItems > productItemInv.numberOfValid) {
         throw new ConflictException(
           `There are NO enough items of ${productItem.name} in this stock at the moment`,
         );
       }
 
-      productItemInv.number_of_items -= orderItem.numberOfItems;
+      productItemInv.numberOfValid -= orderItem.numberOfItems;
       await this.productItemInventoryService.update(
         productItemInv.id,
         productItemInv,
       );
 
-      productItem.number_of_valid -= orderItem.numberOfItems;
+      productItem.numberOfValid -= orderItem.numberOfItems;
       await this.productItemService.update(productItem.id, productItem);
 
       // calculate total price for one order item
-      orderItem.total_price = orderItem.unit_price * orderItem.numberOfItems;
+      orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
 
       // calculate total amount of the order
-      _newOrder.total_amount += orderItem.total_price;
+      _newOrder.totalAmount += orderItem.totalPrice;
 
       await this.orderItemRepo.save(orderItem);
       orderItems.push(orderItem);
@@ -186,74 +186,73 @@ export class OrderService {
   async update(id: number, updateOrderDto: UpdateOrderDto) {
     const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
 
-    if (updateOrderDto.coupon_id > 0) {
+    if (updateOrderDto.couponId > 0) {
       // Verify the existence of the coupon
       const coupon = await this.couponRepo.findOne({
-        where: { id: updateOrderDto.coupon_id },
+        where: { id: updateOrderDto.couponId },
       });
       if (!coupon) {
         throw new NotFoundException('There is NO coupon with that id !!');
       }
-      order.coupon_id = updateOrderDto.coupon_id;
+      order.couponId = updateOrderDto.couponId;
     }
 
-    if (updateOrderDto.currency_id > 0) {
+    if (updateOrderDto.currencyId > 0) {
       // Verify the existence of the currency
       const currency = await this.currencyRepo.findOne({
-        where: { id: updateOrderDto.currency_id },
+        where: { id: updateOrderDto.currencyId },
       });
       if (!currency) {
         throw new NotFoundException('There is NO currency with that id !!');
       }
-      order.currency_id = updateOrderDto.currency_id;
+      order.currencyId = updateOrderDto.currencyId;
     }
 
     const newOrderItems = [];
     for (let c = 0; c < updateOrderDto.items.length; ++c) {
       const item = new OrderItem();
-      item.numberOfItems = updateOrderDto.items[c].number_of_items;
-      item.product_item_id = updateOrderDto.items[c].product_item_id;
+      item.numberOfItems = updateOrderDto.items[c].numberOfItems;
+      item.productItemId = updateOrderDto.items[c].productItemId;
 
       const productItem = await this.productItemRepo.findOneBy({
-        id: item.product_item_id,
+        id: item.productItemId,
       });
 
       const productItemInv = await this.productItemInventoryRepo.findOneBy({
-        product_item_id: item.product_item_id,
-        inventory_id: order.inventory_id,
+        productItemId: item.productItemId,
+        inventoryId: order.inventoryId,
       });
 
       let flag: boolean = false;
-      item.unit_price = productItem.price;
+      item.unitPrice = productItem.price;
       item.name = productItem.name;
 
-      // This loop determines whether if the product_item_id of the orderItem coming
+      // This loop determines whether if the productItemId of the orderItem coming
       // in updateOrderDto exists or not in the items of order
       for (let i = 0; i < order.items.length; ++i) {
-        if (item.product_item_id === order.items[i].product_item_id) {
+        if (item.productItemId === order.items[i].productItemId) {
           // merge the new order item with the old one as they share same product item id
           if (item.numberOfItems > order.items[i].numberOfItems) {
             // in case of more items are needed
 
             const difference: number =
               item.numberOfItems - order.items[i].numberOfItems;
-            if (difference > productItemInv.number_of_items) {
+            if (difference > productItemInv.numberOfValid) {
               throw new ConflictException(
                 `There are NO enough items of ${productItem.name} in the stock`,
               );
             }
 
             order.items[i].numberOfItems += difference;
-            order.items[i].total_price +=
-              difference * order.items[i].unit_price;
+            order.items[i].totalPrice += difference * order.items[i].unitPrice;
 
-            order.total_amount += difference * order.items[i].unit_price;
-            productItemInv.number_of_items -= difference;
+            order.totalAmount += difference * order.items[i].unitPrice;
+            productItemInv.numberOfValid -= difference;
             await this.productItemInventoryService.update(
               productItemInv.id,
               productItemInv,
             );
-            productItem.number_of_valid -= difference;
+            productItem.numberOfValid -= difference;
             await this.productItemService.update(productItem.id, productItem);
           } else if (item.numberOfItems <= order.items[i].numberOfItems) {
             // in case of some items are returned
@@ -261,16 +260,15 @@ export class OrderService {
               order.items[i].numberOfItems - item.numberOfItems;
 
             order.items[i].numberOfItems -= difference;
-            order.items[i].total_price -=
-              difference * order.items[i].unit_price;
+            order.items[i].totalPrice -= difference * order.items[i].unitPrice;
 
-            order.total_amount -= difference * order.items[i].unit_price;
-            productItemInv.number_of_items += difference;
+            order.totalAmount -= difference * order.items[i].unitPrice;
+            productItemInv.numberOfValid += difference;
             await this.productItemInventoryService.update(
               productItemInv.id,
               productItemInv,
             );
-            productItem.number_of_valid += difference;
+            productItem.numberOfValid += difference;
             await this.productItemService.update(productItem.id, productItem);
           }
           flag = true;
@@ -283,29 +281,29 @@ export class OrderService {
         orderItem.productItem = productItem;
 
         // make the price & name of same item equal in both of order_item and product_item
-        orderItem.unit_price = productItem.price;
+        orderItem.unitPrice = productItem.price;
         orderItem.name = productItem.name;
 
         // validating the amount of items in the order and stock
-        if (orderItem.numberOfItems > productItemInv.number_of_items) {
+        if (orderItem.numberOfItems > productItemInv.numberOfValid) {
           throw new ConflictException(
             `There are NO enough items of ${productItem.name} in the stock`,
           );
         }
 
-        productItemInv.number_of_items -= orderItem.numberOfItems;
+        productItemInv.numberOfValid -= orderItem.numberOfItems;
         await this.productItemInventoryService.update(
           productItemInv.id,
           productItemInv,
         );
-        productItem.number_of_valid -= orderItem.numberOfItems;
+        productItem.numberOfValid -= orderItem.numberOfItems;
         await this.productItemService.update(productItem.id, productItem);
 
         // calculate total price for one order item
-        orderItem.total_price = orderItem.unit_price * orderItem.numberOfItems;
+        orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
 
         // calculate total amount of the order
-        order.total_amount += orderItem.total_price;
+        order.totalAmount += orderItem.totalPrice;
 
         await this.orderItemRepo.save(orderItem);
         newOrderItems.push(orderItem);

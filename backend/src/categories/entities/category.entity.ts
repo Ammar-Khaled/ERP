@@ -12,16 +12,16 @@ export class Category {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   name: string;
 
   @Column({ nullable: true })
   description: string;
 
   @Column()
-  branch_id: number; // Directly store the branch_id in Category
+  branchId: number; // Directly store the branchId in Category
 
   @ManyToOne(() => Branch)
-  @JoinColumn({ name: 'branch_id' }) // Link to Branch entity using branch_id
+  @JoinColumn({ name: 'branchId' }) // Link to Branch entity using branchId
   branch: Branch; // Establish the foreign key relationship with Branch
 }

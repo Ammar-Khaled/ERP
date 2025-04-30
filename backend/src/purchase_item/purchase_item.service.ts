@@ -31,11 +31,10 @@ export class PurchaseItemService {
     }
 
     newPurchaseItem.purchaseEntity = existedEntity;
-    newPurchaseItem.number_of_items = createPurchaseItemDto.number_of_items;
+    newPurchaseItem.numberOfItems = createPurchaseItemDto.numberOfItems;
     newPurchaseItem.discount = createPurchaseItemDto.discount || 0;
 
     // Create the item and save it:
-    console.log('Created purchase item successfully!');
     return await this.purchaseItemRepository.save(newPurchaseItem);
   }
 
@@ -55,16 +54,12 @@ export class PurchaseItemService {
   async update(id: number, updatePurchaseItemDto: UpdatePurchaseItemDto) {
     const purchaseItem = await this.findOne(id);
     Object.assign(purchaseItem, updatePurchaseItemDto);
-
-    console.log(`Updated purchase item "${id}" successfully!`);
     return await this.purchaseItemRepository.save(purchaseItem);
   }
 
   async remove(id: number) {
     const purchaseItem = await this.findOne(id);
     await this.purchaseItemRepository.softDelete({ id });
-
-    console.log(`Removed purchase item "${id}" successfully!`);
     return purchaseItem;
   }
 }

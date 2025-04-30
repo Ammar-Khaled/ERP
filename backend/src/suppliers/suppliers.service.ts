@@ -21,10 +21,18 @@ export class SuppliersService {
   }
 
   async findOne(id: number) {
-    const supplier = await this.supplierRepository.findOneBy({ id });
+    const supplier = await this.supplierRepository.findOne({
+      where: { id },
+      relations: ['purchaseRequests'],
+    });
+
     if (!supplier) throw new NotFoundException('This supplier is not found');
 
-    return supplier;
+    const purchaseRequestIds = supplier.purchaseRequests.map(
+      (purchaseRequest) => purchaseRequest.id,
+    );
+    delete supplier.purchaseRequests;
+    return { ...supplier, purchaseRequestIds };
   }
 
   async update(id: number, updateSupplierDto: UpdateSupplierDto) {
