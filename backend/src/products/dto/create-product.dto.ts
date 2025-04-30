@@ -29,7 +29,7 @@ export class CreateProductDto {
 
   @IsNotEmpty()
   @IsNumber()
-  branch_id: number; // Foreign key for branch
+  branchId: number; // Foreign key for branch
 
   @IsOptional() // Optional because not all products might have a brand
   @IsString()
@@ -37,7 +37,7 @@ export class CreateProductDto {
 
   @IsNotEmpty()
   @IsNumber()
-  category_id: number; // Foreign key for category
+  categoryId: number; // Foreign key for category
 
   @IsOptional() // Optional because it might default to true
   @IsBoolean()
@@ -45,11 +45,11 @@ export class CreateProductDto {
 
   @IsNotEmpty()
   @IsNumber()
-  unit_id: number; // Foreign key for unit
+  unitId: number; // Foreign key for unit
 
   @IsNotEmpty()
   @IsNumber()
-  currency_id: number; // Foreign key for currency
+  currencyId: number; // Foreign key for currency
 
   @IsOptional()
   @IsArray()

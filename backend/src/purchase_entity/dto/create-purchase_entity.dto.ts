@@ -11,5 +11,5 @@ export class CreatePurchaseEntityDto {
 
   @IsNotEmpty()
   @IsPositive()
-  unit_price: number;
+  unitPrice: number;
 }

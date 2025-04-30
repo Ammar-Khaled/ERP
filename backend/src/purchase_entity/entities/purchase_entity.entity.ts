@@ -19,7 +19,7 @@ export class PurchaseEntity {
   description: string;
 
   @Column({ type: 'decimal', nullable: false })
-  unit_price: number;
+  unitPrice: number;
 
   @OneToMany(() => PurchaseItem, (item) => item.purchaseEntity)
   purchaseItems: PurchaseItem[];

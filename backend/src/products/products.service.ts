@@ -41,28 +41,28 @@ export class ProductsService {
     }
 
     const branch = await this.branchRepository.findOne({
-      where: { id: createProductDto.branch_id },
+      where: { id: createProductDto.branchId },
     });
     if (!branch) {
       throw new NotFoundException('Branch not found.');
     }
 
     const category = await this.categoryRepository.findOne({
-      where: { id: createProductDto.category_id },
+      where: { id: createProductDto.categoryId },
     });
     if (!category) {
       throw new NotFoundException('Category not found.');
     }
 
     const unit = await this.unitRepository.findOne({
-      where: { id: createProductDto.unit_id },
+      where: { id: createProductDto.unitId },
     });
     if (!unit) {
       throw new NotFoundException('Unit not found.');
     }
 
     const currency = await this.currencyRepository.findOne({
-      where: { id: createProductDto.currency_id },
+      where: { id: createProductDto.currencyId },
     });
     if (!currency) {
       throw new NotFoundException('Currency not found.');
@@ -78,7 +78,7 @@ export class ProductsService {
       for (const itemDto of createProductDto.productItems) {
         const modifiedItemDto = {
           ...itemDto,
-          product_id: newProduct.id, // Set the correct product_id
+          product_id: newProduct.id, // Set the correct productId
         };
 
         // Create ProductItem via ProductItemService
@@ -124,34 +124,34 @@ export class ProductsService {
       'Product not found',
     );
 
-    // Validate and link branch_id if provided
-    if (updateProductDto.branch_id) {
+    // Validate and link branchId if provided
+    if (updateProductDto.branchId) {
       const branch = await this.branchRepository.findOne({
-        where: { id: updateProductDto.branch_id },
+        where: { id: updateProductDto.branchId },
       });
       if (!branch) {
         throw new NotFoundException('Branch not found.');
       }
       product.branch = branch; // Associate the Branch entity
-      delete updateProductDto.branch_id;
+      delete updateProductDto.branchId;
     }
 
-    // Validate and link category_id if provided
-    if (updateProductDto.category_id) {
+    // Validate and link categoryId if provided
+    if (updateProductDto.categoryId) {
       const category = await this.categoryRepository.findOne({
-        where: { id: updateProductDto.category_id },
+        where: { id: updateProductDto.categoryId },
       });
       if (!category) {
         throw new NotFoundException('Category not found.');
       }
       product.category = category; // Associate the Category entity
-      delete updateProductDto.category_id;
+      delete updateProductDto.categoryId;
     }
 
-    // Validate and link unit_id if provided
-    if (updateProductDto.unit_id) {
+    // Validate and link unitId if provided
+    if (updateProductDto.unitId) {
       const unit = await this.unitRepository.findOne({
-        where: { id: updateProductDto.unit_id },
+        where: { id: updateProductDto.unitId },
       });
       if (!unit) {
         throw new NotFoundException('unit not found.');
@@ -159,10 +159,10 @@ export class ProductsService {
       product.unit = unit; // Associate the Category entity
     }
 
-    // Validate and link currency_id if provided
-    if (updateProductDto.currency_id) {
+    // Validate and link currencyId if provided
+    if (updateProductDto.currencyId) {
       const currency = await this.currencyRepository.findOne({
-        where: { id: updateProductDto.currency_id },
+        where: { id: updateProductDto.currencyId },
       });
       if (!currency) {
         throw new NotFoundException('currency not found.');

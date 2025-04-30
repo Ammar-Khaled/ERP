@@ -95,7 +95,7 @@ export class PurchaseRequestService {
         const existingItem = visited.find(
           (i) => i.purchaseEntityName === item.purchaseEntityName,
         );
-        if (existingItem) existingItem.number_of_items += item.number_of_items;
+        if (existingItem) existingItem.numberOfItems += item.numberOfItems;
         else visited.push(item);
 
         return visited;
@@ -203,8 +203,7 @@ export class PurchaseRequestService {
           const existingItem = visited.find(
             (i) => i.purchaseEntityName === item.purchaseEntityName,
           );
-          if (existingItem)
-            existingItem.number_of_items += item.number_of_items;
+          if (existingItem) existingItem.numberOfItems += item.numberOfItems;
           else visited.push(item);
 
           return visited;

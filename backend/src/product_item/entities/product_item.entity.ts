@@ -37,10 +37,10 @@ export class ProductItem {
   name: string; // Name of the product item (e.g., variant name)
 
   @Column()
-  product_id: number; // Foreign key for category
+  productId: number; // Foreign key for category
 
   @ManyToOne(() => Product)
-  @JoinColumn({ name: 'product_id' })
+  @JoinColumn({ name: 'productId' })
   product: Product;
 
   @Column('simple-array', { nullable: true })

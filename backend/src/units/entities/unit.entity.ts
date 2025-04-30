@@ -5,7 +5,7 @@ export class Unit {
   @PrimaryGeneratedColumn()
   id: number; // Primary key for the unit
 
-  @Column()
+  @Column({ unique: true })
   name: string; // Name of the unit
 
   @Column({ nullable: true })

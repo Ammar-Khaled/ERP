@@ -227,7 +227,7 @@ export class OrderService {
       item.unitPrice = productItem.price;
       item.name = productItem.name;
 
-      // This loop determines whether if the product_item_id of the orderItem coming
+      // This loop determines whether if the productItemId of the orderItem coming
       // in updateOrderDto exists or not in the items of order
       for (let i = 0; i < order.items.length; ++i) {
         if (item.productItemId === order.items[i].productItemId) {

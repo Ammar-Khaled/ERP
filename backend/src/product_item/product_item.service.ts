@@ -44,7 +44,7 @@ export class ProductItemService {
 
   async create(createProductItemDto: CreateProductItemDto) {
     const product = await this.productRepository.findOne({
-      where: { id: createProductItemDto.product_id },
+      where: { id: createProductItemDto.productId },
     });
 
     if (!product) {
@@ -125,21 +125,21 @@ export class ProductItemService {
             await transactionalEntityManager.save(productItem);
 
           // Add inventory record if needed
-          if (createProductItemDto.inventory_id) {
+          if (createProductItemDto.inventoryId) {
             await transactionalEntityManager
               .getRepository(ProductItemToInventory)
               .insert({
-                numberOfValid: createProductItemDto.number_of_valid,
-                numberOfDamaged: createProductItemDto.number_of_damaged || 0,
+                numberOfValid: createProductItemDto.numberOfValid,
+                numberOfDamaged: createProductItemDto.numberOfDamaged || 0,
                 productItemId: newProductItem.id,
-                inventoryId: createProductItemDto.inventory_id,
+                inventoryId: createProductItemDto.inventoryId,
               });
           }
 
           // Update product quantity inside transaction
           const totalNewQuantity =
-            (createProductItemDto.number_of_valid || 0) +
-            (createProductItemDto.number_of_damaged || 0);
+            (createProductItemDto.numberOfValid || 0) +
+            (createProductItemDto.numberOfDamaged || 0);
 
           product.quantity += totalNewQuantity;
           await transactionalEntityManager.save(product);
@@ -183,28 +183,27 @@ export class ProductItemService {
       'Product item not found',
     );
 
-    if (updateProductItemDto.number_of_damaged) {
+    if (updateProductItemDto.numberOfDamaged) {
       const oldNumberOfDamged = productItem.numberOfDamaged;
       const product = await this.productRepository.findOne({
-        where: { id: updateProductItemDto.product_id },
+        where: { id: updateProductItemDto.productId },
       });
       product.quantity +=
-        updateProductItemDto.number_of_damaged - oldNumberOfDamged;
+        updateProductItemDto.numberOfDamaged - oldNumberOfDamged;
       await this.productRepository.save(product);
     }
-    if (updateProductItemDto.number_of_valid) {
+    if (updateProductItemDto.numberOfValid) {
       const oldNumberOfValid = productItem.numberOfValid;
       const product = await this.productRepository.findOne({
-        where: { id: updateProductItemDto.product_id },
+        where: { id: updateProductItemDto.productId },
       });
-      product.quantity +=
-        updateProductItemDto.number_of_valid - oldNumberOfValid;
+      product.quantity += updateProductItemDto.numberOfValid - oldNumberOfValid;
       await this.productRepository.save(product);
     }
 
-    if (updateProductItemDto.product_id) {
+    if (updateProductItemDto.productId) {
       const product = await this.productRepository.findOne({
-        where: { id: updateProductItemDto.product_id },
+        where: { id: updateProductItemDto.productId },
       });
       if (!product) {
         throw new NotFoundException('Product not found.');
@@ -301,11 +300,11 @@ export class ProductItemService {
   }
 
   async updateDamaged(updateDamagedDto: UpdateDamagedDto) {
-    const { product_item_id, numberOfDamaged } = updateDamagedDto;
+    const { productItemId, numberOfDamaged } = updateDamagedDto;
 
     // Validate inputs
-    if (!product_item_id || isNaN(product_item_id)) {
-      throw new BadRequestException('Invalid product_item_id.');
+    if (!productItemId || isNaN(productItemId)) {
+      throw new BadRequestException('Invalid productItemId.');
     }
 
     if (!numberOfDamaged || isNaN(numberOfDamaged)) {
@@ -314,7 +313,7 @@ export class ProductItemService {
 
     // Find the product item by ID
     const productItem = await this.findProductItemByCondition(
-      { id: product_item_id },
+      { id: productItemId },
       'Product item not found.',
     );
 

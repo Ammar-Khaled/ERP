@@ -32,37 +32,37 @@ export class Product {
   mainPhoto: string;
 
   @Column()
-  branch_id: number;
+  branchId: number;
 
   @ManyToOne(() => Branch)
-  @JoinColumn({ name: 'branch_id' })
+  @JoinColumn({ name: 'branchId' })
   branch: Branch;
 
   @Column({ nullable: true })
   brand: string;
 
   @Column()
-  category_id: number;
+  categoryId: number;
 
   @ManyToOne(() => Category)
-  @JoinColumn({ name: 'category_id' })
+  @JoinColumn({ name: 'categoryId' })
   category: Category;
 
   @Column({ default: true })
   isActive: boolean;
 
   @Column()
-  unit_id: number;
+  unitId: number;
 
   @ManyToOne(() => Unit)
-  @JoinColumn({ name: 'unit_id' })
+  @JoinColumn({ name: 'unitId' })
   unit: Unit;
 
   @Column()
-  currency_id: number;
+  currencyId: number;
 
   @ManyToOne(() => Currency)
-  @JoinColumn({ name: 'currency_id' })
+  @JoinColumn({ name: 'currencyId' })
   currency: Currency;
 
   // Add OneToMany relationship with ProductItem

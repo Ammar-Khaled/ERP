@@ -20,7 +20,7 @@ export class ProductItemInventoryService {
   async create(createProductItemInventoryDto: CreateProductItemInventoryDto) {
     const { productItemId, inventoryId } = createProductItemInventoryDto;
 
-    // Validate product_item_id
+    // Validate productItemId
     const productItem = await this.productItemRepository.findOne({
       where: { id: productItemId },
     });
@@ -28,7 +28,7 @@ export class ProductItemInventoryService {
       throw new NotFoundException('Product item not found.');
     }
 
-    // Validate inventory_id
+    // Validate inventoryId
     const inventory = await this.inventoryRepository.findOne({
       where: { id: inventoryId },
     });
@@ -92,7 +92,7 @@ export class ProductItemInventoryService {
     const { productItemId, inventoryId, ...updates } =
       updateProductItemInventoryDto;
 
-    // Validate and associate product_item_id if provided
+    // Validate and associate productItemId if provided
     if (productItemId) {
       const productItem = await this.productItemRepository.findOne({
         where: { id: productItemId },
@@ -103,7 +103,7 @@ export class ProductItemInventoryService {
       productItemInventory.productItem = productItem;
     }
 
-    // Validate and associate inventory_id if provided
+    // Validate and associate inventoryId if provided
     if (inventoryId) {
       const inventory = await this.inventoryRepository.findOne({
         where: { id: inventoryId },

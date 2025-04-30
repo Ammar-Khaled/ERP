@@ -31,7 +31,7 @@ export class PurchaseRequest {
   @BeforeUpdate()
   calculateTotalPrice() {
     this.totalPrice = this.purchaseItems.reduce(
-      (total, item) => total + item.total_price,
+      (total, item) => total + item.totalPrice,
       0,
     );
   }

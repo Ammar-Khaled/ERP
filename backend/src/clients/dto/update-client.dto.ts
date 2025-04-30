@@ -1,6 +1,5 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { OmitType, PartialType } from '@nestjs/swagger';
 import { CreateClientDto } from './create-client.dto';
-import { OmitType } from '@nestjs/swagger';
 import { UpdateAddressDto } from '../../common/dtos/update-address.dto';
 
 export class UpdateClientDto extends PartialType(

@@ -1,10 +1,4 @@
-import {
-  ConflictException,
-  HttpException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
 import { Branch } from 'src/branches/entities/branch.entity'; // Assuming you have a Branch entity
@@ -21,30 +15,15 @@ export class CategoriesService {
   ) {}
 
   async create(createCategoryDto: CreateCategoryDto) {
-    // Check if a category with the same name already exists
-    const existingCategory = await this.categoryRepository.findOne({
-      where: { name: createCategoryDto.name },
-    });
-    if (existingCategory) {
-      throw new ConflictException('The category already exists.');
-    }
-
-    // Check if the branch_id exists in the Branch table
+    // Check if the branchId exists in the Branch table
     const branch = await this.branchRepository.findOne({
-      where: { id: createCategoryDto.branch_id },
+      where: { id: createCategoryDto.branchId },
     });
     if (!branch) {
       throw new NotFoundException('Branch not found.');
     }
 
-    const category = this.categoryRepository.create(createCategoryDto);
-
-    try {
-      // Save the new category and associate it with the branch
-      return await this.categoryRepository.save(category);
-    } catch (err) {
-      throw new HttpException(err.message, err.status || 500);
-    }
+    return await this.categoryRepository.save(createCategoryDto);
   }
 
   async update(id: number, updateCategoryDto: UpdateCategoryDto) {
@@ -54,10 +33,10 @@ export class CategoriesService {
       'Category not found',
     );
 
-    // Check if the branch_id exists in the Branch table
-    if (updateCategoryDto.branch_id) {
+    // Check if the branchId exists in the Branch table
+    if (updateCategoryDto.branchId) {
       const branch = await this.branchRepository.findOne({
-        where: { id: updateCategoryDto.branch_id },
+        where: { id: updateCategoryDto.branchId },
       });
       if (!branch) {
         throw new NotFoundException('Branch not found.');
@@ -87,7 +66,7 @@ export class CategoriesService {
       { id },
       'Category not found',
     );
-    await this.categoryRepository.delete({ id });
+    await this.categoryRepository.softRemove(category);
     return category;
   }
 

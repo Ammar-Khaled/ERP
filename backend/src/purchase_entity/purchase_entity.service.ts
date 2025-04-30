@@ -31,7 +31,6 @@ export class PurchaseEntityService {
     const newPurchase = this.purchaseEntityRepository.create(
       createPurchaseEntityDto,
     );
-    console.log(`Created a purchase entity successfully!`);
     return await this.purchaseEntityRepository.save(newPurchase);
   }
 
@@ -64,16 +63,12 @@ export class PurchaseEntityService {
   async update(id: number, updatePurchaseEntityDto: UpdatePurchaseEntityDto) {
     const purchaseEntity = await this.findOne(id);
     Object.assign(purchaseEntity, updatePurchaseEntityDto);
-
-    console.log(`Updated the purchase entity with id of ${id} successfully!`);
     return await this.purchaseEntityRepository.save(purchaseEntity);
   }
 
   async remove(id: number) {
     const purchaseEntity = await this.findOne(id);
     await this.purchaseEntityRepository.softDelete({ id });
-
-    console.log(`Removed the purchase entity with id of ${id} successfully!`);
     return purchaseEntity;
   }
 }
