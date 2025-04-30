@@ -50,19 +50,27 @@ export class PurchaseRequestController {
   }
 
   @Get(':id/pdf')
-  async generatePdf(
-    @Param('id') id: string,
-    @Res() res: Response,
-  ) {
+  async generatePdf(@Param('id') id: string, @Res() res: Response) {
     // Fetch the purchase request
-    const purchaseRequest = await this.purchaseRequestService.findOne(+id, true);
+    const purchaseRequest = await this.purchaseRequestService.findOne(
+      +id,
+      true,
+    );
 
-    // Generate the pdf
-    const pdfBuffer = await this.pdfService.generatePdf('purchase_request', purchaseRequest);
+    console.log(purchaseRequest);
+
+    // Generate the PDF
+    const pdfBuffer = await this.pdfService.generatePdf(
+      'purchase_request',
+      purchaseRequest,
+    );
 
     // Send the response
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=purchase-request-${id}.pdf`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=purchase-request-${id}.pdf`,
+    );
     res.send(pdfBuffer);
   }
 }

@@ -121,13 +121,20 @@ export class PurchaseRequestService {
 
   async findOne(id: number, withRelations: boolean = false) {
     let purchaseRequest;
-    if (withRelations) { // Used in: generatePdf method
+    if (withRelations) {
+      // Used in: generatePdf method
       purchaseRequest = await this.purchaseRequestRepository.findOne({
-        where: {id},
-        relations: ['user', 'branch', 'supplier', 'status', 'currency', 'purchaseItems'],
-      })
-    }
-    else {
+        where: { id },
+        relations: [
+          'user',
+          'branch',
+          'supplier',
+          'status',
+          'currency',
+          'purchaseItems',
+        ],
+      });
+    } else {
       purchaseRequest = await this.purchaseRequestRepository.findOneBy({
         id,
       });

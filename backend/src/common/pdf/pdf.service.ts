@@ -3,19 +3,24 @@ import * as puppeteer from 'puppeteer';
 import * as handlebars from 'handlebars';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import {format} from 'date-fns';
+import { format } from 'date-fns';
 
 @Injectable()
 export class PdfService {
   constructor() {
     // Add custom helpers
     handlebars.registerHelper('formatDate', (date: Date) => {
-      return format(new Date(date), "yyyy-MM-dd HH:mm");
+      return format(new Date(date), 'yyyy-MM-dd HH:mm');
     });
 
-    handlebars.registerHelper('formatCurrency', (amount: number, symbol: string) => {
-      return `${symbol} ${amount.toFixed(2)}`;
-    });
+    handlebars.registerHelper(
+      'formatCurrency',
+      (amount: any, symbol: string) => {
+        const num = Number(amount);
+        if (isNaN(num)) return `${symbol} 0.00`;
+        return `${symbol} ${num.toFixed(2)}`;
+      },
+    );
 
     handlebars.registerHelper('now', () => new Date());
   }
