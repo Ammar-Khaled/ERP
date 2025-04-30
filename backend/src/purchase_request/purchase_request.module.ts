@@ -11,6 +11,7 @@ import { currencyProviders } from 'src/currency/currency.providers';
 import { PurchaseItemService } from 'src/purchase_item/purchase_item.service';
 import { purchaseItemProviders } from 'src/purchase_item/purchase_item.providers';
 import { purchaseEntityProviders } from 'src/purchase_entity/purchase_entity.providers';
+import { PdfService } from '../common/pdf/pdf.service';
 
 @Module({
   imports: [DatabaseModule],
@@ -26,6 +27,7 @@ import { purchaseEntityProviders } from 'src/purchase_entity/purchase_entity.pro
     PurchaseItemService,
     ...purchaseItemProviders,
     ...purchaseEntityProviders,
+    PdfService,
   ],
 })
 export class PurchaseRequestModule {}
