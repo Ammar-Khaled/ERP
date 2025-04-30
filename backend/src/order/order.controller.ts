@@ -3,17 +3,24 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   Param,
   Patch,
   Post,
+  Res,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { PdfService } from '../common/pdf/pdf.service';
+import { Response } from 'express';
 
 @Controller('order')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly pdfService: PdfService,
+  ) {}
 
   @Post('/create')
   create(@Body() createOrderDto: CreateOrderDto) {
@@ -38,5 +45,28 @@ export class OrderController {
   @Delete('/delete/:id')
   remove(@Param('id') id: number) {
     return this.orderService.remove(+id);
+  }
+
+  @Get(':id/pdf')
+  async generateOrderPdf(@Param('id') id: string, @Res() res: Response) {
+    try {
+      // 1. Fetch order data from your database
+      const orderData = await this.orderService.findOne(+id);
+
+      // 2. Generate PDF
+      const pdfBuffer = await this.pdfService.generatePdf('order', orderData);
+
+      console.log(pdfBuffer);
+
+      // 3. Send response
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="order-${id}.pdf"`,
+      );
+      res.send(pdfBuffer);
+    } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
   }
 }

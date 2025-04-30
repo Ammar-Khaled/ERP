@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .info-table th, .info-table td { border: 1px solid #ddd; padding: 8px; }
+        .info-table th { background-color: #f2f2f2; text-align: left; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .items-table th, .items-table td { border: 1px solid #ddd; padding: 8px; }
+        .items-table th { background-color: #f2f2f2; }
+        .total { text-align: right; font-weight: bold; margin-top: 10px; }
+        .footer { margin-top: 30px; font-size: 0.8em; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Purchase Request ${{id}}</h1>
+        <p>Date: {{formatDate date}}</p>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <th>Requested By</th>
+            <td>{{user.name}}</td>
+            <th>Branch</th>
+            <td>{{branch.name}}</td>
+        </tr>
+        <tr>
+            <th>Supplier</th>
+            <td>{{supplier.name}}</td>
+            <th>Status</th>
+            <td>{{status.name}}</td>
+        </tr>
+        <tr>
+            <th>Currency</th>
+            <td>{{currency.name}}</td>
+            <th>Total Amount</th>
+            <td>{{formatCurrency totalPrice currency.symbol}}</td>
+        </tr>
+    </table>
+
+    <h3>Items</h3>
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Description</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each purchaseItems}}
+            <tr>
+                <td>{{this.purchaseEntity.name}}</td>
+                <td>{{this.purchaseEntity.description}}</td>
+                <td>{{this.number_of_items}}</td>
+                <td>{{formatCurrency this.purchaseEntity.unit_price ../currency.symbol}}</td>
+                <td>{{formatCurrency this.total_price ../currency.symbol}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <div class="total">
+        <p>GRAND TOTAL: {{formatCurrency totalPrice currency.symbol}}</p>
+    </div>
+
+    <div class="footer">
+        <p>Generated on {{formatDate now}}</p>
+
+        {{#if deletedAt}}
+        <p style="color: red;">CANCELLED - Deleted on {{formateDate deletedAt}}</p>
+        {{/if}}
+    </div>
+</body>
+</html>
