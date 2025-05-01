@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   Param,
   Patch,
   Post,
@@ -19,7 +20,7 @@ export class PurchaseRequestController {
   constructor(
     private readonly purchaseRequestService: PurchaseRequestService,
     private readonly pdfService: PdfService,
-  ) {}
+  ) { }
 
   @Post('create')
   create(@Body() createPurchaseRequestDto: CreatePurchaseRequestDto) {
@@ -51,26 +52,28 @@ export class PurchaseRequestController {
 
   @Get(':id/pdf')
   async generatePdf(@Param('id') id: string, @Res() res: Response) {
-    // Fetch the purchase request
-    const purchaseRequest = await this.purchaseRequestService.findOne(
-      +id,
-      true,
-    );
+    try {
+      // Fetch the purchase request
+      const purchaseRequest = await this.purchaseRequestService.findOne(
+        +id,
+        true,
+      );
 
-    console.log(purchaseRequest);
+      // Generate the PDF
+      const pdfBuffer = await this.pdfService.generatePdf(
+        'purchase_request',
+        purchaseRequest,
+      );
 
-    // Generate the PDF
-    const pdfBuffer = await this.pdfService.generatePdf(
-      'purchase_request',
-      purchaseRequest,
-    );
-
-    // Send the response
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename=purchase-request-${id}.pdf`,
-    );
-    res.send(pdfBuffer);
+      // Send the response
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename=purchase-request-${id}.pdf`,
+      );
+      res.end(pdfBuffer); // Important to use 'end' not 'send'!
+    } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
   }
 }

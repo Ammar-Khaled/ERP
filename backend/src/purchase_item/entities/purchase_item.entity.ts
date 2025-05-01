@@ -20,7 +20,7 @@ export class PurchaseItem {
   purchaseEntityId: number;
 
   @ManyToOne(() => PurchaseEntity, (entity) => entity.purchaseItems, {
-    eager: false,
+    eager: true,
     nullable: false,
   })
   @JoinColumn({ name: 'purchaseEntityId' })
