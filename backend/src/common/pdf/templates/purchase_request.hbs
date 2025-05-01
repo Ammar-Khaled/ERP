@@ -57,7 +57,7 @@
             <tr>
                 <td>{{this.purchaseEntity.name}}</td>
                 <td>{{this.purchaseEntity.description}}</td>
-                <td>{{this.number_of_items}}</td>
+                <td>{{this.numberOfItems}}</td>
                 <td>{{formatCurrency this.purchaseEntity.unit_price ../currency.symbol}}</td>
                 <td>{{formatCurrency this.total_price ../currency.symbol}}</td>
             </tr>
@@ -73,7 +73,7 @@
         <p>Generated on {{formatDate now}}</p>
 
         {{#if deletedAt}}
-        <p style="color: red;">CANCELLED - Deleted on {{formateDate deletedAt}}</p>
+        <p style="color: red;">CANCELLED - Deleted on {{formatDate deletedAt}}</p>
         {{/if}}
     </div>
 </body>
