@@ -5,7 +5,7 @@ import {
   IsNumber,
   IsOptional,
 } from 'class-validator';
-import { CreateOrderItemDto } from 'src/order_item/dto/create-order_item.dto';
+import { CreateOrderItemDto } from 'src/order/dto/create-order_item.dto';
 import { Type } from 'class-transformer';
 
 export class CreateOrderDto {

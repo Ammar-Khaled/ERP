@@ -9,7 +9,7 @@ import { UpdateReturnDto } from './dto/update-return.dto';
 import { Return } from './entities/return.entity';
 import { CreateReturnItemDto } from 'src/return_item/dto/create-return_item.dto';
 import { Repository } from 'typeorm';
-import { OrderItem } from 'src/order_item/entities/order_item.entity';
+import { OrderItem } from 'src/order/entities/order_item.entity';
 import { ReturnItem } from 'src/return_item/entities/return_item.entity';
 import { ReturnItemService } from 'src/return_item/return_item.service';
 import { Order } from 'src/order/entities/order.entity';

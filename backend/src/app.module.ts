@@ -16,9 +16,6 @@ import { ProductItemModule } from './product_item/product_item.module';
 import { ProductItemInventoryModule } from './product_item_inventory/product_item_inventory.module';
 import { UnitsModule } from './units/units.module';
 import { CurrencyModule } from './currency/currency.module';
-import { PermissionsGuard } from './auth/permissions.guard';
-import { APP_GUARD } from '@nestjs/core';
-import { AuthGuard } from './auth/auth.guard';
 import { PurchaseEntityModule } from './purchase_entity/purchase_entity.module';
 import { PurchaseItemModule } from './purchase_item/purchase_item.module';
 import { PurchaseRequestModule } from './purchase_request/purchase_request.module';
@@ -26,7 +23,6 @@ import { StatusModule } from './status/status.module';
 import { VariationModule } from './variation/variation.module';
 import { VariationOptionModule } from './variation_option/variation_option.module';
 import { OrderModule } from './order/order.module';
-import { OrderItemModule } from './order_item/order_item.module';
 import { CouponModule } from './coupon/coupon.module';
 import { ReturnItemModule } from './return_item/return_item.module';
 import { ReturnModule } from './return/return.module';
@@ -55,7 +51,6 @@ import { ReturnModule } from './return/return.module';
     VariationModule,
     VariationOptionModule,
     OrderModule,
-    OrderItemModule,
     CouponModule,
     ReturnItemModule,
     ReturnModule,

@@ -14,7 +14,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Client } from 'src/clients/entities/client.entity';
 import { Coupon } from 'src/coupon/entities/coupon.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
-import { OrderItem } from 'src/order_item/entities/order_item.entity';
+import { OrderItem } from 'src/order/entities/order_item.entity';
 import { Status } from 'src/status/entities/status.entity';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
 import { Return } from 'src/return/entities/return.entity';
