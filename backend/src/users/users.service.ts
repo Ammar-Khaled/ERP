@@ -13,7 +13,6 @@ import { Role } from '../roles/entities/role.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { config } from 'dotenv';
 import * as process from 'node:process';
-import { DatabaseLoggerService } from '../logging/database-logger.service';
 
 config();
 
@@ -23,8 +22,6 @@ export class UsersService {
     @Inject('USER_REPOSITORY') private userRepository: Repository<User>,
     @Inject('ROLE_REPOSITORY') private roleRepository: Repository<Role>,
     @Inject('BRANCH_REPOSITORY') private branchRepository: Repository<Branch>,
-    @Inject(DatabaseLoggerService)
-    private readonly databaseLogger: DatabaseLoggerService,
   ) {}
 
   async findAll() {
@@ -40,8 +37,6 @@ export class UsersService {
       );
       delete user.purchaseRequests;
     });
-
-    await this.databaseLogger.log('Fetched all users', UsersService.name);
 
     return users;
   }

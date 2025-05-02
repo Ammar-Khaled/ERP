@@ -7,6 +7,8 @@ import { jwtConstants } from './constants';
 import { userProviders } from '../users/users.providers';
 import { DatabaseModule } from '../common/database.module';
 import { config } from 'dotenv';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth.guard';
 
 config();
 
@@ -20,7 +22,14 @@ config();
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '24h' },
     }),
   ],
-  providers: [AuthService, ...userProviders],
+  providers: [
+    AuthService,
+    ...userProviders,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })
