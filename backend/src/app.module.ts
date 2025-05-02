@@ -24,7 +24,6 @@ import { VariationModule } from './variation/variation.module';
 import { VariationOptionModule } from './variation_option/variation_option.module';
 import { OrderModule } from './order/order.module';
 import { CouponModule } from './coupon/coupon.module';
-import { ReturnItemModule } from './return_item/return_item.module';
 import { ReturnModule } from './return/return.module';
 
 @Module({
@@ -52,7 +51,6 @@ import { ReturnModule } from './return/return.module';
     VariationOptionModule,
     OrderModule,
     CouponModule,
-    ReturnItemModule,
     ReturnModule,
   ],
   controllers: [AppController],
