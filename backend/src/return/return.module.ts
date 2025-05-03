@@ -10,6 +10,7 @@ import { orderProviders } from 'src/order/order.providers';
 import { statusProviders } from 'src/status/status.providers';
 import { productItemProviders } from 'src/product_item/product_item.providers';
 import { ReturnItemController } from './return_item.controller';
+import { productItemInventoryProviders } from 'src/product_item_inventory/product_item_inventory.providers';
 
 @Module({
   imports: [DatabaseModule],
@@ -22,7 +23,7 @@ import { ReturnItemController } from './return_item.controller';
     ...returnItemProviders,
     ...orderProviders,
     ...statusProviders,
-    ...productItemProviders,
+    ...productItemInventoryProviders,
     ...returnItemProviders,
   ],
 })

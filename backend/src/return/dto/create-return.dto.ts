@@ -3,7 +3,7 @@ import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { CreateReturnItemDto } from 'src/return/dto/create-return_item.dto';
 
 export class CreateReturnDto {
-  // get from the user: optional date, reason, return item dtos, order id, status id, product item ids
+  // get from the user: optional date, reason, return item dtos, order id, status id
 
   @IsOptional()
   @Type(() => Date)

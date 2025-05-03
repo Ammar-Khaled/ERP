@@ -27,14 +27,19 @@ export class Return {
   })
   returnItems: ReturnItem[];
 
+  @Column({type: 'int', nullable: false})
+  orderId: number;
+
   @ManyToOne(() => Order, (order: Order) => order.returns, {
     nullable: false,
   })
   order: Order;
 
+  @Column({type: 'int', nullable: false})
+  statusId: number;
+
   @ManyToOne(() => Status, (status) => status.returns, {
     nullable: false,
-    eager: true,
   })
   status: Status;
 

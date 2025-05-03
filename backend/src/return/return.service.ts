@@ -28,8 +28,8 @@ export class ReturnService {
     private orderRepository: Repository<Order>,
     @Inject('STATUS_REPOSITORY')
     private statusRepository: Repository<Status>,
-    @Inject('PRODUCT_ITEM_REPOSITORY')
-    private productItemRepository: Repository<ProductItem>,
+    @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
+    private productItemInvRepository: Repository<ProductItem>,
   ) {}
 
   /// Utility Functions ///
@@ -87,13 +87,14 @@ export class ReturnService {
       const orderItem = await this.orderItemRepository.findOneBy({
         id: itemDto.orderItemId,
       });
+      //# Add `returned` attribute to `orderItem` for multiple returns
       if (itemDto.numberOfItems > orderItem.numberOfItems) {
         throw new ConflictException({
           message: `The number of items to return is greater than the number of items in the order!`,
         });
       }
 
-      const productItem = await this.productItemRepository.findOneBy({
+      const productItem = await this.productItemInvRepository.findOneBy({
         id: orderItem.productItem.id,
       });
 
@@ -103,7 +104,7 @@ export class ReturnService {
 
     // Save the product items and order items
     for (const productItem of productItemsBuffer) {
-      await this.productItemRepository.save(productItem);
+      await this.productItemInvRepository.save(productItem);
     }
 
     const returnItems: ReturnItem[] = [];
@@ -218,7 +219,7 @@ export class ReturnService {
 
       // Save the temp lists
       for (const productItem of productItemsBuffer) {
-        await this.productItemRepository.save(productItem);
+        await this.productItemInvRepository.save(productItem);
       }
       for (const returnItem of returnItemsToUpdate) {
         await this.returnItemService.update(returnItem.id, returnItem);
