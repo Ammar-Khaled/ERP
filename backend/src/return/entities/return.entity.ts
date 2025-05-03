@@ -1,5 +1,5 @@
 import { Order } from 'src/order/entities/order.entity';
-import { ReturnItem } from 'src/return_item/entities/return_item.entity';
+import { ReturnItem } from 'src/return/entities/return_item.entity';
 import { Status } from 'src/status/entities/status.entity';
 import {
   Column,

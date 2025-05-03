@@ -1,21 +1,43 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
+@Index(['timestamp', 'userId'])
 export class Log {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  timestamp: Date;
 
   @Column()
   level: string;
 
   @Column()
-  message: string;
-
-  @Column()
-  timestamp: Date;
+  packetType: string;
 
   @Column({ nullable: true })
-  context?: string;
+  userId: number;
+
+  @Column()
+  ipAddress: string;
+
+  @Column()
+  userAgent: string;
+
+  @Column()
+  action: string;
+
+  @Column()
+  endpoint: string;
+
+  @Column()
+  method: string;
+
+  @Column({ nullable: true })
+  responseTime?: number;
+
+  @Column({ nullable: true })
+  errorMessage?: string;
 
   @Column({ type: 'text', nullable: true })
   trace?: string;
