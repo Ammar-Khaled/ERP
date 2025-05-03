@@ -15,7 +15,12 @@ export class PurchaseEntity {
   @Column({ type: 'varchar', length: 20, nullable: false, unique: true })
   name: string;
 
-  @Column({ type: 'varchar', length: 200, nullable: true, default: "Example Description" })
+  @Column({
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+    default: 'Example Description',
+  })
   description: string;
 
   @Column({ type: 'decimal', nullable: false })
