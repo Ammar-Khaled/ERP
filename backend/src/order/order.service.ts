@@ -22,6 +22,7 @@ import { CreateOrderItemDto } from 'src/order/dto/create-order_item.dto';
 import { Status } from 'src/status/entities/status.entity';
 import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
+import { Inventory } from 'src/inventories/entities/inventory.entity';
 
 @Injectable()
 export class OrderService {
@@ -46,6 +47,9 @@ export class OrderService {
     private statusRepo: Repository<Status>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
     private productItemInventoryRepo: Repository<ProductItemToInventory>,
+    @Inject('INVENTORY_REPOSITORY')
+    private inventoryRepo: Repository<Inventory>,
+
     private readonly productItemService: ProductItemService,
     private readonly productItemInventoryService: ProductItemInventoryService,
   ) {}
@@ -53,6 +57,15 @@ export class OrderService {
   async create(createOrderDto: CreateOrderDto) {
     const _newOrder = new Order();
     _newOrder.date = createOrderDto.date || new Date();
+
+    // Verify the existence of the inventory
+    const inventory = await this.inventoryRepo.findOne({
+      where: { id: createOrderDto.inventoryId },
+    });
+    if (!inventory) {
+      throw new NotFoundException('There is NO inventory with that id !!');
+    }
+    _newOrder.inventory = inventory;
 
     // Verify the existence of the branch
     const branch = await this.branchRepo.findOne({
@@ -179,8 +192,28 @@ export class OrderService {
     return await this.orderRepo.find({ relations: ['items'] });
   }
 
-  async findOne(id: number) {
-    return await this.findOrderByCondition({ id }, 'Order Not Found !');
+  async findOne(id: number, withRelations: boolean = false) {
+    let order = null;
+    if (withRelations) {
+      order = await this.orderRepo.findOne({
+        where: { id },
+        relations: [
+          'branch',
+          'inventory',
+          'user',
+          'client',
+          'status',
+          'coupon',
+          'currency',
+          'items',
+          'returns',
+        ],
+      });
+    } else {
+      order = await this.orderRepo.findOneBy({ id });
+    }
+
+    return order;
   }
 
   async update(id: number, updateOrderDto: UpdateOrderDto) {
