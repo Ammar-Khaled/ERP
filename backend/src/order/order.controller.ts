@@ -56,8 +56,6 @@ export class OrderController {
       // 2. Generate PDF
       const pdfBuffer = await this.pdfService.generatePdf('order', orderData);
 
-      console.log(pdfBuffer); // debug
-
       // 3. Send response
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader(
