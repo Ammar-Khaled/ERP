@@ -17,6 +17,7 @@ import { productItemInventoryProviders } from 'src/product_item_inventory/produc
 import { ProductItemInventoryModule } from 'src/product_item_inventory/product_item_inventory.module';
 import { PdfService } from '../common/pdf/pdf.service';
 import { OrderItemController } from './order_item.controller';
+import { inventoriesProviders } from 'src/inventories/inventories.providers';
 
 @Module({
   imports: [DatabaseModule, ProductItemModule, ProductItemInventoryModule],
@@ -33,6 +34,7 @@ import { OrderItemController } from './order_item.controller';
     ...orderItemProviders,
     ...statusProviders,
     ...productItemInventoryProviders,
+    ...inventoriesProviders,
     OrderItemService,
     PdfService,
   ],

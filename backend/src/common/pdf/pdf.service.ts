@@ -34,6 +34,11 @@ export class PdfService {
     );
 
     handlebars.registerHelper('now', () => new Date());
+
+    // Basic math to use for invoice calculations
+    handlebars.registerHelper('multiply', (a: number, b: number) => a * b);
+    handlebars.registerHelper('divide', (a: number, b: number) => a / b);
+    handlebars.registerHelper('subtract', (a: number, b: number) => a - b);
   }
   private templatesDir = path.join(__dirname, 'templates');
 
