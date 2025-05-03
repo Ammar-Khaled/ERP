@@ -9,17 +9,20 @@ import { format } from 'date-fns';
 export class PdfService {
   constructor() {
     // Add custom helpers
-    handlebars.registerHelper('formatDate', (date: Date | string | null | undefined) => {
-      if (!date) return 'N/A'; // Handle null/undefined
-      
-      const dateObj = date instanceof Date ? date : new Date(date);
-      
-      if (isNaN(dateObj.getTime())) {
-        return 'Invalid Date';
-      }
-      
-      return format(dateObj, 'yyyy-MM-dd HH:mm');
-    });
+    handlebars.registerHelper(
+      'formatDate',
+      (date: Date | string | null | undefined) => {
+        if (!date) return 'N/A'; // Handle null/undefined
+
+        const dateObj = date instanceof Date ? date : new Date(date);
+
+        if (isNaN(dateObj.getTime())) {
+          return 'Invalid Date';
+        }
+
+        return format(dateObj, 'yyyy-MM-dd HH:mm');
+      },
+    );
 
     handlebars.registerHelper(
       'formatCurrency',
@@ -45,16 +48,16 @@ export class PdfService {
       const template = handlebars.compile(htmlContent);
       const finalHtml = template({
         ...data,
-        now: new Date() // for footer
+        now: new Date(), // for footer
       });
 
       // Set content and generate PDF
       await page.setContent(finalHtml, {
         waitUntil: ['load', 'domcontentloaded', 'networkidle0'],
-        timeout: 30000
+        timeout: 30000,
       });
 
-      await page.waitForSelector('body'); // wait for DOM 
+      await page.waitForSelector('body'); // wait for DOM
       await page.emulateMediaType('print');
 
       const retPdf = await page.pdf({
@@ -64,7 +67,7 @@ export class PdfService {
         scale: 0.8, // just a trial
       });
       return retPdf;
-    } catch(err) {
+    } catch (err) {
       console.log(err);
     } finally {
       await browser.close();
