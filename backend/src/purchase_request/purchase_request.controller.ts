@@ -20,7 +20,7 @@ export class PurchaseRequestController {
   constructor(
     private readonly purchaseRequestService: PurchaseRequestService,
     private readonly pdfService: PdfService,
-  ) { }
+  ) {}
 
   @Post('create')
   create(@Body() createPurchaseRequestDto: CreatePurchaseRequestDto) {
