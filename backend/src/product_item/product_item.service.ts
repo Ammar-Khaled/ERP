@@ -136,14 +136,6 @@ export class ProductItemService {
               });
           }
 
-          // Update product quantity inside transaction
-          const totalNewQuantity =
-            (createProductItemDto.numberOfValid || 0) +
-            (createProductItemDto.numberOfDamaged || 0);
-
-          product.quantity += totalNewQuantity;
-          await transactionalEntityManager.save(product);
-
           return newProductItem;
         } catch (error) {
           if (error.code === '23505' || error.code === 'ER_DUP_ENTRY') {
@@ -182,24 +174,6 @@ export class ProductItemService {
       { id },
       'Product item not found',
     );
-
-    if (updateProductItemDto.numberOfDamaged) {
-      const oldNumberOfDamged = productItem.numberOfDamaged;
-      const product = await this.productRepository.findOne({
-        where: { id: updateProductItemDto.productId },
-      });
-      product.quantity +=
-        updateProductItemDto.numberOfDamaged - oldNumberOfDamged;
-      await this.productRepository.save(product);
-    }
-    if (updateProductItemDto.numberOfValid) {
-      const oldNumberOfValid = productItem.numberOfValid;
-      const product = await this.productRepository.findOne({
-        where: { id: updateProductItemDto.productId },
-      });
-      product.quantity += updateProductItemDto.numberOfValid - oldNumberOfValid;
-      await this.productRepository.save(product);
-    }
 
     if (updateProductItemDto.productId) {
       const product = await this.productRepository.findOne({

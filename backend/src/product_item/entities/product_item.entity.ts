@@ -37,6 +37,9 @@ export class ProductItem {
   name: string; // Name of the product item (e.g., variant name)
 
   @Column()
+  mainPhoto: string;
+
+  @Column()
   productId: number; // Foreign key for category
 
   @ManyToOne(() => Product)

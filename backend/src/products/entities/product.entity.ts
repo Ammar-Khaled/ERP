@@ -1,5 +1,3 @@
-// src/products/entities/product.entity.ts
-
 import {
   Column,
   Entity,
@@ -21,15 +19,6 @@ export class Product {
 
   @Column()
   name: string;
-
-  @Column()
-  type: string;
-
-  @Column()
-  quantity: number;
-
-  @Column()
-  mainPhoto: string;
 
   @Column()
   branchId: number;
