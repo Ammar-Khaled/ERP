@@ -11,15 +11,14 @@ import { Inventory } from '../../inventories/entities/inventory.entity';
 @Entity()
 export class ProductItemToInventory {
   @PrimaryGeneratedColumn()
-  id: number; // Primary key
+  id: number;
 
-  @Column('int')
+  @Column({ type: 'int', default: 0 })
   numberOfValid: number;
 
-  @Column('int')
-  numberOfDamaged: number = 0;
+  @Column({ type: 'int', default: 0 })
+  numberOfDamaged: number;
 
-  // Foreign key for ProductItem
   @Column()
   productItemId: number;
 
@@ -30,10 +29,9 @@ export class ProductItemToInventory {
       onDelete: 'CASCADE',
     },
   )
-  @JoinColumn({ name: 'productItemId' }) // Explicitly defining the foreign key column
+  @JoinColumn({ name: 'productItemId' })
   productItem: ProductItem;
 
-  // Foreign key for Inventory
   @Column()
   inventoryId: number;
 

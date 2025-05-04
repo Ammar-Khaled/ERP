@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   HttpException,
   HttpStatus,
@@ -7,12 +6,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ProductItem } from './entities/product_item.entity';
 import { Product } from '../products/entities/product.entity';
 import { CreateProductItemDto } from './dto/create-product_item.dto';
 import { UpdateProductItemDto } from './dto/update-product_item.dto';
-import { UpdateDamagedDto } from './dto/update-damaged.dto';
 import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Import the VariationOption entity
 import { Variation } from 'src/variation/entities/variation.entity'; // Import the Variation entity
 import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
@@ -20,7 +18,6 @@ import { Currency } from 'src/currency/entities/currency.entity';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Unit } from 'src/units/entities/unit.entity';
-import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
 
 @Injectable()
 export class ProductItemService {
@@ -39,7 +36,8 @@ export class ProductItemService {
     private unitRepository: Repository<Unit>,
     @Inject('CURRENCY_REPOSITORY')
     private currencyRepository: Repository<Currency>,
-    private productItemInventoryService: ProductItemInventoryService,
+    @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
+    private productItemInventoryRepository: Repository<ProductItemToInventory>,
   ) {}
 
   async create(createProductItemDto: CreateProductItemDto) {
@@ -129,20 +127,10 @@ export class ProductItemService {
             await transactionalEntityManager
               .getRepository(ProductItemToInventory)
               .insert({
-                numberOfValid: createProductItemDto.numberOfValid,
-                numberOfDamaged: createProductItemDto.numberOfDamaged || 0,
                 productItemId: newProductItem.id,
                 inventoryId: createProductItemDto.inventoryId,
               });
           }
-
-          // Update product quantity inside transaction
-          const totalNewQuantity =
-            (createProductItemDto.numberOfValid || 0) +
-            (createProductItemDto.numberOfDamaged || 0);
-
-          product.quantity += totalNewQuantity;
-          await transactionalEntityManager.save(product);
 
           return newProductItem;
         } catch (error) {
@@ -182,24 +170,6 @@ export class ProductItemService {
       { id },
       'Product item not found',
     );
-
-    if (updateProductItemDto.numberOfDamaged) {
-      const oldNumberOfDamged = productItem.numberOfDamaged;
-      const product = await this.productRepository.findOne({
-        where: { id: updateProductItemDto.productId },
-      });
-      product.quantity +=
-        updateProductItemDto.numberOfDamaged - oldNumberOfDamged;
-      await this.productRepository.save(product);
-    }
-    if (updateProductItemDto.numberOfValid) {
-      const oldNumberOfValid = productItem.numberOfValid;
-      const product = await this.productRepository.findOne({
-        where: { id: updateProductItemDto.productId },
-      });
-      product.quantity += updateProductItemDto.numberOfValid - oldNumberOfValid;
-      await this.productRepository.save(product);
-    }
 
     if (updateProductItemDto.productId) {
       const product = await this.productRepository.findOne({
@@ -299,46 +269,26 @@ export class ProductItemService {
     return productItem;
   }
 
-  async updateDamaged(updateDamagedDto: UpdateDamagedDto) {
-    const { productItemId, numberOfDamaged } = updateDamagedDto;
+  async getProductItemQuantity(productItemId: number) {
+    const productItemToInventories =
+      await this.productItemInventoryRepository.find({
+        where: { productItemId },
+      });
 
-    // Validate inputs
-    if (!productItemId || isNaN(productItemId)) {
-      throw new BadRequestException('Invalid productItemId.');
+    if (!productItemToInventories || productItemToInventories.length === 0) {
+      throw new NotFoundException('Product item not found in any inventory.');
     }
 
-    if (!numberOfDamaged || isNaN(numberOfDamaged)) {
-      throw new BadRequestException('Invalid numberOfDamaged.');
-    }
-
-    // Find the product item by ID
-    const productItem = await this.findProductItemByCondition(
-      { id: productItemId },
-      'Product item not found.',
+    const totalValid = productItemToInventories.reduce(
+      (total, item) => total + item.numberOfValid,
+      0,
     );
 
-    // Update the number_of_damaged
-    productItem.numberOfDamaged =
-      (productItem.numberOfDamaged || 0) + Number(numberOfDamaged);
+    const totalDamaged = productItemToInventories.reduce(
+      (total, item) => total + item.numberOfDamaged,
+      0,
+    );
 
-    try {
-      // Save the updated product item
-      const updatedProductItem =
-        await this.productItemRepository.save(productItem);
-      return updatedProductItem;
-    } catch (err) {
-      throw new HttpException(
-        err.message,
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async getDamaged() {
-    // Query all product items where number_of_damaged is greater than 0
-    const damagedItems = await this.productItemRepository.find({
-      where: { numberOfDamaged: MoreThan(0) }, // Filter by number_of_damaged > 0
-    });
-    return damagedItems;
+    return { productItemId, totalValid, totalDamaged };
   }
 }

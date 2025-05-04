@@ -166,13 +166,10 @@ export class OrderService {
         productItemInv,
       );
 
-      productItem.numberOfValid -= orderItem.numberOfItems;
-      await this.productItemService.update(productItem.id, productItem);
-
-      // calculate total price for one order item
+      // calculate the total price for one order item
       orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
 
-      // calculate total amount of the order
+      // calculate the total amount of the order
       _newOrder.totalAmount += orderItem.totalPrice;
 
       await this.orderItemRepo.save(orderItem);
@@ -285,8 +282,6 @@ export class OrderService {
               productItemInv.id,
               productItemInv,
             );
-            productItem.numberOfValid -= difference;
-            await this.productItemService.update(productItem.id, productItem);
           } else if (item.numberOfItems <= order.items[i].numberOfItems) {
             // in case of some items are returned
             const difference =
@@ -301,23 +296,21 @@ export class OrderService {
               productItemInv.id,
               productItemInv,
             );
-            productItem.numberOfValid += difference;
-            await this.productItemService.update(productItem.id, productItem);
           }
           flag = true;
           break;
         }
       }
       if (!flag) {
-        // Add new order item that doesn't exist in old items array of order
-        const orderItem = await this.orderItemRepo.create(item);
+        // Add a new order item that doesn't exist in old items an array of order
+        const orderItem = this.orderItemRepo.create(item);
         orderItem.productItem = productItem;
 
-        // make the price & name of same item equal in both of order_item and product_item
+        // make the price and name of the same item equal in both of order_item and product_item
         orderItem.unitPrice = productItem.price;
         orderItem.name = productItem.name;
 
-        // validating the amount of items in the order and stock
+        // validating the number of items in the order and stock
         if (orderItem.numberOfItems > productItemInv.numberOfValid) {
           throw new ConflictException(
             `There are NO enough items of ${productItem.name} in the stock`,
@@ -329,13 +322,11 @@ export class OrderService {
           productItemInv.id,
           productItemInv,
         );
-        productItem.numberOfValid -= orderItem.numberOfItems;
-        await this.productItemService.update(productItem.id, productItem);
 
-        // calculate total price for one order item
+        // calculate the total price for one order item
         orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
 
-        // calculate total amount of the order
+        // calculate the total amount of the order
         order.totalAmount += orderItem.totalPrice;
 
         await this.orderItemRepo.save(orderItem);
