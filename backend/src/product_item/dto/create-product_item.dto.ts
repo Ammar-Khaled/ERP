@@ -25,6 +25,13 @@ export class CreateProductItemDto {
   @IsString({ each: true })
   photos?: string[]; // Array of photo URLs or paths
 
+  @IsOptional()
+  @IsNumber()
+  numberOfValid: number; // Total items in stock for this product item
+
+  @IsOptional()
+  numberOfDamaged: number;
+
   @IsNotEmpty()
   @IsString()
   name: string; // Name of the product item

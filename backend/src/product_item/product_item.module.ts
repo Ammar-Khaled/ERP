@@ -11,7 +11,6 @@ import { currencyProviders } from 'src/currency/currency.providers';
 import { unitsProviders } from 'src/units/units.providers';
 import { categoriesProviders } from 'src/categories/categories.providers';
 import { ProductItemInventoryModule } from 'src/product_item_inventory/product_item_inventory.module';
-import { productItemInventoryProviders } from '../product_item_inventory/product_item_inventory.providers';
 
 @Module({
   imports: [DatabaseModule, ProductItemInventoryModule], // Include the DatabaseModule for DataSource injection
@@ -25,7 +24,6 @@ import { productItemInventoryProviders } from '../product_item_inventory/product
     ...productsProviders,
     ...variationsProviders,
     ...variationOptionsProviders,
-    ...productItemInventoryProviders,
     ProductItemService,
   ], // Add providers including related products
   exports: [ProductItemService], // Export ProductItemsService if other modules need it
