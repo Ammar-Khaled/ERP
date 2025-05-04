@@ -39,7 +39,7 @@ export class ProductItemInventoryService {
     // Check if the ProductItemInventory already exists
     const existingProductItemInventory =
       await this.productItemInventoryRepository.findOne({
-        where: { productItem, inventory },
+        where: { productItemId, inventoryId },
       });
 
     if (existingProductItemInventory) {
@@ -53,29 +53,26 @@ export class ProductItemInventoryService {
       return existingProductItemInventory;
     } else {
       // Create and save the new ProductItemInventory
-      const productItemInventory = this.productItemInventoryRepository.create({
-        ...createProductItemInventoryDto,
-        productItem,
-        inventory,
-      });
+      const productItemInventory = this.productItemInventoryRepository.create(
+        createProductItemInventoryDto,
+      );
       await this.productItemInventoryRepository.save(productItemInventory);
       return productItemInventory;
     }
   }
 
   async findAll() {
-    const productItemInventories =
-      await this.productItemInventoryRepository.find({
-        relations: ['productItem', 'inventory'], // Include related entities
-      });
-    return productItemInventories;
+    return await this.productItemInventoryRepository.find();
   }
 
   async findOne(id: number) {
-    const productItemInventory = await this.findProductItemInventoryByCondition(
-      { id },
-      'ProductItemInventory not found',
-    );
+    const productItemInventory =
+      await this.productItemInventoryRepository.findOneBy({ id });
+
+    if (!productItemInventory) {
+      throw new NotFoundException('ProductItem is not found in this inventory');
+    }
+
     return productItemInventory;
   }
 
@@ -84,10 +81,12 @@ export class ProductItemInventoryService {
     updateProductItemInventoryDto: UpdateProductItemInventoryDto,
   ) {
     // Retrieve the existing ProductItemInventory
-    const productItemInventory = await this.findProductItemInventoryByCondition(
-      { id },
-      'ProductItemInventory not found',
-    );
+    const productItemInventory =
+      await this.productItemInventoryRepository.findOneBy({ id });
+
+    if (!productItemInventory) {
+      throw new NotFoundException('ProductItem is not found in this inventory');
+    }
 
     const { productItemId, inventoryId, ...updates } =
       updateProductItemInventoryDto;
@@ -124,26 +123,14 @@ export class ProductItemInventoryService {
   }
 
   async remove(id: number) {
-    const productItemInventory = await this.findProductItemInventoryByCondition(
-      { id },
-      'ProductItemInventory not found',
-    );
-    await this.productItemInventoryRepository.delete({ id });
-    return productItemInventory;
-  }
-
-  private async findProductItemInventoryByCondition(
-    condition: object,
-    errorMessage: string,
-  ) {
     const productItemInventory =
-      await this.productItemInventoryRepository.findOne({
-        where: condition,
-        relations: ['productItem', 'inventory'], // Include related entities
-      });
+      await this.productItemInventoryRepository.findOneBy({ id });
+
     if (!productItemInventory) {
-      throw new NotFoundException(errorMessage);
+      throw new NotFoundException('ProductItemInventory not found');
     }
+
+    await this.productItemInventoryRepository.delete({ id });
     return productItemInventory;
   }
 }
