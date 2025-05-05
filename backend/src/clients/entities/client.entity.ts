@@ -25,10 +25,10 @@ export class Client {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  @Column()
+  @Column({ nullable: true })
   addressId: number;
 
-  @OneToOne(() => Address, { cascade: true, eager: false })
+  @OneToOne(() => Address, { cascade: true, eager: false, nullable: true })
   @JoinColumn()
   address: Address;
 }

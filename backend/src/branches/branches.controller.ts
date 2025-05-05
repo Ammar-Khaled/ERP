@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { Branch } from './entities/branch.entity';
+import { CreateBranchDto } from './dto/create-branch.dto';
 
 @Controller('branches')
 export class BranchesController {
@@ -17,8 +18,8 @@ export class BranchesController {
   }
 
   @Post()
-  create(@Body() branch: Branch) {
-    return this.branchesService.create(branch);
+  create(@Body() createBranchDto: CreateBranchDto) {
+    return this.branchesService.create(createBranchDto);
   }
 
   @Patch(':id')

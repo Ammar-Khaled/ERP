@@ -36,7 +36,7 @@ export class CreateOrderDto {
 
   @IsOptional()
   @IsNumber()
-  couponId: number;
+  couponId?: number;
 
   @IsNotEmpty()
   @IsNumber()

@@ -138,7 +138,7 @@ export class OrderService {
 
     const orderItems = [];
     for (const item of uniqueOrderItems) {
-      const orderItem = await this.orderItemRepo.create(item);
+      const orderItem = this.orderItemRepo.create(item);
       const productItem = await this.productItemRepo.findOneBy({
         id: item.productItemId,
       });
@@ -166,8 +166,8 @@ export class OrderService {
         productItemInv,
       );
 
-      productItem.numberOfValid -= orderItem.numberOfItems;
-      await this.productItemService.update(productItem.id, productItem);
+      // productItem.numberOfValid -= orderItem.numberOfItems;
+      // await this.productItemService.update(productItem.id, productItem);
 
       // calculate total price for one order item
       orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
@@ -285,8 +285,8 @@ export class OrderService {
               productItemInv.id,
               productItemInv,
             );
-            productItem.numberOfValid -= difference;
-            await this.productItemService.update(productItem.id, productItem);
+            // productItem.numberOfValid -= difference;
+            // await this.productItemService.update(productItem.id, productItem);
           } else if (item.numberOfItems <= order.items[i].numberOfItems) {
             // in case of some items are returned
             const difference =
@@ -301,8 +301,8 @@ export class OrderService {
               productItemInv.id,
               productItemInv,
             );
-            productItem.numberOfValid += difference;
-            await this.productItemService.update(productItem.id, productItem);
+            // productItem.numberOfValid += difference;
+            // await this.productItemService.update(productItem.id, productItem);
           }
           flag = true;
           break;
@@ -329,8 +329,8 @@ export class OrderService {
           productItemInv.id,
           productItemInv,
         );
-        productItem.numberOfValid -= orderItem.numberOfItems;
-        await this.productItemService.update(productItem.id, productItem);
+        // productItem.numberOfValid -= orderItem.numberOfItems;
+        // await this.productItemService.update(productItem.id, productItem);
 
         // calculate total price for one order item
         orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
@@ -361,9 +361,24 @@ export class OrderService {
 
   async remove(id: number) {
     const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
+    const inventoryId = order.inventoryId;
     for (const orderItem of order.items) {
       await this.orderItemRepo.softRemove(orderItem);
+
+      const pii = await this.productItemInventoryRepo.findOneBy({
+        inventoryId,
+        productItemId: orderItem.productItemId,
+      });
+      if (!pii) {
+        throw new NotFoundException(
+          `ProductItemInventory with inventoryId ${inventoryId} and productItemId ${orderItem.productItemId} not found`,
+        );
+      }
+
+      pii.numberOfValid += orderItem.numberOfItems;
+      await this.productItemInventoryService.update(pii.id, pii); // will also update the product item table
     }
+
     await this.orderRepo.softRemove(order);
     return order;
   }

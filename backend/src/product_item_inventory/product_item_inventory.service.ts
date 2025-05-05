@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ProductItemToInventory } from './entities/product_item_inventory.entity';
 import { ProductItem } from '../product_item/entities/product_item.entity';
@@ -43,20 +48,22 @@ export class ProductItemInventoryService {
       });
 
     if (existingProductItemInventory) {
-      existingProductItemInventory.numberOfDamaged +=
-        createProductItemInventoryDto.numberOfDamaged;
-      existingProductItemInventory.numberOfValid +=
-        createProductItemInventoryDto.numberOfValid;
-      await this.productItemInventoryRepository.save(
-        existingProductItemInventory,
+      throw new ConflictException(
+        'A record for this ProductItemInventory already exists, consider updating it instead.',
       );
-      return existingProductItemInventory;
     } else {
-      // Create and save the new ProductItemInventory
       const productItemInventory = this.productItemInventoryRepository.create(
         createProductItemInventoryDto,
       );
+
       await this.productItemInventoryRepository.save(productItemInventory);
+
+      productItem.numberOfValid +=
+        createProductItemInventoryDto.numberOfValid || 0;
+      productItem.numberOfDamaged +=
+        createProductItemInventoryDto.numberOfDamaged || 0;
+      await this.productItemRepository.save(productItem);
+
       return productItemInventory;
     }
   }
@@ -88,33 +95,29 @@ export class ProductItemInventoryService {
       throw new NotFoundException('ProductItem is not found in this inventory');
     }
 
-    const { productItemId, inventoryId, ...updates } =
-      updateProductItemInventoryDto;
-
-    // Validate and associate productItemId if provided
-    if (productItemId) {
-      const productItem = await this.productItemRepository.findOne({
-        where: { id: productItemId },
-      });
-      if (!productItem) {
-        throw new NotFoundException('Product item not found.');
-      }
-      productItemInventory.productItem = productItem;
+    const productItem = await this.productItemRepository.findOneBy({
+      id: productItemInventory.productItemId,
+    });
+    if (!productItem) {
+      throw new NotFoundException('Product item not found.');
     }
 
-    // Validate and associate inventoryId if provided
-    if (inventoryId) {
-      const inventory = await this.inventoryRepository.findOne({
-        where: { id: inventoryId },
-      });
-      if (!inventory) {
-        throw new NotFoundException('Inventory not found.');
-      }
-      productItemInventory.inventory = inventory;
+    if (updateProductItemInventoryDto.numberOfValid !== undefined) {
+      productItem.numberOfValid +=
+        updateProductItemInventoryDto.numberOfValid -
+        productItemInventory.numberOfValid;
     }
+
+    if (updateProductItemInventoryDto.numberOfDamaged !== undefined) {
+      productItem.numberOfDamaged +=
+        updateProductItemInventoryDto.numberOfDamaged -
+        productItemInventory.numberOfDamaged;
+    }
+
+    await this.productItemRepository.save(productItem);
 
     // Apply other updates
-    Object.assign(productItemInventory, updates);
+    Object.assign(productItemInventory, updateProductItemInventoryDto);
 
     // Save the updated entity
     await this.productItemInventoryRepository.save(productItemInventory);
@@ -129,6 +132,19 @@ export class ProductItemInventoryService {
     if (!productItemInventory) {
       throw new NotFoundException('ProductItemInventory not found');
     }
+
+    const productItem = await this.productItemRepository.findOneBy({
+      id: productItemInventory.productItemId,
+    });
+
+    if (!productItem) {
+      throw new NotFoundException('Product item not found.');
+    }
+
+    productItem.numberOfValid -= productItemInventory.numberOfValid;
+    productItem.numberOfDamaged -= productItemInventory.numberOfDamaged;
+
+    await this.productItemRepository.save(productItem);
 
     await this.productItemInventoryRepository.delete({ id });
     return productItemInventory;

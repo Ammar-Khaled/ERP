@@ -44,12 +44,13 @@ export class User {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  @Column()
+  @Column({ nullable: true })
   addressId: number;
 
   @OneToOne(() => Address, {
     eager: false,
     cascade: true,
+    nullable: true,
   })
   @JoinColumn({ name: 'addressId' })
   address: Address;

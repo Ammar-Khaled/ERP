@@ -15,7 +15,6 @@ import { UpdateProductItemDto } from './dto/update-product_item.dto';
 import { UpdateDamagedDto } from './dto/update-damaged.dto';
 import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Import the VariationOption entity
 import { Variation } from 'src/variation/entities/variation.entity'; // Import the Variation entity
-import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { Category } from 'src/categories/entities/category.entity';
@@ -124,18 +123,6 @@ export class ProductItemService {
           const newProductItem =
             await transactionalEntityManager.save(productItem);
 
-          // Add inventory record if needed
-          if (createProductItemDto.inventoryId) {
-            await transactionalEntityManager
-              .getRepository(ProductItemToInventory)
-              .insert({
-                numberOfValid: createProductItemDto.numberOfValid,
-                numberOfDamaged: createProductItemDto.numberOfDamaged || 0,
-                productItemId: newProductItem.id,
-                inventoryId: createProductItemDto.inventoryId,
-              });
-          }
-
           return newProductItem;
         } catch (error) {
           if (error.code === '23505' || error.code === 'ER_DUP_ENTRY') {
@@ -159,9 +146,6 @@ export class ProductItemService {
     const productItems = await this.productItemRepository.find({
       relations: ['variationOptions', 'variationOptions.variation', 'product'], // Include the variation relation
     });
-    if (!productItems || productItems.length === 0) {
-      throw new NotFoundException('No product items found.');
-    }
 
     productItems.forEach((productItem) => {
       delete productItem.product.id;

@@ -1,19 +1,19 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateProductItemInventoryDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
-  numberOfValid: number; // Number of items in inventory
+  numberOfValid: number;
+
+  @IsOptional()
+  @IsNumber()
+  numberOfDamaged: number;
 
   @IsNotEmpty()
   @IsNumber()
-  numberOfDamaged: number; // Number of damaged items
+  productItemId: number;
 
   @IsNotEmpty()
   @IsNumber()
-  productItemId: number; // Foreign key for ProductItem
-
-  @IsNotEmpty()
-  @IsNumber()
-  inventoryId: number; // Foreign key for Inventory
+  inventoryId: number;
 }

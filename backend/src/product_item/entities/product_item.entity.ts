@@ -28,16 +28,16 @@ export class ProductItem {
   @Column('decimal', { precision: 10, scale: 2 })
   price: number; // Selling price of the product item
 
-  @Column('int')
+  @Column({ type: 'int', default: 0 })
   numberOfValid: number; // Total quantity of this product item in stock
 
-  @Column('int')
-  numberOfDamaged: number = 0; // Number of damaged items in stock
+  @Column({ type: 'int', default: 0 })
+  numberOfDamaged: number; // Number of damaged items in stock
 
   @Column()
   name: string; // Name of the product item (e.g., variant name)
 
-  @Column()
+  @Column({ default: null })
   mainPhoto: string;
 
   @DeleteDateColumn()

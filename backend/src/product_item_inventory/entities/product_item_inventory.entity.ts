@@ -3,6 +3,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  PrimaryColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ProductItem } from '../../product_item/entities/product_item.entity';
@@ -19,7 +20,7 @@ export class ProductItemToInventory {
   @Column({ type: 'int', default: 0 })
   numberOfDamaged: number;
 
-  @Column()
+  @PrimaryColumn()
   productItemId: number;
 
   @ManyToOne(
@@ -32,7 +33,7 @@ export class ProductItemToInventory {
   @JoinColumn({ name: 'productItemId' })
   productItem: ProductItem;
 
-  @Column()
+  @PrimaryColumn()
   inventoryId: number;
 
   @ManyToOne(

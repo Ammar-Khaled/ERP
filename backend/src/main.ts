@@ -27,6 +27,7 @@ async function bootstrap() {
           message: validationMessages.join(', '),
         });
       },
+      whitelist: true,
     }),
   );
   app.useGlobalFilters(new GlobalExceptionFilter());
