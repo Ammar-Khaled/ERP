@@ -154,10 +154,23 @@ export class ProductItemService {
   }
 
   async findAll() {
+    const returnedProductItems = [];
+
     const productItems = await this.productItemRepository.find({
-      relations: ['variationOptions', 'variationOptions.variation'], // Include the variation relation
+      relations: ['variationOptions', 'variationOptions.variation', 'product'], // Include the variation relation
     });
-    return productItems;
+    if (!productItems || productItems.length === 0) {
+      throw new NotFoundException('No product items found.');
+    }
+
+    productItems.forEach((productItem) => {
+      delete productItem.product.id;
+      const productDate = productItem.product;
+      delete productItem.product;
+      returnedProductItems.push({ ...productItem, ...productDate });
+    });
+
+    return returnedProductItems;
   }
 
   async findOne(id: number) {
@@ -165,7 +178,10 @@ export class ProductItemService {
       { id },
       'Product item not found',
     );
-    return productItem;
+    delete productItem.product.id;
+    const productDate = productItem.product;
+    delete productItem.product;
+    return { ...productItem, ...productDate };
   }
 
   async update(id: number, updateProductItemDto: UpdateProductItemDto) {
@@ -255,7 +271,7 @@ export class ProductItemService {
       { id },
       'Product item not found',
     );
-    await this.productItemRepository.delete({ id });
+    await this.productItemRepository.softDelete({ id });
     return productItem;
   }
 
@@ -265,7 +281,7 @@ export class ProductItemService {
   ) {
     const productItem = await this.productItemRepository.findOne({
       where: condition,
-      relations: ['variationOptions', 'variationOptions.variation'], //
+      relations: ['variationOptions', 'variationOptions.variation', 'product'], //
     });
     if (!productItem) {
       throw new NotFoundException(errorMessage);

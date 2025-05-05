@@ -103,11 +103,11 @@ export class ProductsService {
 
   async findAll() {
     const products = await this.productRepository.find({
-      relations: [
-        'productItems',
-        'productItems.variationOptions',
-        'productItems.variationOptions.variation',
-      ], // Include branch and category relations
+      relations: ['productItems'], // Include branch and category relations
+    });
+    products.forEach((product) => {
+      product.productItemIds = product.productItems?.map((item) => item.id);
+      delete product.productItems;
     });
     return products;
   }
@@ -187,7 +187,7 @@ export class ProductsService {
       { id },
       'Product not found',
     );
-    await this.productRepository.delete({ id });
+    await this.productRepository.softDelete({ id });
     return product;
   }
 
@@ -197,11 +197,7 @@ export class ProductsService {
   ) {
     const product = await this.productRepository.findOne({
       where: condition,
-      relations: [
-        'productItems',
-        'productItems.variationOptions',
-        'productItems.variationOptions.variation',
-      ], // Include relations for completeness
+      relations: ['productItems'], // Include relations for completeness
     });
     if (!product) {
       throw new NotFoundException(errorMessage);

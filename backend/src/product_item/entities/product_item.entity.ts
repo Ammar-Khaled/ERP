@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   JoinTable,
@@ -38,6 +39,9 @@ export class ProductItem {
 
   @Column()
   mainPhoto: string;
+
+  @DeleteDateColumn()
+  deletedAt: Date;
 
   @Column()
   productId: number; // Foreign key for category
