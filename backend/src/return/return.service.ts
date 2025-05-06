@@ -18,6 +18,7 @@ import { Status } from 'src/status/entities/status.entity';
 import { ProductItem } from 'src/product_item/entities/product_item.entity';
 import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
+import { UpdateProductItemInventoryDto } from 'src/product_item_inventory/dto/update-product_item_inventory.dto';
 
 @Injectable()
 export class ReturnService {
@@ -103,8 +104,8 @@ export class ReturnService {
       const orderItem = await this.orderItemRepository.findOneBy({
         id: itemDto.orderItemId,
       });
-      //# Add `returned` attribute to `orderItem` for multiple returns
-      if (itemDto.numberOfItems > orderItem.numberOfItems) {
+
+      if (itemDto.numberOfItems > orderItem.numberOfItems - orderItem.numberOfReturned) {
         throw new ConflictException({
           message: `The number of items to return is greater than the number of items in the order!`,
         });
@@ -114,14 +115,21 @@ export class ReturnService {
         productItemId: orderItem.productItemId,
         inventoryId: order.inventoryId,
       });
+      console.log("Inside for loop: ", productItemInv); // debug
       productItemInv.numberOfValid += itemDto.numberOfItems; // inventory quantity
+      console.log("Item DTO = ", itemDto); // debug
+      console.log("Inside for loop: ", productItemInv); // debug
 
       productItemsInvBuffer.push(productItemInv);
     }
 
     // Save the product items 
+    console.log(productItemsInvBuffer); // debug
     for (const productItemInv of productItemsInvBuffer) {
-      await this.productItemInvService.update(productItemInv.id, productItemInv);
+      let updateDto = new UpdateProductItemInventoryDto();
+      updateDto.numberOfValid = productItemInv.numberOfValid;
+      console.log("Update DTO=", updateDto); // debug
+      await this.productItemInvService.update(productItemInv.id, updateDto);
     }
 
     const returnItems: ReturnItem[] = [];
@@ -150,9 +158,9 @@ export class ReturnService {
   }
 
   async findOne(id: number, relations: string[] = []) {
-    const returnObj = await this.returnRepository.findOne({ 
-      where: {id},
-      relations: relations, 
+    const returnObj = await this.returnRepository.findOne({
+      where: { id },
+      relations: relations,
     });
     if (!returnObj) {
       throw new NotFoundException({
@@ -182,7 +190,7 @@ export class ReturnService {
       // Ensure that the return items are unique based on the order item id
       const uniqueReturnItemDtos = this.uniqueDtos(returnItemDtos);
 
-      // Update the product items (inventory and total) and the return items
+      // Update the product items and the return items
       // Note: Store the data in temp lists before saving to achieve atomicity
       const productItemsInvBuffer: ProductItemToInventory[] = [];
       const returnItemsToUpdate: ReturnItem[] = [];
@@ -194,9 +202,9 @@ export class ReturnService {
 
         if (existingItem) {
           // Found? => just update the quantity of both the product item and the return item
-          
+
           // Validate the number of returned items
-          if (itemDto.numberOfItems > existingItem.orderItem.numberOfItems) {
+          if (itemDto.numberOfItems - existingItem.numberOfItems > existingItem.orderItem.numberOfItems - existingItem.orderItem.numberOfReturned) {
             throw new ConflictException({
               message: `The number of items to return is greater than the number of items in the order of the ID (${itemDto.orderItemId})!`,
             });
@@ -204,7 +212,7 @@ export class ReturnService {
           const difference = itemDto.numberOfItems - existingItem.numberOfItems;
 
           // update the product item quantity
-          const productItemInv = await this.productItemInvRepository.findOneBy({ 
+          const productItemInv = await this.productItemInvRepository.findOneBy({
             productItemId: existingItem.orderItem.productItemId,
             inventoryId: returnObj.order.inventoryId,
           });
@@ -241,7 +249,9 @@ export class ReturnService {
 
       // Save the temp lists
       for (const productItemInv of productItemsInvBuffer) {
-        await this.productItemInvService.update(productItemInv.id, productItemInv);
+        const updateDto = new UpdateProductItemInventoryDto();
+        updateDto.numberOfValid = productItemInv.numberOfValid;
+        await this.productItemInvService.update(productItemInv.id, updateDto);
       }
       for (const returnItem of returnItemsToUpdate) {
         await this.returnItemService.update(returnItem.id, returnItem);
@@ -293,7 +303,10 @@ export class ReturnService {
           inventoryId: returnObj.order.inventoryId,
         });
         productItemInv.numberOfValid -= returnItem.numberOfItems;
-        await this.productItemInvService.update(productItemInv.id, productItemInv);
+
+        const updateDto = new UpdateProductItemInventoryDto();
+        updateDto.numberOfValid = productItemInv.numberOfValid;
+        await this.productItemInvService.update(productItemInv.id, updateDto);
 
         // then remove it
         await this.returnItemService.remove(returnItem.id);

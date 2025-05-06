@@ -87,6 +87,8 @@ export class ProductItemInventoryService {
     id: number,
     updateProductItemInventoryDto: UpdateProductItemInventoryDto,
   ) {
+    console.log(updateProductItemInventoryDto); // debug
+    
     // Retrieve the existing ProductItemInventory
     const productItemInventory =
       await this.productItemInventoryRepository.findOneBy({ id });
