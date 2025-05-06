@@ -1,6 +1,11 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateProductItemInventoryDto } from './create-product_item_inventory.dto';
+import { IsNumber, IsOptional } from 'class-validator';
 
-export class UpdateProductItemInventoryDto extends PartialType(
-  CreateProductItemInventoryDto,
-) {}
+export class UpdateProductItemInventoryDto {
+  @IsOptional()
+  @IsNumber()
+  numberOfValid?: number;
+
+  @IsOptional()
+  @IsNumber()
+  numberOfDamaged?: number;
+}

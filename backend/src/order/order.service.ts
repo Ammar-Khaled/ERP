@@ -22,6 +22,7 @@ import { CreateOrderItemDto } from 'src/order/dto/create-order_item.dto';
 import { Status } from 'src/status/entities/status.entity';
 import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
+import { Inventory } from 'src/inventories/entities/inventory.entity';
 
 @Injectable()
 export class OrderService {
@@ -46,6 +47,9 @@ export class OrderService {
     private statusRepo: Repository<Status>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
     private productItemInventoryRepo: Repository<ProductItemToInventory>,
+    @Inject('INVENTORY_REPOSITORY')
+    private inventoryRepo: Repository<Inventory>,
+
     private readonly productItemService: ProductItemService,
     private readonly productItemInventoryService: ProductItemInventoryService,
   ) {}
@@ -53,6 +57,15 @@ export class OrderService {
   async create(createOrderDto: CreateOrderDto) {
     const _newOrder = new Order();
     _newOrder.date = createOrderDto.date || new Date();
+
+    // Verify the existence of the inventory
+    const inventory = await this.inventoryRepo.findOne({
+      where: { id: createOrderDto.inventoryId },
+    });
+    if (!inventory) {
+      throw new NotFoundException('There is NO inventory with that id !!');
+    }
+    _newOrder.inventory = inventory;
 
     // Verify the existence of the branch
     const branch = await this.branchRepo.findOne({
@@ -125,7 +138,7 @@ export class OrderService {
 
     const orderItems = [];
     for (const item of uniqueOrderItems) {
-      const orderItem = await this.orderItemRepo.create(item);
+      const orderItem = this.orderItemRepo.create(item);
       const productItem = await this.productItemRepo.findOneBy({
         id: item.productItemId,
       });
@@ -153,8 +166,8 @@ export class OrderService {
         productItemInv,
       );
 
-      productItem.numberOfValid -= orderItem.numberOfItems;
-      await this.productItemService.update(productItem.id, productItem);
+      // productItem.numberOfValid -= orderItem.numberOfItems;
+      // await this.productItemService.update(productItem.id, productItem);
 
       // calculate total price for one order item
       orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
@@ -179,8 +192,28 @@ export class OrderService {
     return await this.orderRepo.find({ relations: ['items'] });
   }
 
-  async findOne(id: number) {
-    return await this.findOrderByCondition({ id }, 'Order Not Found !');
+  async findOne(id: number, withRelations: boolean = false) {
+    let order = null;
+    if (withRelations) {
+      order = await this.orderRepo.findOne({
+        where: { id },
+        relations: [
+          'branch',
+          'inventory',
+          'user',
+          'client',
+          'status',
+          'coupon',
+          'currency',
+          'items',
+          'returns',
+        ],
+      });
+    } else {
+      order = await this.orderRepo.findOneBy({ id });
+    }
+
+    return order;
   }
 
   async update(id: number, updateOrderDto: UpdateOrderDto) {
@@ -252,8 +285,8 @@ export class OrderService {
               productItemInv.id,
               productItemInv,
             );
-            productItem.numberOfValid -= difference;
-            await this.productItemService.update(productItem.id, productItem);
+            // productItem.numberOfValid -= difference;
+            // await this.productItemService.update(productItem.id, productItem);
           } else if (item.numberOfItems <= order.items[i].numberOfItems) {
             // in case of some items are returned
             const difference =
@@ -268,8 +301,8 @@ export class OrderService {
               productItemInv.id,
               productItemInv,
             );
-            productItem.numberOfValid += difference;
-            await this.productItemService.update(productItem.id, productItem);
+            // productItem.numberOfValid += difference;
+            // await this.productItemService.update(productItem.id, productItem);
           }
           flag = true;
           break;
@@ -296,8 +329,8 @@ export class OrderService {
           productItemInv.id,
           productItemInv,
         );
-        productItem.numberOfValid -= orderItem.numberOfItems;
-        await this.productItemService.update(productItem.id, productItem);
+        // productItem.numberOfValid -= orderItem.numberOfItems;
+        // await this.productItemService.update(productItem.id, productItem);
 
         // calculate total price for one order item
         orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
@@ -328,9 +361,24 @@ export class OrderService {
 
   async remove(id: number) {
     const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
+    const inventoryId = order.inventoryId;
     for (const orderItem of order.items) {
       await this.orderItemRepo.softRemove(orderItem);
+
+      const pii = await this.productItemInventoryRepo.findOneBy({
+        inventoryId,
+        productItemId: orderItem.productItemId,
+      });
+      if (!pii) {
+        throw new NotFoundException(
+          `ProductItemInventory with inventoryId ${inventoryId} and productItemId ${orderItem.productItemId} not found`,
+        );
+      }
+
+      pii.numberOfValid += orderItem.numberOfItems;
+      await this.productItemInventoryService.update(pii.id, pii); // will also update the product item table
     }
+
     await this.orderRepo.softRemove(order);
     return order;
   }

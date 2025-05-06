@@ -75,19 +75,22 @@ export class ProductsService {
 
       // Create each ProductItem
       const productItems = [];
-      for (const itemDto of createProductDto.productItems) {
-        const modifiedItemDto = {
-          ...itemDto,
-          product_id: newProduct.id, // Set the correct productId
-        };
 
-        // Create ProductItem via ProductItemService
-        const result = await this.productItemService.create(modifiedItemDto);
-        productItems.push(result);
+      if (createProductDto.productItems) {
+        for (const itemDto of createProductDto.productItems) {
+          const modifiedItemDto = {
+            ...itemDto,
+            product_id: newProduct.id, // Set the correct productId
+          };
+
+          // Create ProductItem via ProductItemService
+          const result = await this.productItemService.create(modifiedItemDto);
+          productItems.push(result);
+        }
+
+        // Assign the created product items to the response
+        newProduct.productItems = productItems;
       }
-
-      // Assign the created product items to the response
-      newProduct.productItems = productItems;
 
       return newProduct;
     } catch (err) {
@@ -100,11 +103,11 @@ export class ProductsService {
 
   async findAll() {
     const products = await this.productRepository.find({
-      relations: [
-        'productItems',
-        'productItems.variationOptions',
-        'productItems.variationOptions.variation',
-      ], // Include branch and category relations
+      relations: ['productItems'], // Include branch and category relations
+    });
+    products.forEach((product) => {
+      product.productItemIds = product.productItems?.map((item) => item.id);
+      delete product.productItems;
     });
     return products;
   }
@@ -184,7 +187,7 @@ export class ProductsService {
       { id },
       'Product not found',
     );
-    await this.productRepository.delete({ id });
+    await this.productRepository.softDelete({ id });
     return product;
   }
 
@@ -194,11 +197,7 @@ export class ProductsService {
   ) {
     const product = await this.productRepository.findOne({
       where: condition,
-      relations: [
-        'productItems',
-        'productItems.variationOptions',
-        'productItems.variationOptions.variation',
-      ], // Include relations for completeness
+      relations: ['productItems'], // Include relations for completeness
     });
     if (!product) {
       throw new NotFoundException(errorMessage);

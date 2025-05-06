@@ -49,7 +49,9 @@ export class BranchesService {
   }
 
   async create(createBranchDto: CreateBranchDto) {
+    console.log(createBranchDto);
     const branch = this.branchRepository.create(createBranchDto);
+    console.log(branch);
     return await this.branchRepository.save(branch);
   }
 

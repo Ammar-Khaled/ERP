@@ -1,15 +1,132 @@
-<!-- invoice.hbs -->
 <!DOCTYPE html>
 <html>
-
 <head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+        .info-table th { background-color: #f8f9fa; text-align: left; padding: 10px; border: 1px solid #dee2e6; }
+        .info-table td { padding: 10px; border: 1px solid #dee2e6; }
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+        .items-table th { background-color: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; }
+        .items-table td { padding: 10px; border: 1px solid #dee2e6; }
+        .totals { margin-top: 20px; text-align: right; }
+        .footer { margin-top: 40px; padding-top: 15px; border-top: 2px solid #eee; font-size: 0.9em; color: #6c757d; }
+        .highlight { background-color: #fff8e1; }
+        .text-right { text-align: right; }
+    </style>
 </head>
-
 <body>
-<div>
-    <h1>TEST TEMPLATE</h1>
-</div>
+    <div class="header">
+        <h1>Order #{{id}}</h1>
+        <p>Date: {{formatDate date}}</p>
+    </div>
 
+    <table class="info-table">
+        <tr>
+            <th width="20%">Branch</th>
+            <td width="30%">{{branch.name}}</td>
+            <th width="20%">Inventory</th>
+            <td width="30%">{{inventory.name}}</td>
+        </tr>
+        <tr>
+            <th>Ordered By</th>
+            <td>{{user.name}} ({{user.email}})</td>
+            <th>Client</th>
+            <td>{{client.name}} ({{client.email}})</td>
+        </tr>
+        <tr>
+            <th>Status</th>
+            <td>{{status.name}}</td>
+            <th>Currency</th>
+            <td>{{currency.name}} ({{currency.symbol}})</td>
+        </tr>
+        {{#if coupon}}
+        <tr class="highlight">
+            <th>Coupon Applied</th>
+            <td>{{coupon.code}} ({{coupon.discountPercentage}}% discount)</td>
+            <th>Valid Until</th>
+            <td>{{formatDate coupon.endDate}}</td>
+        </tr>
+        {{/if}}
+    </table>
+
+    <h3>Order Items</h3>
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th class="text-right">Quantity</th>
+                <th class="text-right">Unit Price</th>
+                <th class="text-right">Total Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each items}}
+            <tr>
+                <td>{{this.name}}</td>
+                <td class="text-right">{{this.numberOfItems}}</td>
+                <td class="text-right">{{formatCurrency this.unitPrice ../currency.symbol}}</td>
+                <td class="text-right">{{formatCurrency this.totalPrice ../currency.symbol}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <h3>Order Summary</h3>
+        <table style="width: 300px; margin-left: auto;">
+            <tr>
+                <th>Subtotal:</th>
+                <td class="text-right">{{formatCurrency totalAmount currency.symbol}}</td>
+            </tr>
+            {{#if coupon}}
+            <tr>
+                <th>Discount ({{coupon.discountPercentage}}%):</th>
+                <td class="text-right">-{{formatCurrency (multiply totalAmount (divide coupon.discountPercentage 100)) currency.symbol}}</td>
+            </tr>
+            {{/if}}
+            <tr style="font-weight: bold; border-top: 1px solid #333;">
+                <th>Grand Total:</th>
+                <td class="text-right">
+                    {{#if coupon}}
+                        {{formatCurrency (subtract totalAmount (multiply totalAmount (divide coupon.discountPercentage 100))) currency.symbol}}
+                    {{else}}
+                        {{formatCurrency totalAmount currency.symbol}}
+                    {{/if}}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {{#if returns.length}}
+    <h3>Returns</h3>
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Return ID</th>
+                <th>Date</th>
+                <th>Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each returns}}
+            <tr>
+                <td>{{this.id}}</td>
+                <td>{{this.date}}</td>
+                <td>{{this.reason}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+    {{/if}}
+
+    <div class="footer">
+        <p>Generated on {{formatDate now}} | Order ID: {{id}}</p>
+        {{#if deletedAt}}
+        <p style="color: #dc3545;">CANCELLED - Deleted on {{formatDate deletedAt}}</p>
+        {{/if}}
+    </div>
 </body>
-
 </html>

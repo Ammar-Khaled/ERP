@@ -34,17 +34,27 @@ export class InventoriesService {
   }
 
   async findAll() {
+    const returnedInventories = [];
+
     const inventories = await this.inventoryRepository.find({
       relations: ['productItemToInventories'],
     });
     for (let i = 0; i < inventories.length; i++) {
+      let numberOfValid = 0;
+      let numberOfDamaged = 0;
       const piis = inventories[i].productItemToInventories;
       for (const pii of piis) {
-        inventories[i].numberOfValid += pii.numberOfValid;
-        inventories[i].numberOfDamaged += pii.numberOfDamaged;
+        numberOfValid += pii.numberOfValid;
+        numberOfDamaged += pii.numberOfDamaged;
       }
+      returnedInventories.push({
+        ...inventories[i],
+        numberOfValid,
+        numberOfDamaged,
+      });
     }
-    return inventories;
+
+    return returnedInventories;
   }
 
   async findOne(id: number) {
@@ -56,12 +66,14 @@ export class InventoriesService {
       throw new NotFoundException('Inventory not found with id: ' + id);
     }
 
+    let numberOfValid = 0;
+    let numberOfDamaged = 0;
     for (const pii of inventory.productItemToInventories) {
-      inventory.numberOfValid += pii.numberOfValid;
-      inventory.numberOfDamaged += pii.numberOfDamaged;
+      numberOfValid += pii.numberOfValid;
+      numberOfDamaged += pii.numberOfDamaged;
     }
 
-    return inventory;
+    return { ...inventory, numberOfValid, numberOfDamaged };
   }
 
   async update(id: number, updateInventoryDto: UpdateInventoryDto) {

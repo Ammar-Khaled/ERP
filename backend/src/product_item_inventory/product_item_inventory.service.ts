@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { ProductItemToInventory } from './entities/product_item_inventory.entity';
 import { ProductItem } from '../product_item/entities/product_item.entity';
@@ -39,43 +44,42 @@ export class ProductItemInventoryService {
     // Check if the ProductItemInventory already exists
     const existingProductItemInventory =
       await this.productItemInventoryRepository.findOne({
-        where: { productItem, inventory },
+        where: { productItemId, inventoryId },
       });
 
     if (existingProductItemInventory) {
-      existingProductItemInventory.numberOfDamaged +=
-        createProductItemInventoryDto.numberOfDamaged;
-      existingProductItemInventory.numberOfValid +=
-        createProductItemInventoryDto.numberOfValid;
-      await this.productItemInventoryRepository.save(
-        existingProductItemInventory,
+      throw new ConflictException(
+        'A record for this ProductItemInventory already exists, consider updating it instead.',
       );
-      return existingProductItemInventory;
     } else {
-      // Create and save the new ProductItemInventory
-      const productItemInventory = this.productItemInventoryRepository.create({
-        ...createProductItemInventoryDto,
-        productItem,
-        inventory,
-      });
+      const productItemInventory = this.productItemInventoryRepository.create(
+        createProductItemInventoryDto,
+      );
+
       await this.productItemInventoryRepository.save(productItemInventory);
+
+      productItem.numberOfValid +=
+        createProductItemInventoryDto.numberOfValid || 0;
+      productItem.numberOfDamaged +=
+        createProductItemInventoryDto.numberOfDamaged || 0;
+      await this.productItemRepository.save(productItem);
+
       return productItemInventory;
     }
   }
 
   async findAll() {
-    const productItemInventories =
-      await this.productItemInventoryRepository.find({
-        relations: ['productItem', 'inventory'], // Include related entities
-      });
-    return productItemInventories;
+    return await this.productItemInventoryRepository.find();
   }
 
   async findOne(id: number) {
-    const productItemInventory = await this.findProductItemInventoryByCondition(
-      { id },
-      'ProductItemInventory not found',
-    );
+    const productItemInventory =
+      await this.productItemInventoryRepository.findOneBy({ id });
+
+    if (!productItemInventory) {
+      throw new NotFoundException('ProductItem is not found in this inventory');
+    }
+
     return productItemInventory;
   }
 
@@ -84,38 +88,36 @@ export class ProductItemInventoryService {
     updateProductItemInventoryDto: UpdateProductItemInventoryDto,
   ) {
     // Retrieve the existing ProductItemInventory
-    const productItemInventory = await this.findProductItemInventoryByCondition(
-      { id },
-      'ProductItemInventory not found',
-    );
+    const productItemInventory =
+      await this.productItemInventoryRepository.findOneBy({ id });
 
-    const { productItemId, inventoryId, ...updates } =
-      updateProductItemInventoryDto;
-
-    // Validate and associate productItemId if provided
-    if (productItemId) {
-      const productItem = await this.productItemRepository.findOne({
-        where: { id: productItemId },
-      });
-      if (!productItem) {
-        throw new NotFoundException('Product item not found.');
-      }
-      productItemInventory.productItem = productItem;
+    if (!productItemInventory) {
+      throw new NotFoundException('ProductItem is not found in this inventory');
     }
 
-    // Validate and associate inventoryId if provided
-    if (inventoryId) {
-      const inventory = await this.inventoryRepository.findOne({
-        where: { id: inventoryId },
-      });
-      if (!inventory) {
-        throw new NotFoundException('Inventory not found.');
-      }
-      productItemInventory.inventory = inventory;
+    const productItem = await this.productItemRepository.findOneBy({
+      id: productItemInventory.productItemId,
+    });
+    if (!productItem) {
+      throw new NotFoundException('Product item not found.');
     }
+
+    if (updateProductItemInventoryDto.numberOfValid !== undefined) {
+      productItem.numberOfValid +=
+        updateProductItemInventoryDto.numberOfValid -
+        productItemInventory.numberOfValid;
+    }
+
+    if (updateProductItemInventoryDto.numberOfDamaged !== undefined) {
+      productItem.numberOfDamaged +=
+        updateProductItemInventoryDto.numberOfDamaged -
+        productItemInventory.numberOfDamaged;
+    }
+
+    await this.productItemRepository.save(productItem);
 
     // Apply other updates
-    Object.assign(productItemInventory, updates);
+    Object.assign(productItemInventory, updateProductItemInventoryDto);
 
     // Save the updated entity
     await this.productItemInventoryRepository.save(productItemInventory);
@@ -124,26 +126,27 @@ export class ProductItemInventoryService {
   }
 
   async remove(id: number) {
-    const productItemInventory = await this.findProductItemInventoryByCondition(
-      { id },
-      'ProductItemInventory not found',
-    );
-    await this.productItemInventoryRepository.delete({ id });
-    return productItemInventory;
-  }
-
-  private async findProductItemInventoryByCondition(
-    condition: object,
-    errorMessage: string,
-  ) {
     const productItemInventory =
-      await this.productItemInventoryRepository.findOne({
-        where: condition,
-        relations: ['productItem', 'inventory'], // Include related entities
-      });
+      await this.productItemInventoryRepository.findOneBy({ id });
+
     if (!productItemInventory) {
-      throw new NotFoundException(errorMessage);
+      throw new NotFoundException('ProductItemInventory not found');
     }
+
+    const productItem = await this.productItemRepository.findOneBy({
+      id: productItemInventory.productItemId,
+    });
+
+    if (!productItem) {
+      throw new NotFoundException('Product item not found.');
+    }
+
+    productItem.numberOfValid -= productItemInventory.numberOfValid;
+    productItem.numberOfDamaged -= productItemInventory.numberOfDamaged;
+
+    await this.productItemRepository.save(productItem);
+
+    await this.productItemInventoryRepository.delete({ id });
     return productItemInventory;
   }
 }

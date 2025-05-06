@@ -26,16 +26,13 @@ export class Inventory {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  numberOfValid: number = 0;
-
-  numberOfDamaged: number = 0;
-
-  @Column()
+  @Column({ nullable: true })
   addressId: number;
 
   @OneToOne(() => Address, {
     eager: false,
     cascade: true,
+    nullable: true,
   })
   @JoinColumn({ name: 'addressId' })
   address: Address;

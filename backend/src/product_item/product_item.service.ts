@@ -15,7 +15,6 @@ import { UpdateProductItemDto } from './dto/update-product_item.dto';
 import { UpdateDamagedDto } from './dto/update-damaged.dto';
 import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Import the VariationOption entity
 import { Variation } from 'src/variation/entities/variation.entity'; // Import the Variation entity
-import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { Branch } from 'src/branches/entities/branch.entity';
 import { Category } from 'src/categories/entities/category.entity';
@@ -124,26 +123,6 @@ export class ProductItemService {
           const newProductItem =
             await transactionalEntityManager.save(productItem);
 
-          // Add inventory record if needed
-          if (createProductItemDto.inventoryId) {
-            await transactionalEntityManager
-              .getRepository(ProductItemToInventory)
-              .insert({
-                numberOfValid: createProductItemDto.numberOfValid,
-                numberOfDamaged: createProductItemDto.numberOfDamaged || 0,
-                productItemId: newProductItem.id,
-                inventoryId: createProductItemDto.inventoryId,
-              });
-          }
-
-          // Update product quantity inside transaction
-          const totalNewQuantity =
-            (createProductItemDto.numberOfValid || 0) +
-            (createProductItemDto.numberOfDamaged || 0);
-
-          product.quantity += totalNewQuantity;
-          await transactionalEntityManager.save(product);
-
           return newProductItem;
         } catch (error) {
           if (error.code === '23505' || error.code === 'ER_DUP_ENTRY') {
@@ -162,10 +141,20 @@ export class ProductItemService {
   }
 
   async findAll() {
+    const returnedProductItems = [];
+
     const productItems = await this.productItemRepository.find({
-      relations: ['variationOptions', 'variationOptions.variation'], // Include the variation relation
+      relations: ['variationOptions', 'variationOptions.variation', 'product'], // Include the variation relation
     });
-    return productItems;
+
+    productItems.forEach((productItem) => {
+      delete productItem.product.id;
+      const productDate = productItem.product;
+      delete productItem.product;
+      returnedProductItems.push({ ...productItem, ...productDate });
+    });
+
+    return returnedProductItems;
   }
 
   async findOne(id: number) {
@@ -173,7 +162,10 @@ export class ProductItemService {
       { id },
       'Product item not found',
     );
-    return productItem;
+    delete productItem.product.id;
+    const productDate = productItem.product;
+    delete productItem.product;
+    return { ...productItem, ...productDate };
   }
 
   async update(id: number, updateProductItemDto: UpdateProductItemDto) {
@@ -182,24 +174,6 @@ export class ProductItemService {
       { id },
       'Product item not found',
     );
-
-    if (updateProductItemDto.numberOfDamaged) {
-      const oldNumberOfDamged = productItem.numberOfDamaged;
-      const product = await this.productRepository.findOne({
-        where: { id: updateProductItemDto.productId },
-      });
-      product.quantity +=
-        updateProductItemDto.numberOfDamaged - oldNumberOfDamged;
-      await this.productRepository.save(product);
-    }
-    if (updateProductItemDto.numberOfValid) {
-      const oldNumberOfValid = productItem.numberOfValid;
-      const product = await this.productRepository.findOne({
-        where: { id: updateProductItemDto.productId },
-      });
-      product.quantity += updateProductItemDto.numberOfValid - oldNumberOfValid;
-      await this.productRepository.save(product);
-    }
 
     if (updateProductItemDto.productId) {
       const product = await this.productRepository.findOne({
@@ -281,7 +255,7 @@ export class ProductItemService {
       { id },
       'Product item not found',
     );
-    await this.productItemRepository.delete({ id });
+    await this.productItemRepository.softDelete({ id });
     return productItem;
   }
 
@@ -291,7 +265,7 @@ export class ProductItemService {
   ) {
     const productItem = await this.productItemRepository.findOne({
       where: condition,
-      relations: ['variationOptions', 'variationOptions.variation'], //
+      relations: ['variationOptions', 'variationOptions.variation', 'product'], //
     });
     if (!productItem) {
       throw new NotFoundException(errorMessage);

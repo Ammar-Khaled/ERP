@@ -1,7 +1,6 @@
-// src/products/entities/product.entity.ts
-
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -21,15 +20,6 @@ export class Product {
 
   @Column()
   name: string;
-
-  @Column()
-  type: string;
-
-  @Column()
-  quantity: number;
-
-  @Column()
-  mainPhoto: string;
 
   @Column()
   branchId: number;
@@ -58,12 +48,17 @@ export class Product {
   @JoinColumn({ name: 'unitId' })
   unit: Unit;
 
+  @DeleteDateColumn()
+  deletedAt: Date;
+
   @Column()
   currencyId: number;
 
   @ManyToOne(() => Currency)
   @JoinColumn({ name: 'currencyId' })
   currency: Currency;
+
+  productItemIds: number[];
 
   // Add OneToMany relationship with ProductItem
   @OneToMany(() => ProductItem, (productItem) => productItem.product)

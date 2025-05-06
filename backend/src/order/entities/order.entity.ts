@@ -91,8 +91,8 @@ export class Order {
 
   //----------------
 
-  @Column()
-  couponId: number; // Foreign key for coupon
+  @Column({ nullable: true })
+  couponId: number;
 
   @ManyToOne(() => Coupon)
   @JoinColumn({ name: 'couponId' })

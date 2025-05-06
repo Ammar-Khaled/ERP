@@ -51,12 +51,10 @@ export class OrderController {
   async generateOrderPdf(@Param('id') id: string, @Res() res: Response) {
     try {
       // 1. Fetch order data from your database
-      const orderData = await this.orderService.findOne(+id);
+      const orderData = await this.orderService.findOne(+id, true);
 
       // 2. Generate PDF
       const pdfBuffer = await this.pdfService.generatePdf('order', orderData);
-
-      console.log(pdfBuffer);
 
       // 3. Send response
       res.setHeader('Content-Type', 'application/pdf');
@@ -64,7 +62,7 @@ export class OrderController {
         'Content-Disposition',
         `attachment; filename="order-${id}.pdf"`,
       );
-      res.send(pdfBuffer);
+      res.end(pdfBuffer);
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);
     }

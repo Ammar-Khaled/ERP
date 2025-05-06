@@ -16,18 +16,6 @@ export class CreateProductDto {
   name: string; // Product name
 
   @IsNotEmpty()
-  @IsString()
-  type: string; // Product type
-
-  @IsNotEmpty()
-  @IsNumber()
-  quantity: number; // Product quantity
-
-  @IsNotEmpty()
-  @IsString()
-  mainPhoto: string; // Main photo URL or path
-
-  @IsNotEmpty()
   @IsNumber()
   branchId: number; // Foreign key for branch
 
