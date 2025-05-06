@@ -26,6 +26,12 @@ export class Inventory {
   @DeleteDateColumn()
   deletedAt: Date;
 
+  @Column({ type: 'int', default: 0 })
+  totalNumberOfValid: number;
+
+  @Column({ type: 'int', default: 0 })
+  totalNumberOfDamaged: number;
+
   @Column({ nullable: true })
   addressId: number;
 

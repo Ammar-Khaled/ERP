@@ -10,6 +10,7 @@ import {
 import { ProductItemInventoryService } from './product_item_inventory.service';
 import { CreateProductItemInventoryDto } from './dto/create-product_item_inventory.dto';
 import { UpdateProductItemInventoryDto } from './dto/update-product_item_inventory.dto';
+import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
 
 @Controller('product-item-inventory')
 export class ProductItemInventoryController {
@@ -48,5 +49,14 @@ export class ProductItemInventoryController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productItemInventoryService.remove(+id);
+  }
+
+  @Post('transfer')
+  async transferProducts(
+    @Body() transferProductItemsDto: TransferProductItemsDto,
+  ) {
+    return this.productItemInventoryService.transferProductItems(
+      transferProductItemsDto,
+    );
   }
 }
