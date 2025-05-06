@@ -95,12 +95,18 @@ export class ReturnService {
       });
     }
 
+    console.log("**Return DTO\n", createReturnDto); // debug
+    // console.log("**Return item dtos\n", returnItemDtos); // debug
+
     // Ensure that the return items are unique based on the order item id
     const uniqueReturnItemsDtos = this.uniqueDtos(returnItemDtos);
+    // console.log("**Unique dtos\n", uniqueReturnItemsDtos); // debug
 
     // Update the quantity of the product items
     const productItemsInvBuffer: ProductItemToInventory[] = [];
     for (const itemDto of uniqueReturnItemsDtos) {
+      // console.log("**Item DTO\n", itemDto); // debug
+
       const orderItem = await this.orderItemRepository.findOneBy({
         id: itemDto.orderItemId,
       });
@@ -111,14 +117,16 @@ export class ReturnService {
         });
       }
 
+      // console.log("**Order**\n", order);
+      // console.log("**Order Item**\n", orderItem);
+
       const productItemInv = await this.productItemInvRepository.findOneBy({
         productItemId: orderItem.productItemId,
         inventoryId: order.inventoryId,
       });
-      console.log("Inside for loop: ", productItemInv); // debug
+      if (!productItemInv)
+        throw new NotFoundException(`No product item of id ${orderItem.productItemId} in the inventory ${order.inventoryId}!`);
       productItemInv.numberOfValid += itemDto.numberOfItems; // inventory quantity
-      console.log("Item DTO = ", itemDto); // debug
-      console.log("Inside for loop: ", productItemInv); // debug
 
       productItemsInvBuffer.push(productItemInv);
     }

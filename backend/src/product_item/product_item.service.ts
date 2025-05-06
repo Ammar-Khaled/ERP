@@ -282,7 +282,7 @@ export class ProductItemService {
     }
 
     if (!numberOfDamaged || isNaN(numberOfDamaged)) {
-      throw new BadRequestException('Invalid numberOfDamaged.');
+      throw new BadRequestException('Invalid totalNumberOfDamaged.');
     }
 
     // Find the product item by ID
@@ -292,8 +292,8 @@ export class ProductItemService {
     );
 
     // Update the number_of_damaged
-    productItem.numberOfDamaged =
-      (productItem.numberOfDamaged || 0) + Number(numberOfDamaged);
+    productItem.totalNumberOfDamaged =
+      (productItem.totalNumberOfDamaged || 0) + Number(numberOfDamaged);
 
     try {
       // Save the updated product item
@@ -311,7 +311,7 @@ export class ProductItemService {
   async getDamaged() {
     // Query all product items where number_of_damaged is greater than 0
     const damagedItems = await this.productItemRepository.find({
-      where: { numberOfDamaged: MoreThan(0) }, // Filter by number_of_damaged > 0
+      where: { totalNumberOfDamaged: MoreThan(0) }, // Filter by number_of_damaged > 0
     });
     return damagedItems;
   }

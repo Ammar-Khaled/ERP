@@ -3,11 +3,11 @@ import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 export class CreateProductItemInventoryDto {
   @IsOptional()
   @IsNumber()
-  numberOfValid: number;
+  numberOfValid?: number;
 
   @IsOptional()
   @IsNumber()
-  numberOfDamaged: number;
+  numberOfDamaged?: number;
 
   @IsNotEmpty()
   @IsNumber()

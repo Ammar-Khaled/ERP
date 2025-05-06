@@ -27,7 +27,7 @@ export class ProductItemToInventory {
     () => ProductItem,
     (productItem) => productItem.productItemToInventories,
     {
-      onDelete: 'CASCADE',
+      onDelete: 'RESTRICT',
     },
   )
   @JoinColumn({ name: 'productItemId' })
@@ -40,7 +40,7 @@ export class ProductItemToInventory {
     () => Inventory,
     (inventory) => inventory.productItemToInventories,
     {
-      onDelete: 'CASCADE',
+      onDelete: 'RESTRICT',
     },
   )
   @JoinColumn({ name: 'inventoryId' }) // Explicitly defining the foreign key column
