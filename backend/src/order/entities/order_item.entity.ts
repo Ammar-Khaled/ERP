@@ -22,6 +22,9 @@ export class OrderItem {
   @Column()
   numberOfItems: number;
 
+  @Column()
+  numberOfReturned: number = 0;
+
   @Column({ type: 'float', default: 0.0 })
   unitPrice: number;
 
