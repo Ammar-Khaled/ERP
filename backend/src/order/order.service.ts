@@ -161,10 +161,9 @@ export class OrderService {
       }
 
       productItemInv.numberOfValid -= orderItem.numberOfItems;
-      await this.productItemInventoryService.update(
-        productItemInv.id,
-        productItemInv,
-      );
+      await this.productItemInventoryService.update(productItemInv.id, {
+        numberOfValid: productItemInv.numberOfValid,
+      });
 
       // productItem.totalNumberOfValid -= orderItem.numberOfItems;
       // await this.productItemService.update(productItem.id, productItem);

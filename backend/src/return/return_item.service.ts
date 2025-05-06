@@ -8,8 +8,10 @@ import { OrderItem } from 'src/order/entities/order_item.entity';
 @Injectable()
 export class ReturnItemService {
   constructor(
-    @Inject('RETURN_ITEM_REPOSITORY') private returnItemRepository: Repository<ReturnItem>,
-    @Inject('ORDER_ITEM_REPOSITORY') private orderItemRepository: Repository<OrderItem>,
+    @Inject('RETURN_ITEM_REPOSITORY')
+    private returnItemRepository: Repository<ReturnItem>,
+    @Inject('ORDER_ITEM_REPOSITORY')
+    private orderItemRepository: Repository<OrderItem>,
   ) {}
 
   async create(createReturnItemDto: CreateReturnItemDto) {
@@ -51,7 +53,8 @@ export class ReturnItemService {
     const returnItem = await this.findOne(id);
 
     // update #returned in orderItem
-    const difference = updateReturnItemDto.numberOfItems - returnItem.numberOfItems;
+    const difference =
+      updateReturnItemDto.numberOfItems - returnItem.numberOfItems;
     returnItem.orderItem.numberOfReturned += difference;
     await this.orderItemRepository.save(returnItem.orderItem);
 

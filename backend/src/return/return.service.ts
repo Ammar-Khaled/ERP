@@ -36,7 +36,7 @@ export class ReturnService {
     private statusRepository: Repository<Status>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
     private productItemInvRepository: Repository<ProductItemToInventory>,
-  ) { }
+  ) {}
 
   /// Utility Functions ///
   uniqueDtos(dtos: CreateReturnItemDto[]) {
@@ -95,7 +95,7 @@ export class ReturnService {
       });
     }
 
-    console.log("**Return DTO\n", createReturnDto); // debug
+    console.log('**Return DTO\n', createReturnDto); // debug
     // console.log("**Return item dtos\n", returnItemDtos); // debug
 
     // Ensure that the return items are unique based on the order item id
@@ -111,7 +111,10 @@ export class ReturnService {
         id: itemDto.orderItemId,
       });
 
-      if (itemDto.numberOfItems > orderItem.numberOfItems - orderItem.numberOfReturned) {
+      if (
+        itemDto.numberOfItems >
+        orderItem.numberOfItems - orderItem.numberOfReturned
+      ) {
         throw new ConflictException({
           message: `The number of items to return is greater than the number of items in the order!`,
         });
@@ -125,18 +128,20 @@ export class ReturnService {
         inventoryId: order.inventoryId,
       });
       if (!productItemInv)
-        throw new NotFoundException(`No product item of id ${orderItem.productItemId} in the inventory ${order.inventoryId}!`);
+        throw new NotFoundException(
+          `No product item of id ${orderItem.productItemId} in the inventory ${order.inventoryId}!`,
+        );
       productItemInv.numberOfValid += itemDto.numberOfItems; // inventory quantity
 
       productItemsInvBuffer.push(productItemInv);
     }
 
-    // Save the product items 
+    // Save the product items
     console.log(productItemsInvBuffer); // debug
     for (const productItemInv of productItemsInvBuffer) {
-      let updateDto = new UpdateProductItemInventoryDto();
+      const updateDto = new UpdateProductItemInventoryDto();
       updateDto.numberOfValid = productItemInv.numberOfValid;
-      console.log("Update DTO=", updateDto); // debug
+      console.log('Update DTO=', updateDto); // debug
       await this.productItemInvService.update(productItemInv.id, updateDto);
     }
 
@@ -212,7 +217,11 @@ export class ReturnService {
           // Found? => just update the quantity of both the product item and the return item
 
           // Validate the number of returned items
-          if (itemDto.numberOfItems - existingItem.numberOfItems > existingItem.orderItem.numberOfItems - existingItem.orderItem.numberOfReturned) {
+          if (
+            itemDto.numberOfItems - existingItem.numberOfItems >
+            existingItem.orderItem.numberOfItems -
+              existingItem.orderItem.numberOfReturned
+          ) {
             throw new ConflictException({
               message: `The number of items to return is greater than the number of items in the order of the ID (${itemDto.orderItemId})!`,
             });
@@ -227,7 +236,7 @@ export class ReturnService {
           productItemInv.numberOfValid += difference; // inventory quantity
           productItemsInvBuffer.push(productItemInv);
 
-          // update the return quantity 
+          // update the return quantity
           existingItem.numberOfItems = itemDto.numberOfItems;
           returnItemsToUpdate.push(existingItem);
         } else {

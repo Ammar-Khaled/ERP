@@ -27,7 +27,7 @@ export class Return {
   })
   returnItems: ReturnItem[];
 
-  @Column({type: 'int', nullable: false})
+  @Column({ type: 'int', nullable: false })
   orderId: number;
 
   @ManyToOne(() => Order, (order: Order) => order.returns, {
@@ -35,7 +35,7 @@ export class Return {
   })
   order: Order;
 
-  @Column({type: 'int', nullable: false})
+  @Column({ type: 'int', nullable: false })
   statusId: number;
 
   @ManyToOne(() => Status, (status) => status.returns, {

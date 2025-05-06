@@ -1,6 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { CreateReturnItemDto } from 'src/return/dto/create-return_item.dto';
+import {
+  IsArray,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { CreateReturnItemDto } from './create-return_item.dto';
 
 export class CreateReturnDto {
   // get from the user: optional date, reason, return item dtos, order id, status id
@@ -14,7 +21,9 @@ export class CreateReturnDto {
   reason?: string;
 
   @IsNotEmpty()
-  @ValidateNested({each: true})
+  @IsArray()
+  @ValidateNested({ each: true, always: true })
+  @Type(() => CreateReturnItemDto)
   returnItemDtos: CreateReturnItemDto[];
 
   @IsNotEmpty()

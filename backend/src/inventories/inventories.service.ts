@@ -21,7 +21,7 @@ export class InventoriesService {
   async findOne(id: number) {
     const inventory = await this.inventoryRepository.findOne({
       where: { id },
-      relations: ['productItemInventories'],
+      relations: ['productItemToInventories'],
     });
     if (!inventory) {
       throw new NotFoundException('Inventory not found with id: ' + id);
