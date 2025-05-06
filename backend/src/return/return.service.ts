@@ -73,6 +73,17 @@ export class ReturnService {
       newReturn.reason = createReturnDto.reason;
     }
 
+    // Handle the order //
+    const order = await this.orderRepository.findOneBy({
+      id: createReturnDto.orderId,
+    });
+    if (!order) {
+      throw new NotFoundException({
+        message: `No order with ID of (${createReturnDto.orderId})!`,
+      });
+    }
+    newReturn.order = order; // will be used also to handle PII
+
     // Handle return items //
     const returnItemDtos = createReturnDto.returnItemDtos;
 
@@ -101,7 +112,7 @@ export class ReturnService {
 
       const productItemInv = await this.productItemInvRepository.findOneBy({
         productItemId: orderItem.productItemId,
-        inventoryId: orderItem.order.inventoryId,
+        inventoryId: order.inventoryId,
       });
       productItemInv.numberOfValid += itemDto.numberOfItems; // inventory quantity
 
@@ -119,17 +130,6 @@ export class ReturnService {
       returnItems.push(returnItem);
     }
     newReturn.returnItems = returnItems;
-
-    // Handle the order //
-    const order = await this.orderRepository.findOneBy({
-      id: createReturnDto.orderId,
-    });
-    if (!order) {
-      throw new NotFoundException({
-        message: `No order with ID of (${createReturnDto.orderId})!`,
-      });
-    }
-    newReturn.order = order;
 
     // Handle the status //
     const status = await this.statusRepository.findOneBy({
@@ -149,8 +149,11 @@ export class ReturnService {
     return await this.returnRepository.find();
   }
 
-  async findOne(id: number) {
-    const returnObj = await this.returnRepository.findOneBy({ id });
+  async findOne(id: number, relations: string[] = []) {
+    const returnObj = await this.returnRepository.findOne({ 
+      where: {id},
+      relations: relations, 
+    });
     if (!returnObj) {
       throw new NotFoundException({
         message: `No return with ID of (${id})!`,
@@ -161,7 +164,7 @@ export class ReturnService {
   }
 
   async update(id: number, updateReturnDto: UpdateReturnDto) {
-    const returnObj = await this.findOne(id);
+    const returnObj = await this.findOne(id, ['order']); // get with order relation to access the inventory
 
     Object.assign(returnObj, updateReturnDto);
 
@@ -203,7 +206,7 @@ export class ReturnService {
           // update the product item quantity
           const productItemInv = await this.productItemInvRepository.findOneBy({ 
             productItemId: existingItem.orderItem.productItemId,
-            inventoryId: existingItem.orderItem.order.inventoryId,
+            inventoryId: returnObj.order.inventoryId,
           });
           productItemInv.numberOfValid += difference; // inventory quantity
           productItemsInvBuffer.push(productItemInv);
@@ -227,7 +230,7 @@ export class ReturnService {
           // Update the quantities
           const productItemInv = await this.productItemInvRepository.findOneBy({
             productItemId: orderItem.productItemId,
-            inventoryId: orderItem.order.inventoryId,
+            inventoryId: returnObj.order.inventoryId,
           });
           productItemInv.numberOfValid += itemDto.numberOfItems; // inventory quantity
           productItemsInvBuffer.push(productItemInv);
@@ -279,7 +282,7 @@ export class ReturnService {
   }
 
   async remove(id: number) {
-    const returnObj = await this.findOne(id);
+    const returnObj = await this.findOne(id, ['order']);
 
     // delete all return items
     try {
@@ -287,10 +290,9 @@ export class ReturnService {
         // update the product item quantity
         const productItemInv = await this.productItemInvRepository.findOneBy({
           productItemId: returnItem.orderItem.productItemId,
-          inventoryId: returnItem.orderItem.order.inventoryId,
+          inventoryId: returnObj.order.inventoryId,
         });
         productItemInv.numberOfValid -= returnItem.numberOfItems;
-        console.log(productItemInv);
         await this.productItemInvService.update(productItemInv.id, productItemInv);
 
         // then remove it

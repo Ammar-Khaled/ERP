@@ -11,6 +11,8 @@ import { statusProviders } from 'src/status/status.providers';
 import { productItemProviders } from 'src/product_item/product_item.providers';
 import { ReturnItemController } from './return_item.controller';
 import { productItemInventoryProviders } from 'src/product_item_inventory/product_item_inventory.providers';
+import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
+import { inventoriesProviders } from 'src/inventories/inventories.providers';
 
 @Module({
   imports: [DatabaseModule],
@@ -23,7 +25,10 @@ import { productItemInventoryProviders } from 'src/product_item_inventory/produc
     ...returnItemProviders,
     ...orderProviders,
     ...statusProviders,
+    ProductItemInventoryService,
     ...productItemInventoryProviders,
+    ...productItemProviders,
+    ...inventoriesProviders,
     ...returnItemProviders,
   ],
 })
