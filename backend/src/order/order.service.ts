@@ -17,7 +17,6 @@ import { Coupon } from 'src/coupon/entities/coupon.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { OrderItem } from 'src/order/entities/order_item.entity';
 import { ProductItem } from '../product_item/entities/product_item.entity';
-import { ProductItemService } from 'src/product_item/product_item.service';
 import { CreateOrderItemDto } from 'src/order/dto/create-order_item.dto';
 import { Status } from 'src/status/entities/status.entity';
 import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
@@ -49,8 +48,6 @@ export class OrderService {
     private productItemInventoryRepo: Repository<ProductItemToInventory>,
     @Inject('INVENTORY_REPOSITORY')
     private inventoryRepo: Repository<Inventory>,
-
-    private readonly productItemService: ProductItemService,
     private readonly productItemInventoryService: ProductItemInventoryService,
   ) {}
 
@@ -165,9 +162,6 @@ export class OrderService {
         numberOfValid: productItemInv.numberOfValid,
       });
 
-      // productItem.totalNumberOfValid -= orderItem.numberOfItems;
-      // await this.productItemService.update(productItem.id, productItem);
-
       // calculate total price for one order item
       orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
 
@@ -192,7 +186,8 @@ export class OrderService {
   }
 
   async findOne(id: number, withRelations: boolean = false) {
-    let order = null;
+    let order;
+
     if (withRelations) {
       order = await this.orderRepo.findOne({
         where: { id },
@@ -284,8 +279,6 @@ export class OrderService {
               productItemInv.id,
               productItemInv,
             );
-            // productItem.totalNumberOfValid -= difference;
-            // await this.productItemService.update(productItem.id, productItem);
           } else if (item.numberOfItems <= order.items[i].numberOfItems) {
             // in case of some items are returned
             const difference =
@@ -300,8 +293,6 @@ export class OrderService {
               productItemInv.id,
               productItemInv,
             );
-            // productItem.totalNumberOfValid += difference;
-            // await this.productItemService.update(productItem.id, productItem);
           }
           flag = true;
           break;
@@ -328,8 +319,6 @@ export class OrderService {
           productItemInv.id,
           productItemInv,
         );
-        // productItem.totalNumberOfValid -= orderItem.numberOfItems;
-        // await this.productItemService.update(productItem.id, productItem);
 
         // calculate total price for one order item
         orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
