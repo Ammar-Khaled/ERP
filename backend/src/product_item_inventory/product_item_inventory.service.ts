@@ -96,18 +96,12 @@ export class ProductItemInventoryService {
     id: number,
     updateProductItemInventoryDto: UpdateProductItemInventoryDto,
   ) {
-    console.log(updateProductItemInventoryDto); // debug
-
     // Retrieve the existing ProductItemInventory
     const productItemInventory =
       await this.productItemInventoryRepository.findOneBy({ id });
     if (!productItemInventory) {
       throw new NotFoundException('ProductItem is not found in this inventory');
     }
-
-    Object.assign(productItemInventory, updateProductItemInventoryDto);
-
-    await this.productItemInventoryRepository.save(productItemInventory);
 
     // update the product item and inventory totals
     const productItem = await this.productItemRepository.findOneBy({
@@ -143,7 +137,8 @@ export class ProductItemInventoryService {
 
     await this.productItemRepository.save(productItem);
     await this.inventoryRepository.save(inventory);
-
+    Object.assign(productItemInventory, updateProductItemInventoryDto);
+    await this.productItemInventoryRepository.save(productItemInventory);
     return productItemInventory;
   }
 
