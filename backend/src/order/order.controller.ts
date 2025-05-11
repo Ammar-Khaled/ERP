@@ -8,12 +8,14 @@ import {
   Patch,
   Post,
   Res,
+  UseInterceptors,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PdfService } from '../common/pdf/pdf.service';
 import { Response } from 'express';
+import { LoggingInterceptor } from 'src/logging/logging.interceptor';
 
 @Controller('order')
 export class OrderController {
@@ -23,6 +25,7 @@ export class OrderController {
   ) {}
 
   @Post('/create')
+  @UseInterceptors(LoggingInterceptor)
   create(@Body() createOrderDto: CreateOrderDto) {
     return this.orderService.create(createOrderDto);
   }
@@ -38,11 +41,13 @@ export class OrderController {
   }
 
   @Patch('/update/:id')
+  @UseInterceptors(LoggingInterceptor)
   update(@Param('id') id: number, @Body() updateOrderDto: UpdateOrderDto) {
     return this.orderService.update(+id, updateOrderDto);
   }
 
   @Delete('/delete/:id')
+  @UseInterceptors(LoggingInterceptor)
   remove(@Param('id') id: number) {
     return this.orderService.remove(+id);
   }
