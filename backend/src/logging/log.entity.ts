@@ -12,7 +12,7 @@ export class Log {
   @Column()
   level: string;
 
-  @Column()
+  @Column({ default: 'unknown' })
   packetType: string;
 
   @Column({ nullable: true })
@@ -21,7 +21,7 @@ export class Log {
   @Column()
   ipAddress: string;
 
-  @Column()
+  @Column({ default: 'unknown' })
   userAgent: string;
 
   @Column()

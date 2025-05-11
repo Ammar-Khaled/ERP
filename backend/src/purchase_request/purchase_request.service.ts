@@ -42,48 +42,53 @@ export class PurchaseRequestService {
     const user = await this.userRepository.findOneBy({
       id: createPurchaseRequestDto.userId,
     });
-    if (!user)
+    if (!user) {
       throw new NotFoundException({ message: `This user is not found!` });
+    }
     newPurchaseRequest.user = user;
 
     // Handle the branch
     const branch = await this.branchRepository.findOneBy({
       id: createPurchaseRequestDto.branchId,
     });
-    if (!branch)
+    if (!branch) {
       throw new NotFoundException({
         message: `This branch is not found!`,
       });
+    }
     newPurchaseRequest.branch = branch;
 
     // Handle the supplier
     const supplier = await this.supplierRepository.findOneBy({
       id: createPurchaseRequestDto.supplierId,
     });
-    if (!supplier)
+    if (!supplier) {
       throw new NotFoundException({
         message: `This supplier is not found!`,
       });
+    }
     newPurchaseRequest.supplier = supplier;
 
     // Handle the status
     const status = await this.statusRepository.findOneBy({
       id: createPurchaseRequestDto.statusId,
     });
-    if (!status)
+    if (!status) {
       throw new NotFoundException({
         message: `This status is not found!`,
       });
+    }
     newPurchaseRequest.status = status;
 
     // Handle the currency
     const currency = await this.currencyRepository.findOneBy({
       id: createPurchaseRequestDto.currencyId,
     });
-    if (!currency)
+    if (!currency) {
       throw new NotFoundException({
         message: `This currency is not found!`,
       });
+    }
     newPurchaseRequest.currency = currency;
 
     // Handle the array of purchase items
@@ -106,13 +111,19 @@ export class PurchaseRequestService {
     // link between purchase item and purchase request
     const purchaseItems = [];
     for (const itemDto of uniquePurchaseItemsDtos) {
-      const purchaseItem = await this.purchaseItemService.create(itemDto);
-      purchaseItems.push(purchaseItem);
+      try {
+        const purchaseItem = await this.purchaseItemService.create(itemDto);
+        purchaseItems.push(purchaseItem);
+      } catch (error) {
+        throw error;
+      }
     }
     newPurchaseRequest.purchaseItems = purchaseItems;
 
-    // Log and save
-    return await this.purchaseRequestRepository.save(newPurchaseRequest);
+    // Save and log
+    const savedPurchaseRequest =
+      await this.purchaseRequestRepository.save(newPurchaseRequest);
+    return savedPurchaseRequest;
   }
 
   async findAll() {

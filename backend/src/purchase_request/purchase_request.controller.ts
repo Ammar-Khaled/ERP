@@ -8,12 +8,14 @@ import {
   Patch,
   Post,
   Res,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PurchaseRequestService } from './purchase_request.service';
 import { CreatePurchaseRequestDto } from './dto/create-purchase_request.dto';
 import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
 import { PdfService } from 'src/common/pdf/pdf.service';
 import { Response } from 'express';
+import { LoggingInterceptor } from 'src/logging/logging.interceptor';
 
 @Controller('purchase-requests')
 export class PurchaseRequestController {
@@ -23,6 +25,7 @@ export class PurchaseRequestController {
   ) {}
 
   @Post('create')
+  @UseInterceptors(LoggingInterceptor)
   create(@Body() createPurchaseRequestDto: CreatePurchaseRequestDto) {
     return this.purchaseRequestService.create(createPurchaseRequestDto);
   }
@@ -38,6 +41,7 @@ export class PurchaseRequestController {
   }
 
   @Patch('update/:id')
+  @UseInterceptors(LoggingInterceptor)
   update(
     @Param('id') id: string,
     @Body() updatePurchaseRequestDto: UpdatePurchaseRequestDto,
@@ -46,6 +50,7 @@ export class PurchaseRequestController {
   }
 
   @Delete('delete/:id')
+  @UseInterceptors(LoggingInterceptor)
   remove(@Param('id') id: string) {
     return this.purchaseRequestService.remove(+id);
   }
