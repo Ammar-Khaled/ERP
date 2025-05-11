@@ -12,6 +12,8 @@ import { PurchaseItemService } from 'src/purchase_item/purchase_item.service';
 import { purchaseItemProviders } from 'src/purchase_item/purchase_item.providers';
 import { purchaseEntityProviders } from 'src/purchase_entity/purchase_entity.providers';
 import { PdfService } from '../common/pdf/pdf.service';
+import { DatabaseLoggerService } from 'src/logging/database-logger.service';
+import { logRepositoryProvider } from 'src/logging/log.repository';
 
 @Module({
   imports: [DatabaseModule],
@@ -28,6 +30,8 @@ import { PdfService } from '../common/pdf/pdf.service';
     ...purchaseItemProviders,
     ...purchaseEntityProviders,
     PdfService,
+    DatabaseLoggerService,
+    logRepositoryProvider,
   ],
 })
 export class PurchaseRequestModule {}
