@@ -15,7 +15,6 @@ import { ReturnItem } from 'src/return/entities/return_item.entity';
 import { ReturnItemService } from 'src/return/return_item.service';
 import { Order } from 'src/order/entities/order.entity';
 import { Status } from 'src/status/entities/status.entity';
-import { ProductItem } from 'src/product_item/entities/product_item.entity';
 import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
 import { UpdateProductItemInventoryDto } from 'src/product_item_inventory/dto/update-product_item_inventory.dto';
