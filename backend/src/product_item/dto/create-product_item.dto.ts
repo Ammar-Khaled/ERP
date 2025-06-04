@@ -30,6 +30,10 @@ export class CreateProductItemDto {
   name: string; // Name of the product item
 
   @IsOptional()
+  @IsString()
+  nameAr?: string;
+
+  @IsOptional()
   @IsNotEmpty()
   @IsNumber()
   productId: number;
