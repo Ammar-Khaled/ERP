@@ -9,6 +9,9 @@ export class Currency {
   @Column({ unique: true })
   name: string; // Name of the currency
 
+  @Column({ type: 'varchar', length: 20, nullable: true, default: "اسم العملة" })
+  nameAr?: string;
+  
   @Column()
   symbol: string; // Symbol of the currency
 
