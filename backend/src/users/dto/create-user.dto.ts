@@ -25,6 +25,11 @@ export class CreateUserDto {
   @IsNotEmpty()
   name: string;
 
+  // Arabic name
+  @IsOptional()
+  @IsString()
+  nameAr?: string;
+
   @IsEmail()
   @IsNotEmpty()
   email: string;
