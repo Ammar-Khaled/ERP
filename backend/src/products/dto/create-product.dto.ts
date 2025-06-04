@@ -15,6 +15,10 @@ export class CreateProductDto {
   @IsString()
   name: string; // Product name
 
+  @IsOptional()
+  @IsString()
+  nameAr?: string; 
+
   @IsNotEmpty()
   @IsNumber()
   branchId: number; // Foreign key for branch
