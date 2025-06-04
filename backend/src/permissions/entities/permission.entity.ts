@@ -17,7 +17,7 @@ export class Permission {
   description: string;
 
   // Arabic description
-  @Column({ type: 'text', nullable: true, default: 'وصف الصلاحية' })
+  @Column({ type: 'text', nullable: true })
   descriptionAr: string;
 
   @Column({ type: 'boolean', default: true })
