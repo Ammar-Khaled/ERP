@@ -12,9 +12,19 @@ export class CreatePermissionDto {
   @IsString()
   name: string;
 
+  // Arabic name
+  @IsOptional()
+  @IsString()
+  nameAr?: string;
+
   @IsOptional()
   @IsString()
   description?: string;
+
+  // Arabic description
+  @IsOptional()
+  @IsString()
+  descriptionAr?: string;
 
   @IsOptional()
   @IsBoolean()

@@ -9,8 +9,16 @@ export class Permission {
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   name: string;
 
+  // Arabic name
+  @Column({ type: 'varchar', length: 255, nullable: true, default: 'اسم الصلاحية' })
+  nameAr: string;
+
   @Column({ type: 'text', nullable: true, default: null })
   description: string;
+
+  // Arabic description
+  @Column({ type: 'text', nullable: true, default: 'وصف الصلاحية' })
+  descriptionAr: string;
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
