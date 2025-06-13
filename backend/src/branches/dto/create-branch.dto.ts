@@ -14,7 +14,15 @@ export class CreateBranchDto {
 
   @IsOptional()
   @IsString()
+  nameAr?: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  descriptionAr?: string;
 
   @IsString()
   @IsNotEmpty()

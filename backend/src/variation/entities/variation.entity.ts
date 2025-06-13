@@ -9,6 +9,9 @@ export class Variation {
   @Column({ unique: true })
   name: string;
 
+  @Column({ type: 'varchar', length: 20, nullable: true, default: "اسم المتغير" })
+  nameAr: string;
+
   @OneToMany(
     () => VariationOption,
     (variationOption) => variationOption.variation,

@@ -34,7 +34,7 @@ export class RolesService {
   }
 
   async create(createRoleDto: CreateRoleDto): Promise<Role> {
-    const { name, description, isActive, userIds, permissionIds } =
+    const { name, nameAr, description, descriptionAr, isActive, userIds, permissionIds } =
       createRoleDto;
 
     // check name uniqueness
@@ -67,7 +67,9 @@ export class RolesService {
 
     const role = this.roleRepository.create({
       name,
+      nameAr,
       description,
+      descriptionAr,
       isActive,
       users,
       permissions,

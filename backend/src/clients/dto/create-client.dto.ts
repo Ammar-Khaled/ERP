@@ -13,6 +13,11 @@ export class CreateClientDto {
   @IsString()
   name: string;
 
+  // get Arabic name
+  @IsOptional()
+  @IsString()
+  nameAr?: string;
+
   @IsNotEmpty()
   @IsEmail()
   email: string;

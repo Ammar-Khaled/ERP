@@ -15,6 +15,10 @@ export class CreateInventoryDto {
   name: string;
 
   @IsOptional()
+  @IsString()
+  nameAr?: string;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 

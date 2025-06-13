@@ -14,6 +14,11 @@ export class CreateSupplierDto {
   @IsString()
   name: string;
 
+  // Arabic name
+  @IsOptional()
+  @IsString()
+  nameAr?: string;
+
   @IsNotEmpty()
   @IsEmail()
   email: string;

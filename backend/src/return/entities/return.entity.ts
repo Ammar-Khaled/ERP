@@ -21,6 +21,10 @@ export class Return {
   @Column({ type: 'varchar', length: 255, default: 'Not Specified' })
   reason: string;
 
+  // Arabic reason
+  @Column({ type: 'varchar', length: 255, nullable: true, default: 'غير محدد' })
+  reasonAr: string;
+
   @OneToMany(() => ReturnItem, (returnItem) => returnItem.return, {
     nullable: false,
     eager: true,
