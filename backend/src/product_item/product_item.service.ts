@@ -20,6 +20,7 @@ import { Branch } from 'src/branches/entities/branch.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Unit } from 'src/units/entities/unit.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class ProductItemService {
@@ -39,6 +40,7 @@ export class ProductItemService {
     @Inject('CURRENCY_REPOSITORY')
     private currencyRepository: Repository<Currency>,
     private productItemInventoryService: ProductItemInventoryService,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   async create(createProductItemDto: CreateProductItemDto) {
@@ -314,5 +316,29 @@ export class ProductItemService {
       where: { totalNumberOfDamaged: MoreThan(0) }, // Filter by number_of_damaged > 0
     });
     return damagedItems;
+  }
+  async uploadImage(id: number, file: Express.Multer.File, field: 'main') {
+    const productItem = await this.findProductItemByCondition(
+      { id },
+      'Product item not found.',
+    );
+
+    const imageUrl = await this.cloudinaryService.uploadImage(file.buffer);
+
+    productItem.mainPhoto = imageUrl;
+    return await this.productItemRepository.save(productItem);
+  }
+  async uploadImages(id: number, files: Express.Multer.File[]) {
+    const productItem = await this.findProductItemByCondition(
+      { id },
+      'Product item not found.',
+    );
+
+    const imageUrls = await Promise.all(
+      files.map((file) => this.cloudinaryService.uploadImage(file.buffer)),
+    );
+
+    productItem.photos = imageUrls;
+    return await this.productItemRepository.save(productItem);
   }
 }

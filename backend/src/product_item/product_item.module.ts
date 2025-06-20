@@ -11,9 +11,11 @@ import { currencyProviders } from 'src/currency/currency.providers';
 import { unitsProviders } from 'src/units/units.providers';
 import { categoriesProviders } from 'src/categories/categories.providers';
 import { ProductItemInventoryModule } from 'src/product_item_inventory/product_item_inventory.module';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [DatabaseModule, ProductItemInventoryModule], // Include the DatabaseModule for DataSource injection
+  imports: [ ConfigModule, DatabaseModule,  ProductItemInventoryModule], // Include the DatabaseModule for DataSource injection
   controllers: [ProductItemController], // Add ProductItem controller
   providers: [
     ...productItemProviders,
@@ -25,6 +27,7 @@ import { ProductItemInventoryModule } from 'src/product_item_inventory/product_i
     ...variationsProviders,
     ...variationOptionsProviders,
     ProductItemService,
+    CloudinaryService
   ], // Add providers including related products
   exports: [ProductItemService], // Export ProductItemsService if other modules need it
 })
