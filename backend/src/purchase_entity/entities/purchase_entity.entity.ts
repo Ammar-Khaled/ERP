@@ -15,6 +15,10 @@ export class PurchaseEntity {
   @Column({ type: 'varchar', length: 20, nullable: false, unique: true })
   name: string;
 
+  // Arabic name
+  @Column({ type: 'varchar', length: 20, nullable: true, default: "اسم العنصر" })
+  nameAr: string;
+
   @Column({
     type: 'varchar',
     length: 200,
@@ -22,6 +26,10 @@ export class PurchaseEntity {
     default: 'Example Description',
   })
   description: string;
+
+  // Arabic description
+  @Column({type: 'varchar', length: 200, nullable: true, default: 'وصف العنصر'})
+  descriptionAr: string;
 
   @Column({ type: 'decimal', nullable: false })
   unitPrice: number;

@@ -20,8 +20,16 @@ export class Branch {
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   name: string;
 
+  // Arabic name
+  @Column({ type: 'varchar', length: 255, nullable: true, default: "اسم الفرع" })
+  nameAr: string;
+
   @Column({ type: 'text', nullable: true })
   description: string;
+
+  // Arabic description
+  @Column({ type: 'text', nullable: true })
+  descriptionAr: string;
 
   @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
   phone: string;

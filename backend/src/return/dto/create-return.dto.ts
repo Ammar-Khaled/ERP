@@ -20,6 +20,10 @@ export class CreateReturnDto {
   @IsString()
   reason?: string;
 
+  @IsOptional()
+  @IsString()
+  reasonAr?: string;
+
   @IsNotEmpty()
   @IsArray()
   @ValidateNested({ each: true, always: true })

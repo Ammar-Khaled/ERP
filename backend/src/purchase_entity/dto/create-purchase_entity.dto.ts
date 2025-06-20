@@ -7,7 +7,15 @@ export class CreatePurchaseEntityDto {
 
   @IsOptional()
   @IsString()
+  nameAr?: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  descriptionAr?: string;
 
   @IsNotEmpty()
   @IsPositive()

@@ -18,6 +18,10 @@ export class Supplier {
   @Column({ type: 'varchar', length: 255, nullable: false })
   name: string;
 
+  // Arabic name
+  @Column({ type: 'varchar', length: 255, nullable: true, default: 'اسم المورد' })
+  nameAr: string;
+
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   email: string;
 

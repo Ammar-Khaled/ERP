@@ -72,6 +72,9 @@ export class ReturnService {
     if (createReturnDto.reason) {
       newReturn.reason = createReturnDto.reason;
     }
+    if (createReturnDto.reasonAr) {
+      newReturn.reasonAr = createReturnDto.reasonAr;
+    }
 
     // Handle the order //
     const order = await this.orderRepository.findOneBy({
@@ -94,18 +97,12 @@ export class ReturnService {
       });
     }
 
-    console.log('**Return DTO\n', createReturnDto); // debug
-    // console.log("**Return item dtos\n", returnItemDtos); // debug
-
     // Ensure that the return items are unique based on the order item id
     const uniqueReturnItemsDtos = this.uniqueDtos(returnItemDtos);
-    // console.log("**Unique dtos\n", uniqueReturnItemsDtos); // debug
 
     // Update the quantity of the product items
     const productItemsInvBuffer: ProductItemToInventory[] = [];
     for (const itemDto of uniqueReturnItemsDtos) {
-      // console.log("**Item DTO\n", itemDto); // debug
-
       const orderItem = await this.orderItemRepository.findOneBy({
         id: itemDto.orderItemId,
       });
@@ -118,9 +115,6 @@ export class ReturnService {
           message: `The number of items to return is greater than the number of items in the order!`,
         });
       }
-
-      // console.log("**Order**\n", order);
-      // console.log("**Order Item**\n", orderItem);
 
       const productItemInv = await this.productItemInvRepository.findOneBy({
         productItemId: orderItem.productItemId,
@@ -136,11 +130,9 @@ export class ReturnService {
     }
 
     // Save the product items
-    console.log(productItemsInvBuffer); // debug
     for (const productItemInv of productItemsInvBuffer) {
       const updateDto = new UpdateProductItemInventoryDto();
       updateDto.numberOfValid = productItemInv.numberOfValid;
-      console.log('Update DTO=', updateDto); // debug
       await this.productItemInvService.update(productItemInv.id, updateDto);
     }
 

@@ -18,6 +18,8 @@ import { ProductItemInventoryModule } from 'src/product_item_inventory/product_i
 import { PdfService } from '../common/pdf/pdf.service';
 import { OrderItemController } from './order_item.controller';
 import { inventoriesProviders } from 'src/inventories/inventories.providers';
+import { DatabaseLoggerService } from 'src/logging/database-logger.service';
+import { logRepositoryProvider } from 'src/logging/log.repository';
 
 @Module({
   imports: [DatabaseModule, ProductItemModule, ProductItemInventoryModule],
@@ -37,6 +39,8 @@ import { inventoriesProviders } from 'src/inventories/inventories.providers';
     ...inventoriesProviders,
     OrderItemService,
     PdfService,
+    DatabaseLoggerService,
+    logRepositoryProvider,
   ],
 })
 export class OrderModule {}

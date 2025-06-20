@@ -21,6 +21,10 @@ export class Product {
   @Column()
   name: string;
 
+  // Arabic name
+  @Column({ type: 'varchar', length: 50, nullable: true, default: "اسم المنتج" })
+  nameAr?: string;
+
   @Column()
   branchId: number;
 

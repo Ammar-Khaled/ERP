@@ -20,6 +20,10 @@ export class Inventory {
   @Column({ type: 'varchar', length: 255, unique: true })
   name: string;
 
+  // Arabic name
+  @Column({ type: 'varchar', length: 255, nullable: true, default: "اسم المخزن" })
+  nameAr: string;
+
   @Column({ type: 'bool', default: true })
   isActive: boolean;
 
