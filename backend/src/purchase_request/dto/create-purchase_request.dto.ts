@@ -1,14 +1,15 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsDate,
   IsNotEmpty,
   IsOptional,
   ValidateNested,
 } from 'class-validator';
-import { CreatePurchaseItemDto } from 'src/purchase_item/dto/create-purchase_item.dto';
+import { CreatePurchaseItemDto } from 'src/purchase_request/dto/create-purchase_item.dto';
 
 export class CreatePurchaseRequestDto {
   @IsOptional() // if not provided, use the current date as a default
+  @Transform(({ value }) => (value !== undefined ? value : new Date()))
   @Type(() => Date) // converts input to date
   @IsDate()
   date?: Date;

@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { CreatePurchaseRequestDto } from './dto/create-purchase_request.dto';
-import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
 import { config } from 'dotenv';
 import { PurchaseRequest } from './entities/purchase_request.entity';
 import { User } from 'src/users/entities/user.entity';
@@ -14,8 +13,11 @@ import { Branch } from 'src/branches/entities/branch.entity';
 import { Supplier } from 'src/suppliers/entities/supplier.entity';
 import { Status } from 'src/status/entities/status.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
-import { CreatePurchaseItemDto } from 'src/purchase_item/dto/create-purchase_item.dto';
-import { PurchaseItemService } from 'src/purchase_item/purchase_item.service';
+import { CreatePurchaseItemDto } from 'src/purchase_request/dto/create-purchase_item.dto';
+import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
+import { UpdatePurchaseItemDto } from './dto/update-purchase_item.dto';
+import { PurchaseItem } from './entities/purchase_item.entity';
+import { PurchaseEntity } from '../purchase_entity/entities/purchase_entity.entity';
 
 config();
 
@@ -24,19 +26,126 @@ export class PurchaseRequestService {
   constructor(
     @Inject('PURCHASE_REQUEST_REPOSITORY')
     private purchaseRequestRepository: Repository<PurchaseRequest>,
-    @Inject('USER_REPOSITORY') private userRepository: Repository<User>,
-    @Inject('BRANCH_REPOSITORY') private branchRepository: Repository<Branch>,
+    @Inject('USER_REPOSITORY')
+    private userRepository: Repository<User>,
+    @Inject('BRANCH_REPOSITORY')
+    private branchRepository: Repository<Branch>,
     @Inject('SUPPLIER_REPOSITORY')
     private supplierRepository: Repository<Supplier>,
-    @Inject('STATUS_REPOSITORY') private statusRepository: Repository<Status>,
+    @Inject('STATUS_REPOSITORY')
+    private statusRepository: Repository<Status>,
     @Inject('CURRENCY_REPOSITORY')
     private currencyRepository: Repository<Currency>,
-    private readonly purchaseItemService: PurchaseItemService,
+    @Inject('PURCHASE_ITEM_REPOSITORY')
+    private purchaseItemRepository: Repository<PurchaseItem>,
+    @Inject('PURCHASE_ENTITY_REPOSITORY')
+    private purchaseEntityRepository: Repository<PurchaseEntity>,
   ) {}
+
+  async createPurchaseItem(createPurchaseItemDto: CreatePurchaseItemDto) {
+    const existedEntity = await this.purchaseEntityRepository.findOne({
+      where: { name: createPurchaseItemDto.purchaseEntityName },
+    });
+    if (!existedEntity) {
+      throw new NotFoundException(
+        `There is no purchase entity with name "${createPurchaseItemDto.purchaseEntityName}". Please create it first!`,
+      );
+    }
+
+    const newPurchaseItem = new PurchaseItem();
+    newPurchaseItem.purchaseEntity = existedEntity;
+    newPurchaseItem.numberOfItems = createPurchaseItemDto.numberOfItems;
+    newPurchaseItem.discount = createPurchaseItemDto.discount;
+    // newPurchaseItem.purchaseRequestId = purchaseRequestId;
+
+    return await this.purchaseItemRepository.save(newPurchaseItem);
+  }
+
+  async findItem(id: number) {
+    const item = await this.purchaseItemRepository.findOneBy({ id });
+    if (!item)
+      throw new NotFoundException(
+        `There is no purchase item with id of ${id}!`,
+      );
+    return item;
+  }
+
+  // async updateItem(id: number, updatePurchaseItemDto: UpdatePurchaseItemDto) {
+  //   const purchaseItem = await this.purchaseItemRepository.findOne({
+  //     where: { id },
+  //     relations: ['purchaseRequest', 'purchaseEntity'],
+  //   });
+  //
+  //   if (!purchaseItem) {
+  //     throw new NotFoundException(`Purchase item with ID ${id} not found`);
+  //   }
+  //
+  //   // Store old total price for calculating difference
+  //   // const oldTotalPrice = purchaseItem.totalPrice;
+  //
+  //   // Update purchase item properties
+  //   Object.assign(purchaseItem, updatePurchaseItemDto);
+  //
+  //   // Recalculate total price (will trigger the hook, but only for itself)
+  //   // purchaseItem.totalPrice =
+  //   //   purchaseItem.numberOfItems * purchaseItem.purchaseEntity.unitPrice -
+  //   //   purchaseItem.discount;
+  //
+  //   // Calculate difference
+  //   // const priceDifference = purchaseItem.totalPrice - oldTotalPrice;
+  //
+  //   // Update parent purchase request
+  //   if (priceDifference !== 0) {
+  //     purchaseItem.purchaseRequest.totalPrice += priceDifference;
+  //     purchaseItem.purchaseRequest.totalPrice = Math.max(
+  //       0,
+  //       purchaseItem.purchaseRequest.totalPrice,
+  //     );
+  //
+  //     // Save both entities in a transaction
+  //     const queryRunner = this.dataSource.createQueryRunner();
+  //     await queryRunner.connect();
+  //     await queryRunner.startTransaction();
+  //
+  //     try {
+  //       await queryRunner.manager.save(purchaseItem);
+  //       await queryRunner.manager.save(purchaseItem.purchaseRequest);
+  //       await queryRunner.commitTransaction();
+  //
+  //       return purchaseItem;
+  //     } catch (error) {
+  //       await queryRunner.rollbackTransaction();
+  //       throw new HttpException(
+  //         error.message,
+  //         HttpStatus.INTERNAL_SERVER_ERROR,
+  //       );
+  //     } finally {
+  //       await queryRunner.release();
+  //     }
+  //   }
+  //
+  //   // If no purchase request or no price change, just save the item
+  //   return await this.purchaseItemRepository.save(purchaseItem);
+  // }
+
+  async removeItem(id: number) {
+    const purchaseItem = await this.purchaseItemRepository.findOneBy({ id });
+    if (!purchaseItem)
+      throw new NotFoundException(
+        `There is no purchase item with id of ${id}!`,
+      );
+
+    await this.purchaseItemRepository.softDelete({ id });
+
+    // trigger the hook to update the purchase request total price
+    await this.purchaseRequestRepository.save(purchaseItem.purchaseRequest);
+
+    return purchaseItem;
+  }
 
   async create(createPurchaseRequestDto: CreatePurchaseRequestDto) {
     const newPurchaseRequest = new PurchaseRequest();
-    newPurchaseRequest.date = createPurchaseRequestDto.date || new Date();
+    newPurchaseRequest.date = createPurchaseRequestDto.date;
 
     // Handle the user
     const user = await this.userRepository.findOneBy({
@@ -112,10 +221,10 @@ export class PurchaseRequestService {
     const purchaseItems = [];
     for (const itemDto of uniquePurchaseItemsDtos) {
       try {
-        const purchaseItem = await this.purchaseItemService.create(itemDto);
+        const purchaseItem = await this.createPurchaseItem(itemDto);
         purchaseItems.push(purchaseItem);
       } catch (error) {
-        throw error;
+        throw new HttpException(error.message, error.status || 500);
       }
     }
     newPurchaseRequest.purchaseItems = purchaseItems;
@@ -123,7 +232,8 @@ export class PurchaseRequestService {
     // Save and log
     const savedPurchaseRequest =
       await this.purchaseRequestRepository.save(newPurchaseRequest);
-    return savedPurchaseRequest;
+
+    return this.findOne(savedPurchaseRequest.id, false);
   }
 
   async findAll() {
@@ -220,43 +330,62 @@ export class PurchaseRequestService {
       purchaseRequest.currency = currency;
     }
 
-    // TODO: don't repeat the same code in `create`
-
     if (updatePurchaseRequestDto.purchaseItemsDtos) {
-      const purchaseItemsDtos = updatePurchaseRequestDto.purchaseItemsDtos;
-      const uniquePurchaseItemsDtos = purchaseItemsDtos.reduce(
-        (visited, item) => {
-          const existingItem = visited.find(
-            (i) => i.purchaseEntityName === item.purchaseEntityName,
-          );
-          if (existingItem) existingItem.numberOfItems += item.numberOfItems;
-          else visited.push(item);
+      const uniqueUpdatePurchaseItemsDtos =
+        updatePurchaseRequestDto.purchaseItemsDtos.reduce(
+          (visited: UpdatePurchaseItemDto[], item) => {
+            const existingItem = visited.find(
+              (i) => i.purchaseEntityName === item.purchaseEntityName,
+            );
+            if (existingItem) existingItem.numberOfItems += item.numberOfItems;
+            else visited.push(item);
 
-          return visited;
-        },
-        [] as CreatePurchaseItemDto[],
+            return visited;
+          },
+          [] as UpdatePurchaseItemDto[],
+        );
+
+      // delete the purchase items that are not in the new request
+      const purchaseItemsToDelete = purchaseRequest.purchaseItems.filter(
+        (item) =>
+          !uniqueUpdatePurchaseItemsDtos.some(
+            (dto) => dto.purchaseEntityName === item.purchaseEntity.name,
+          ),
       );
-
-      const purchaseItems = [];
-      for (const itemDto of uniquePurchaseItemsDtos) {
-        const purchaseItem = await this.purchaseItemService.create(itemDto);
-        purchaseItems.push(purchaseItem);
+      for (const item of purchaseItemsToDelete) {
+        await this.purchaseItemRepository.softDelete({ id: item.id });
       }
 
-      purchaseRequest.purchaseItems = purchaseItems;
+      for (const itemDto of uniqueUpdatePurchaseItemsDtos) {
+        // Check if the purchase item exists in this request
+        const purchaseItem = purchaseRequest.purchaseItems.find(
+          (item) => item.purchaseEntity.name === itemDto.purchaseEntityName,
+        );
+
+        if (!purchaseItem) {
+          // create a new purchase item
+          const newPurchaseItem = await this.createPurchaseItem({
+            purchaseEntityName: itemDto.purchaseEntityName,
+            numberOfItems: itemDto.numberOfItems || 0,
+            discount: itemDto.discount || 0,
+          });
+
+          purchaseRequest.purchaseItems.push(newPurchaseItem);
+        } else {
+          // update the existing purchase item
+          Object.assign(purchaseItem, itemDto);
+          // save
+          await this.purchaseItemRepository.save(purchaseItem);
+        }
+      }
+      delete updatePurchaseRequestDto.purchaseItemsDtos;
     }
 
-    try {
-      Object.assign(purchaseRequest, updatePurchaseRequestDto);
-      // console.log(purchaseRequest); // debug
-      await this.purchaseRequestRepository.save(purchaseRequest);
+    Object.assign(purchaseRequest, updatePurchaseRequestDto);
+    await this.purchaseRequestRepository.save(purchaseRequest);
 
-      console.log(`Updated purchase request with ID: ${id} successfully!`);
-      return purchaseRequest;
-    } catch (error) {
-      console.log(error);
-      throw new HttpException(error.message, error.status || 500);
-    }
+    return this.findOne(purchaseRequest.id, false);
+    // TODO what about deleteing items when updating the invoice?
   }
 
   async remove(id: number) {
