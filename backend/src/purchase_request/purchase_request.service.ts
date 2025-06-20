@@ -241,25 +241,23 @@ export class PurchaseRequestService {
   }
 
   async findOne(id: number, withRelations: boolean = false) {
-    let purchaseRequest;
+    const purchaseRelations = ['purchaseItems'];
+
     if (withRelations) {
       // Used in: generatePdf method
-      purchaseRequest = await this.purchaseRequestRepository.findOne({
-        where: { id },
-        relations: [
-          'user',
-          'branch',
-          'supplier',
-          'status',
-          'currency',
-          'purchaseItems',
-        ],
-      });
-    } else {
-      purchaseRequest = await this.purchaseRequestRepository.findOneBy({
-        id,
-      });
+      purchaseRelations.push(
+        'user',
+        'branch',
+        'supplier',
+        'status',
+        'currency',
+      );
     }
+
+    const purchaseRequest = await this.purchaseRequestRepository.findOne({
+      where: { id },
+      relations: purchaseRelations,
+    });
 
     if (!purchaseRequest)
       throw new NotFoundException(`No purchase request with ID of (${id})!`);
