@@ -17,7 +17,6 @@ import { ProductItemInventoryModule } from './product_item_inventory/product_ite
 import { UnitsModule } from './units/units.module';
 import { CurrencyModule } from './currency/currency.module';
 import { PurchaseEntityModule } from './purchase_entity/purchase_entity.module';
-import { PurchaseItemModule } from './purchase_item/purchase_item.module';
 import { PurchaseRequestModule } from './purchase_request/purchase_request.module';
 import { StatusModule } from './status/status.module';
 import { VariationModule } from './variation/variation.module';
@@ -45,7 +44,6 @@ import { LoggingModule } from './logging/logging.module';
     UnitsModule,
     CurrencyModule,
     PurchaseEntityModule,
-    PurchaseItemModule,
     PurchaseRequestModule,
     StatusModule,
     VariationModule,
