@@ -2,7 +2,6 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsPositive,
   IsString,
   Min,
 } from 'class-validator';
@@ -19,6 +18,5 @@ export class CreatePurchaseItemDto {
 
   @IsOptional()
   @IsNumber({ allowNaN: false }, { message: 'Please enter a valid number!' })
-  @IsPositive({ message: 'Please enter a positive number!' })
-  discount?: number;
+  discount?: number = 0;
 }

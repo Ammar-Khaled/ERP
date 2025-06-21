@@ -51,7 +51,7 @@ export class PurchaseRequestController {
 
   @Delete('delete/:id')
   @UseInterceptors(LoggingInterceptor)
-  remove(@Param('id') id: string) {
+  removeRequest(@Param('id') id: string) {
     return this.purchaseRequestService.remove(+id);
   }
 
@@ -80,5 +80,10 @@ export class PurchaseRequestController {
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);
     }
+  }
+
+  @Delete('delete-item/:id')
+  async removeItem(@Param('id') id: string) {
+    return this.purchaseRequestService.removeItem(+id);
   }
 }

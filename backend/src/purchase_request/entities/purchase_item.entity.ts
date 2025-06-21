@@ -35,7 +35,13 @@ export class PurchaseItem {
   @Column({ type: 'decimal', nullable: false })
   totalPrice: number;
 
-  @ManyToOne(() => PurchaseRequest, (request) => request.purchaseItems)
+  // TODO: make nullable false -> pass the purchase request id when creating the purchase item
+  @Column({ type: 'int', nullable: true })
+  purchaseRequestId: number;
+
+  @ManyToOne(() => PurchaseRequest, (request) => request.purchaseItems, {
+    nullable: true,
+  })
   purchaseRequest: PurchaseRequest;
 
   // Note: only called when detecting ACTUAL update!
@@ -46,6 +52,6 @@ export class PurchaseItem {
       this.numberOfItems * this.purchaseEntity.unitPrice - this.discount;
   }
 
-  @DeleteDateColumn() // Add DeleteDateColumn for soft delete
+  @DeleteDateColumn()
   deletedAt?: Date;
 }

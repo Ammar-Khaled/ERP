@@ -1,4 +1,4 @@
-import { PurchaseItem } from 'src/purchase_item/entities/purchase_item.entity';
+import { PurchaseItem } from 'src/purchase_request/entities/purchase_item.entity';
 import {
   Column,
   DeleteDateColumn,
@@ -16,7 +16,12 @@ export class PurchaseEntity {
   name: string;
 
   // Arabic name
-  @Column({ type: 'varchar', length: 20, nullable: true, default: "اسم العنصر" })
+  @Column({
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+    default: 'اسم العنصر',
+  })
   nameAr: string;
 
   @Column({
@@ -28,7 +33,12 @@ export class PurchaseEntity {
   description: string;
 
   // Arabic description
-  @Column({type: 'varchar', length: 200, nullable: true, default: 'وصف العنصر'})
+  @Column({
+    type: 'varchar',
+    length: 200,
+    nullable: true,
+    default: 'وصف العنصر',
+  })
   descriptionAr: string;
 
   @Column({ type: 'decimal', nullable: false })

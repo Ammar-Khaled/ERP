@@ -14,7 +14,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { PurchaseItem } from 'src/purchase_item/entities/purchase_item.entity';
+import { PurchaseItem } from 'src/purchase_request/entities/purchase_item.entity';
 
 @Entity('purchase_requests')
 export class PurchaseRequest {

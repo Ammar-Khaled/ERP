@@ -8,15 +8,14 @@ import { branchesProviders } from 'src/branches/branches.providers';
 import { supplierProviders } from 'src/suppliers/suppliers.providers';
 import { statusProviders } from 'src/status/status.providers';
 import { currencyProviders } from 'src/currency/currency.providers';
-import { PurchaseItemService } from 'src/purchase_item/purchase_item.service';
-import { purchaseItemProviders } from 'src/purchase_item/purchase_item.providers';
 import { purchaseEntityProviders } from 'src/purchase_entity/purchase_entity.providers';
 import { PdfService } from '../common/pdf/pdf.service';
 import { DatabaseLoggerService } from 'src/logging/database-logger.service';
 import { logRepositoryProvider } from 'src/logging/log.repository';
+import { PurchaseEntityModule } from '../purchase_entity/purchase_entity.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, PurchaseEntityModule],
   controllers: [PurchaseRequestController],
   providers: [
     PurchaseRequestService,
@@ -26,8 +25,6 @@ import { logRepositoryProvider } from 'src/logging/log.repository';
     ...supplierProviders,
     ...statusProviders,
     ...currencyProviders,
-    PurchaseItemService,
-    ...purchaseItemProviders,
     ...purchaseEntityProviders,
     PdfService,
     DatabaseLoggerService,

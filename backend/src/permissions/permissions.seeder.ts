@@ -19,7 +19,7 @@ export class PermissionsSeeder {
         description: 'Find one user by id',
       },
       { name: 'UsersController:update', description: 'Update user' },
-      { name: 'UsersController:remove', description: 'Remove user' },
+      { name: 'UsersController:removeRequest', description: 'Remove user' },
       { name: 'UsersController:*', description: 'All users permissions' },
       { name: 'UsersController:find*', description: 'Find users' },
     ];
