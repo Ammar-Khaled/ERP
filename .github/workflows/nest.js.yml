@@ -12,5 +12,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - run: cd backend && echo "${{ secrets.ENV_FILE }}" > .env
     - run: cd backend && npm i
     - run: cd backend && npm run start
