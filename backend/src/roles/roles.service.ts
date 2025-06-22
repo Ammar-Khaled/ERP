@@ -34,8 +34,15 @@ export class RolesService {
   }
 
   async create(createRoleDto: CreateRoleDto): Promise<Role> {
-    const { name, nameAr, description, descriptionAr, isActive, userIds, permissionIds } =
-      createRoleDto;
+    const {
+      name,
+      nameAr,
+      description,
+      descriptionAr,
+      isActive,
+      userIds,
+      permissionIds,
+    } = createRoleDto;
 
     // check name uniqueness
     const existingRole = await this.findOneByCondition({

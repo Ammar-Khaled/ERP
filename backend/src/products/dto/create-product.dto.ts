@@ -17,7 +17,7 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsString()
-  nameAr?: string; 
+  nameAr?: string;
 
   @IsNotEmpty()
   @IsNumber()

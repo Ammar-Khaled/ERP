@@ -18,7 +18,12 @@ export class Status {
   name: string;
 
   // Arabic name
-  @Column({ type: 'varchar', length: 20, nullable: true, default: 'اسم الحالة' })
+  @Column({
+    type: 'varchar',
+    length: 20,
+    nullable: true,
+    default: 'اسم الحالة',
+  })
   nameAr: string;
 
   @Column({
@@ -30,7 +35,12 @@ export class Status {
   description: string;
 
   // Arabic description
-  @Column({ type: 'varchar', length: 100, nullable: true, default: 'وصف الحالة' })
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    default: 'وصف الحالة',
+  })
   descriptionAr: string;
 
   @OneToMany(() => PurchaseRequest, (purchaseRequest) => purchaseRequest.status)

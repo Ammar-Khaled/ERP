@@ -10,7 +10,12 @@ export class Permission {
   name: string;
 
   // Arabic name
-  @Column({ type: 'varchar', length: 255, nullable: true, default: 'اسم الصلاحية' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    default: 'اسم الصلاحية',
+  })
   nameAr: string;
 
   @Column({ type: 'text', nullable: true, default: null })

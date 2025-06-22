@@ -38,7 +38,12 @@ export class ProductItem {
   name: string; // Name of the product item (e.g., variant name)
 
   // Arabic name
-  @Column({ type: 'varchar', length: 50, nullable: true, default: "اسم المنتج"})
+  @Column({
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+    default: 'اسم المنتج',
+  })
   nameAr?: string;
 
   @Column({ default: null })

@@ -269,6 +269,7 @@ export class PurchaseRequestService {
     const purchaseRequest = await this.purchaseRequestRepository.findOne({
       where: { id },
       relations: ['purchaseItems'],
+      loadEagerRelations: true,
     });
 
     if (!purchaseRequest) {
@@ -380,6 +381,11 @@ export class PurchaseRequestService {
     }
 
     Object.assign(purchaseRequest, updatePurchaseRequestDto);
+
+    purchaseRequest.totalPrice = purchaseRequest.purchaseItems.reduce(
+      (total, item) => total + item.totalPrice,
+      0,
+    );
     await this.purchaseRequestRepository.save(purchaseRequest);
 
     return this.findOne(purchaseRequest.id, false);

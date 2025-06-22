@@ -33,7 +33,12 @@ export class User {
   name: string;
 
   // Arabic name
-  @Column({ type: 'varchar', length: 255, nullable: true, default: 'اسم المستخدم' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    default: 'اسم المستخدم',
+  })
   nameAr: string;
 
   @Column({ type: 'varchar', length: 20, nullable: true, unique: true })

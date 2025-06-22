@@ -53,7 +53,7 @@ export class AuthService {
 
   async forgotPassword(email: string) {
     // Check the existence of the user
-    const user = await this.usersService.findOneByCondition({email});
+    const user = await this.usersService.findOneByCondition({ email });
     if (!user) {
       throw new UnauthorizedException('User email is not found!');
     }

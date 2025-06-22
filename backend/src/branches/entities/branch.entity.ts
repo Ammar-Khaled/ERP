@@ -21,7 +21,12 @@ export class Branch {
   name: string;
 
   // Arabic name
-  @Column({ type: 'varchar', length: 255, nullable: true, default: "اسم الفرع" })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    default: 'اسم الفرع',
+  })
   nameAr: string;
 
   @Column({ type: 'text', nullable: true })

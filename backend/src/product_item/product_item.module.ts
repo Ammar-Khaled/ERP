@@ -15,7 +15,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [ ConfigModule, DatabaseModule,  ProductItemInventoryModule], // Include the DatabaseModule for DataSource injection
+  imports: [ConfigModule, DatabaseModule, ProductItemInventoryModule], // Include the DatabaseModule for DataSource injection
   controllers: [ProductItemController], // Add ProductItem controller
   providers: [
     ...productItemProviders,
@@ -27,7 +27,7 @@ import { ConfigModule } from '@nestjs/config';
     ...variationsProviders,
     ...variationOptionsProviders,
     ProductItemService,
-    CloudinaryService
+    CloudinaryService,
   ], // Add providers including related products
   exports: [ProductItemService], // Export ProductItemsService if other modules need it
 })
