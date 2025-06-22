@@ -15,3 +15,4 @@ jobs:
     - run: cd backend && echo "${{ secrets.ENV_FILE }}" > .env
     - run: cd backend && npm i
     - run: cd backend && npm run build
+    - run: pm2 restart erp
