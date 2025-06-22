@@ -7,8 +7,6 @@ import { jwtConstants } from './constants';
 import { userProviders } from '../users/users.providers';
 import { DatabaseModule } from '../common/database.module';
 import { config } from 'dotenv';
-import { APP_GUARD } from '@nestjs/core';
-import { AuthGuard } from './auth.guard';
 import { MailerModule } from '@nestjs-modules/mailer';
 
 config();
@@ -34,7 +32,7 @@ config();
       transport: {
         host: process.env.MAIL_HOST,
         port: parseInt(process.env.MAIL_PORT, 10),
-        secure: false, 
+        secure: false,
         auth: {
           user: process.env.MAIL_USER,
           pass: process.env.MAIL_APP_PASSWORD,
@@ -43,15 +41,15 @@ config();
       defaults: {
         from: `"No Reply" <${process.env.MAIL_FROM}>`,
       },
-    })
+    }),
   ],
   providers: [
     AuthService,
     ...userProviders,
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard,
+    // },
   ],
   controllers: [AuthController],
   exports: [AuthService],
