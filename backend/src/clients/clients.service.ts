@@ -50,7 +50,7 @@ export class ClientsService {
   //     { email },
   //     'Client not found',
   //   );
-  //   return jsend.success(client);
+  //   return client;
   // }
   //
   // async findByPhone(phoneNumber: string) {
@@ -58,6 +58,6 @@ export class ClientsService {
   //     { phone_number: phoneNumber },
   //     'Client not found',
   //   );
-  //   return jsend.success(client);
+  //   return client;
   // }
 }
