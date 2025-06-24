@@ -13,6 +13,8 @@ import { categoriesProviders } from 'src/categories/categories.providers';
 import { ProductItemInventoryModule } from 'src/product_item_inventory/product_item_inventory.module';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { ConfigModule } from '@nestjs/config';
+import { productItemInventoryProviders } from '../product_item_inventory/product_item_inventory.providers';
+import { inventoriesProviders } from '../inventories/inventories.providers';
 
 @Module({
   imports: [ConfigModule, DatabaseModule, ProductItemInventoryModule], // Include the DatabaseModule for DataSource injection
@@ -28,6 +30,8 @@ import { ConfigModule } from '@nestjs/config';
     ...variationOptionsProviders,
     ProductItemService,
     CloudinaryService,
+    ...productItemInventoryProviders,
+    ...inventoriesProviders,
   ], // Add providers including related products
   exports: [ProductItemService], // Export ProductItemsService if other modules need it
 })

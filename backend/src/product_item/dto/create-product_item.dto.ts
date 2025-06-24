@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsDateString,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -42,4 +43,8 @@ export class CreateProductItemDto {
   @IsArray()
   @IsOptional()
   variationOptions?: CreateVariationOptionDto[]; // Array of variation options to associate with this product item
+
+  @IsOptional()
+  @IsDateString()
+  expiryDate?: Date;
 }

@@ -7,5 +7,5 @@ export class UpdateDamagedDto {
 
   @IsInt()
   @IsNotEmpty()
-  numberOfDamaged: number;
+  numberOfDamaged: number; // added number of damaged items
 }

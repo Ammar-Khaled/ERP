@@ -49,6 +49,9 @@ export class ProductItem {
   @Column({ default: null })
   mainPhoto: string;
 
+  @Column({ type: 'date', nullable: true })
+  expiryDate: Date;
+
   @DeleteDateColumn()
   deletedAt: Date;
 
