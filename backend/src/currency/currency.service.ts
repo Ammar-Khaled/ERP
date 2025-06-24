@@ -95,7 +95,7 @@ export class CurrencyService {
       throw new NotFoundException('Currency not found.');
     }
 
-    await this.currencyRepository.remove(currency);
+    await this.currencyRepository.softRemove(currency);
     return currency;
   }
 }
