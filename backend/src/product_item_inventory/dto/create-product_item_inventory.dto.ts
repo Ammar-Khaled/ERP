@@ -1,6 +1,14 @@
-import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsInt, IsNotEmpty, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class CreateProductItemInventoryDto {
+  @IsNotEmpty()
+  @IsNumber()
+  productItemId: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  inventoryId: number;
+
   @IsOptional()
   @IsNumber()
   numberOfValid?: number;
@@ -9,11 +17,8 @@ export class CreateProductItemInventoryDto {
   @IsNumber()
   numberOfDamaged?: number;
 
-  @IsNotEmpty()
-  @IsNumber()
-  productItemId: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  inventoryId: number;
+  @IsInt()
+  @IsOptional()
+  @Min(0)
+  minimumThreshold?: number;
 }

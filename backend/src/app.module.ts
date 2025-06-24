@@ -27,6 +27,7 @@ import { CouponModule } from './coupon/coupon.module';
 import { ReturnModule } from './return/return.module';
 import { LoggingModule } from './logging/logging.module';
 import { ConfigModule } from '@nestjs/config';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { ConfigModule } from '@nestjs/config';
     CouponModule,
     ReturnModule,
     LoggingModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

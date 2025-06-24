@@ -11,6 +11,7 @@ import { Inventory } from '../inventories/entities/inventory.entity';
 import { CreateProductItemInventoryDto } from './dto/create-product_item_inventory.dto';
 import { UpdateProductItemInventoryDto } from './dto/update-product_item_inventory.dto';
 import { TransferProductItemsDto } from './dto/transfer-product-items.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ProductItemInventoryService {
@@ -21,6 +22,7 @@ export class ProductItemInventoryService {
     private productItemRepository: Repository<ProductItem>,
     @Inject('INVENTORY_REPOSITORY')
     private inventoryRepository: Repository<Inventory>,
+    private notificationsService: NotificationsService,
   ) {}
 
   async create(createProductItemInventoryDto: CreateProductItemInventoryDto) {
@@ -96,23 +98,21 @@ export class ProductItemInventoryService {
     id: number,
     updateProductItemInventoryDto: UpdateProductItemInventoryDto,
   ) {
-    // Retrieve the existing ProductItemInventory
-    const productItemInventory =
-      await this.productItemInventoryRepository.findOneBy({ id });
-    if (!productItemInventory) {
+    const pii = await this.productItemInventoryRepository.findOneBy({ id });
+    if (!pii) {
       throw new NotFoundException('ProductItem is not found in this inventory');
     }
 
     // update the product item and inventory totals
     const productItem = await this.productItemRepository.findOneBy({
-      id: productItemInventory.productItemId,
+      id: pii.productItemId,
     });
     if (!productItem) {
       throw new NotFoundException('Product item not found.');
     }
 
     const inventory = await this.inventoryRepository.findOneBy({
-      id: productItemInventory.inventoryId,
+      id: pii.inventoryId,
     });
     if (!inventory) {
       throw new NotFoundException('Inventory not found.');
@@ -120,8 +120,7 @@ export class ProductItemInventoryService {
 
     if (updateProductItemInventoryDto.numberOfValid !== undefined) {
       const diff =
-        updateProductItemInventoryDto.numberOfValid -
-        productItemInventory.numberOfValid;
+        updateProductItemInventoryDto.numberOfValid - pii.numberOfValid;
 
       productItem.totalNumberOfValid += diff;
       inventory.totalNumberOfValid += diff;
@@ -129,17 +128,92 @@ export class ProductItemInventoryService {
 
     if (updateProductItemInventoryDto.numberOfDamaged !== undefined) {
       const diff =
-        updateProductItemInventoryDto.numberOfDamaged -
-        productItemInventory.numberOfDamaged;
+        updateProductItemInventoryDto.numberOfDamaged - pii.numberOfDamaged;
       productItem.totalNumberOfDamaged += diff;
       inventory.totalNumberOfDamaged += diff;
     }
 
     await this.productItemRepository.save(productItem);
     await this.inventoryRepository.save(inventory);
-    Object.assign(productItemInventory, updateProductItemInventoryDto);
-    await this.productItemInventoryRepository.save(productItemInventory);
-    return productItemInventory;
+    Object.assign(pii, updateProductItemInventoryDto);
+    await this.productItemInventoryRepository.save(pii);
+
+    // Check for inventory threshold after update
+    await this.checkInventoryThreshold(
+      productItem.id,
+      inventory.id,
+      pii.numberOfValid,
+      productItem.name,
+      inventory.name,
+    );
+
+    // return pii after update from the checkInventoryThreshold
+    return await this.productItemInventoryRepository.findOneBy({ id });
+  }
+
+  async checkInventoryThreshold(
+    productItemId: number,
+    inventoryId: number,
+    currentQuantity: number,
+    productName: string,
+    inventoryName: string,
+  ) {
+    const pii = await this.productItemInventoryRepository.findOne({
+      where: { productItemId, inventoryId },
+    });
+
+    if (!pii) {
+      return; // No inventory record found
+    }
+
+    // Check if minimum threshold is set and quantity is below threshold
+    if (pii.minimumThreshold && currentQuantity <= pii.minimumThreshold) {
+      // Send notification
+      await this.notificationsService.createLowInventoryNotification(
+        productItemId,
+        currentQuantity,
+        productName,
+        inventoryName,
+      );
+
+      await this.recordNotification(pii.id);
+    }
+
+    // If quantity is replenished, reset notification status
+    if (currentQuantity > pii.minimumThreshold) {
+      await this.resetNotificationStatus(pii.id);
+    }
+  }
+
+  async resetNotificationStatus(productItemInventoryId: number) {
+    const pii = await this.productItemInventoryRepository.findOneBy({
+      id: productItemInventoryId,
+    });
+
+    if (!pii) {
+      throw new NotFoundException('ProductItem is not found in this inventory');
+    }
+
+    // Reset notification status
+    pii.notificationSent = false;
+    pii.lastNotificationDate = null;
+    pii.notificationCount = 0;
+    return this.productItemInventoryRepository.save(pii);
+  }
+
+  async recordNotification(productItemInventoryId: number) {
+    const pii = await this.productItemInventoryRepository.findOneBy({
+      id: productItemInventoryId,
+    });
+
+    if (!pii) {
+      throw new NotFoundException('ProductItem is not found in this inventory');
+    }
+
+    pii.notificationSent = true;
+    pii.lastNotificationDate = new Date();
+    pii.notificationCount += 1;
+    return this.productItemInventoryRepository.save(pii);
   }
 
   async remove(id: number) {

@@ -45,4 +45,16 @@ export class ProductItemToInventory {
   )
   @JoinColumn({ name: 'inventoryId' }) // Explicitly defining the foreign key column
   inventory: Inventory;
+
+  @Column({ type: 'int', nullable: true, default: 0 })
+  minimumThreshold: number;
+
+  @Column({ default: false })
+  notificationSent: boolean;
+
+  @Column({ nullable: true, type: 'timestamp', default: null })
+  lastNotificationDate: Date;
+
+  @Column({ default: 0 })
+  notificationCount: number;
 }

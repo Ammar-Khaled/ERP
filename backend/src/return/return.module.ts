@@ -13,9 +13,10 @@ import { ReturnItemController } from './return_item.controller';
 import { productItemInventoryProviders } from 'src/product_item_inventory/product_item_inventory.providers';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
 import { inventoriesProviders } from 'src/inventories/inventories.providers';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, NotificationsModule],
   controllers: [ReturnController, ReturnItemController],
   providers: [
     ReturnService,
