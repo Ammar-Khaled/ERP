@@ -51,7 +51,7 @@ export class AuthService {
     };
   }
 
-  async forgotPassword(email: string) {
+  async createPasswordResetToken(email: string) {
     // Check the existence of the user
     const user = await this.usersService.findOneByCondition({ email });
     if (!user) {
@@ -59,29 +59,33 @@ export class AuthService {
     }
 
     // Create a reset token
+    const payload = {sub: user.id, purpose: 'password-reset'};
     const resetToken = await this.jwtService.signAsync(
-      { sub: user.id, email: user.email },
-      { expiresIn: '1h' }, // Token valid for 1 hour
+      payload, { 
+        expiresIn: '15m',
+        secret: 'reset-password-secret', // Use a different secret for reset tokens
+      }, 
     );
 
+    return resetToken;
+  }
+
+  async forgotPassword(email: string) {
+    // Generate a reset token
+    const resetToken = await this.createPasswordResetToken(email);
+    
     // Send the reset email
     // Note: Ensure that the environment variable FRONTEND_URL is set to your frontend application URL
     if (!process.env.FRONTEND_URL) {
       throw new Error('FRONTEND_URL environment variable is not set');
     }
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-    //# ToFix: Just use the reset link without sending the token explicitly!
-    const message = `Click the link to reset your password: \n${resetLink}
-                    \n\nThe access token: \n${resetToken}`;
-
-    // console.log(user.email); // debug
+    const resetLink = `${process.env.FRONTEND_URL}/auth/reset-password?token=${resetToken}`;
+    const message = `Click the link to reset your password: \n${resetLink}`;
 
     await this.mailerService.sendMail({
-      to: user.email,
+      to: email,
       subject: 'Reset The Password',
       text: message,
     });
-
-    // return "Check your email for the reset link.";
   }
 }

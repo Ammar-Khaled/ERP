@@ -25,8 +25,11 @@ export class AuthController {
   }
 
   @Public()
-  @Get('forgot-password')
-  forgotPassword(@Body('email') email: string) {
-    return this.authService.forgotPassword(email);
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    await this.authService.forgotPassword(email);
+    return {
+      message: "Check your email for the password reset link.",
+    };
   }
 }
