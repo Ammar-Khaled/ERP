@@ -11,7 +11,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private mailerService: MailerService,
-  ) { }
+  ) {}
 
   async signIn(
     usernameOrEmail: string,
@@ -60,12 +60,10 @@ export class AuthService {
 
     // Create a reset token
     const payload = { sub: user.id, purpose: 'password-reset' };
-    const resetToken = await this.jwtService.signAsync(
-      payload, {
-      expiresIn: '15m', 
+    const resetToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '15m',
       secret: 'reset-password-secret', // Use a different secret for reset tokens
-    },
-    );
+    });
 
     return resetToken;
   }
@@ -91,9 +89,12 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string) {
     try {
       // Verify the token
-      const { sub: userId, purpose } = await this.jwtService.verifyAsync(token, {
-        secret: 'reset-password-secret', // Use the same secret used to sign the reset token
-      });
+      const { sub: userId, purpose } = await this.jwtService.verifyAsync(
+        token,
+        {
+          secret: 'reset-password-secret', // Use the same secret used to sign the reset token
+        },
+      );
       if (purpose !== 'password-reset') {
         throw new UnauthorizedException('Invalid reset token');
       }

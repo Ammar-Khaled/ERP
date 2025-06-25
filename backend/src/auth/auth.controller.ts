@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -30,15 +29,18 @@ export class AuthController {
   async forgotPassword(@Body('email') email: string) {
     await this.authService.forgotPassword(email);
     return {
-      message: "Check your email for the password reset link.",
+      message: 'Check your email for the password reset link.',
     };
   }
 
   @Post('reset-password')
-  async resetPassword(@Query('token') token: string, @Body('newPassword') newPassword: string) {
+  async resetPassword(
+    @Query('token') token: string,
+    @Body('newPassword') newPassword: string,
+  ) {
     await this.authService.resetPassword(token, newPassword);
     return {
-      message: "Your password has been successfully reset.",
+      message: 'Your password has been successfully reset.',
     };
   }
 }
