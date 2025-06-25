@@ -78,4 +78,14 @@ export class PurchaseRequest {
 
   @DeleteDateColumn() // Add DeleteDateColumn for soft delete
   deletedAt?: Date;
+
+  @Column({ type: 'int', nullable: false })
+  reviewerId: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'reviewerId' })
+  reviewer: User;
+
+  @Column({ nullable: true })
+  reviewNotes: string;
 }

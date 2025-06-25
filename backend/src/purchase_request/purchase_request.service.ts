@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   Inject,
   Injectable,
@@ -179,15 +180,15 @@ export class PurchaseRequestService {
     newPurchaseRequest.supplier = supplier;
 
     // Handle the status
-    const status = await this.statusRepository.findOneBy({
-      id: createPurchaseRequestDto.statusId,
+    const pendingStatus = await this.statusRepository.findOneBy({
+      name: 'purchase_request_pending',
     });
-    if (!status) {
+    if (!pendingStatus) {
       throw new NotFoundException({
-        message: `This status is not found!`,
+        message: `purchase_request_pending status is not found!`,
       });
     }
-    newPurchaseRequest.status = status;
+    newPurchaseRequest.status = pendingStatus;
 
     // Handle the currency
     const currency = await this.currencyRepository.findOneBy({
@@ -234,6 +235,53 @@ export class PurchaseRequestService {
       await this.purchaseRequestRepository.save(newPurchaseRequest);
 
     return this.findOne(savedPurchaseRequest.id, false);
+  }
+
+  async review(
+    purchaseRequestId: number,
+    reviewer: User,
+    reviewNotes: string,
+    approved: boolean,
+  ) {
+    const purchaseRequest = await this.findOne(purchaseRequestId);
+
+    if (!purchaseRequest) {
+      throw new NotFoundException(
+        `No purchase request with ID of (${purchaseRequestId})!`,
+      );
+    }
+
+    if (purchaseRequest.status.name !== 'purchase_request_pending') {
+      throw new ConflictException('This request has already been processed');
+    }
+
+    // update the status
+    if (approved) {
+      const approvedStatus = await this.statusRepository.findOneBy({
+        name: 'purchase_request_approved',
+      });
+      if (!approvedStatus) {
+        throw new NotFoundException({
+          message: `purchase_request_approved status is not found!`,
+        });
+      }
+      purchaseRequest.status = approvedStatus;
+    } else {
+      const rejectedStatus = await this.statusRepository.findOneBy({
+        name: 'purchase_request_rejected',
+      });
+      if (!rejectedStatus) {
+        throw new NotFoundException({
+          message: `purchase_request_rejected status is not found!`,
+        });
+      }
+      purchaseRequest.status = rejectedStatus;
+    }
+
+    purchaseRequest.reviewer = reviewer;
+    purchaseRequest.reviewNotes = reviewNotes;
+    await this.purchaseRequestRepository.save(purchaseRequest);
+    return purchaseRequest;
   }
 
   async findAll() {
@@ -305,17 +353,6 @@ export class PurchaseRequestService {
           message: `This supplier name is not found!`,
         });
       purchaseRequest.supplier = supplier;
-    }
-
-    if (updatePurchaseRequestDto.statusId) {
-      const status = await this.statusRepository.findOneBy({
-        id: updatePurchaseRequestDto.statusId,
-      });
-      if (!status)
-        throw new NotFoundException({
-          message: `This status name is not found!`,
-        });
-      purchaseRequest.status = status;
     }
 
     if (updatePurchaseRequestDto.currencyId) {
