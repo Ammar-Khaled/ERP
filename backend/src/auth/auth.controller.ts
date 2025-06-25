@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserSignInDto } from './dto/user-sign-in.dto';
@@ -30,6 +31,14 @@ export class AuthController {
     await this.authService.forgotPassword(email);
     return {
       message: "Check your email for the password reset link.",
+    };
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Query('token') token: string, @Body('newPassword') newPassword: string) {
+    await this.authService.resetPassword(token, newPassword);
+    return {
+      message: "Your password has been successfully reset.",
     };
   }
 }

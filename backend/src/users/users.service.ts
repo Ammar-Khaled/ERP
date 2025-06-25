@@ -120,7 +120,7 @@ export class UsersService {
     if (updateUserDto.password) {
       updateUserDto.password = await hash(
         updateUserDto.password,
-        process.env.BYCRYPT_SALT_ROUNDS,
+        Number(process.env.BCRYPT_SALT_ROUNDS),
       );
     }
 
