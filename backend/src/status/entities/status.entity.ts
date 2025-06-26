@@ -1,6 +1,7 @@
 import { Order } from 'src/order/entities/order.entity';
 import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
 import { Return } from 'src/return/entities/return.entity';
+import { ReturnPurchase } from 'src/return_purchase/entities/return_purchase.entity';
 import {
   Column,
   DeleteDateColumn,
@@ -54,4 +55,8 @@ export class Status {
 
   @OneToMany(() => Order, (order) => order.status)
   orders: Order[];
+
+  // Relation with ReturnPurchase
+  @OneToMany(() => ReturnPurchase, (returnPurchases) => returnPurchases.status)
+  returnPurchases: ReturnPurchase[];
 }

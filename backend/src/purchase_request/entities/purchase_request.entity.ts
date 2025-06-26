@@ -15,6 +15,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { PurchaseItem } from 'src/purchase_request/entities/purchase_item.entity';
+import { ReturnPurchase } from 'src/return_purchase/entities/return_purchase.entity';
 
 @Entity('purchase_requests')
 export class PurchaseRequest {
@@ -75,6 +76,10 @@ export class PurchaseRequest {
     nullable: false,
   })
   purchaseItems: PurchaseItem[];
+
+  // Relation with return purchases
+  @OneToMany(() => ReturnPurchase, (returnPurchases) => returnPurchases.purchaseRequest)
+  returnPurchases: ReturnPurchase[];
 
   @DeleteDateColumn() // Add DeleteDateColumn for soft delete
   deletedAt?: Date;
