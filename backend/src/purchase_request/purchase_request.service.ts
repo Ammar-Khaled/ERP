@@ -239,16 +239,25 @@ export class PurchaseRequestService {
 
   async review(
     purchaseRequestId: number,
-    reviewer: User,
+    reviewerId: number,
     reviewNotes: string,
     approved: boolean,
   ) {
-    const purchaseRequest = await this.findOne(purchaseRequestId);
-
+    const purchaseRequest = await this.purchaseRequestRepository.findOne({
+      where: { id: purchaseRequestId },
+      relations: ['status', 'purchaseItems'],
+    });
     if (!purchaseRequest) {
       throw new NotFoundException(
         `No purchase request with ID of (${purchaseRequestId})!`,
       );
+    }
+
+    const reviewer = await this.userRepository.findOneBy({
+      id: reviewerId,
+    });
+    if (!reviewer) {
+      throw new NotFoundException(`Reviewer with ID ${reviewerId} not found!`);
     }
 
     if (purchaseRequest.status.name !== 'purchase_request_pending') {
@@ -432,8 +441,6 @@ export class PurchaseRequestService {
   async remove(id: number) {
     const purchaseRequest = await this.findOne(id);
     await this.purchaseRequestRepository.softDelete({ id });
-
-    console.log(`Removed purchase request with ID: ${id} successfully!`);
     return purchaseRequest;
   }
 }
