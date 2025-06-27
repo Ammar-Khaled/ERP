@@ -7,27 +7,27 @@ import { UpdateReturnPurchaseDto } from './dto/update-return_purchase.dto';
 export class ReturnPurchaseController {
   constructor(private readonly returnPurchaseService: ReturnPurchaseService) {}
 
-  @Post()
+  @Post('create')
   create(@Body() createReturnPurchaseDto: CreateReturnPurchaseDto) {
     return this.returnPurchaseService.create(createReturnPurchaseDto);
   }
 
-  @Get()
+  @Get('find-all')
   findAll() {
     return this.returnPurchaseService.findAll();
   }
 
-  @Get(':id')
+  @Get('find-by-id/:id')
   findOne(@Param('id') id: string) {
     return this.returnPurchaseService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch('update/:id')
   update(@Param('id') id: string, @Body() updateReturnPurchaseDto: UpdateReturnPurchaseDto) {
     return this.returnPurchaseService.update(+id, updateReturnPurchaseDto);
   }
 
-  @Delete(':id')
+  @Delete('delete/:id')
   remove(@Param('id') id: string) {
     return this.returnPurchaseService.remove(+id);
   }
