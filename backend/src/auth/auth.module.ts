@@ -8,6 +8,8 @@ import { userProviders } from '../users/users.providers';
 import { DatabaseModule } from '../common/database.module';
 import { config } from 'dotenv';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './auth.guard';
 
 config();
 
@@ -46,10 +48,10 @@ config();
   providers: [
     AuthService,
     ...userProviders,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
   ],
   controllers: [AuthController],
   exports: [AuthService],
