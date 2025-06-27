@@ -20,7 +20,7 @@ export class SuppliersController {
     return await this.supplierService.create(createSupplierDto);
   }
 
-  @Get('/all')
+  @Get()
   async findAll() {
     return await this.supplierService.findAll();
   }

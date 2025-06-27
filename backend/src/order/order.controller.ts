@@ -17,7 +17,7 @@ import { PdfService } from '../common/pdf/pdf.service';
 import { Response } from 'express';
 import { LoggingInterceptor } from 'src/logging/logging.interceptor';
 
-@Controller('order')
+@Controller('orders')
 export class OrderController {
   constructor(
     private readonly orderService: OrderService,
@@ -30,7 +30,7 @@ export class OrderController {
     return this.orderService.create(createOrderDto);
   }
 
-  @Get('/findAll')
+  @Get()
   findAll() {
     return this.orderService.findAll();
   }

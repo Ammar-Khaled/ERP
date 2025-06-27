@@ -46,7 +46,7 @@ export class PurchaseRequestController {
     );
   }
 
-  @Get('find-all')
+  @Get()
   findAll() {
     return this.purchaseRequestService.findAll();
   }
