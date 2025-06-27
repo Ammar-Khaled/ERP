@@ -155,6 +155,8 @@ export class ProductItemService {
 
     productItems.forEach((productItem) => {
       delete productItem.product.id;
+      delete productItem.product.name;
+      delete productItem.product.nameAr;
       const productDate = productItem.product;
       delete productItem.product;
       returnedProductItems.push({ ...productItem, ...productDate });
@@ -169,6 +171,8 @@ export class ProductItemService {
       'Product item not found',
     );
     delete productItem.product.id;
+    delete productItem.product.name;
+    delete productItem.product.nameAr;
     const productDate = productItem.product;
     delete productItem.product;
     return { ...productItem, ...productDate };
