@@ -15,25 +15,29 @@ export class ReturnPurchaseItemService {
     ) { }
 
     async create(returnPurchaseItemDto: CreateReturnPurchaseItemDto): Promise<ReturnPurchaseItem> {
-        // Validate purchase item id
-        const purchaseItem = await this.purchaseItemRepo.findOne({
-            where: { id: returnPurchaseItemDto.purchaseItemId },
+        // Nice Feature: use the transaction approach to ensure ATOMICITY
+        // Any operation with the database will be done through the transactional manager
+        return this.returnPurchaseItemRepo.manager.transaction(async (transactionalEntityManager) => {
+            // Validate purchase item id
+            const purchaseItem = await transactionalEntityManager.findOne(PurchaseItem, {
+                where: { id: returnPurchaseItemDto.purchaseItemId },
+            });
+            if (!purchaseItem) {
+                throw new NotFoundException(`Purchase item with id ${returnPurchaseItemDto.purchaseItemId} not found`);
+            }
+
+            // Validate the number of returned
+            if (returnPurchaseItemDto.numberOfReturned > purchaseItem.numberOfItems) {
+                throw new ConflictException(`Cannot return more items than available. Available: ${purchaseItem.numberOfItems}, Attempted: ${returnPurchaseItemDto.numberOfReturned}`);
+            }
+            // Valid? => Update the number of items in the purchase item
+            purchaseItem.numberOfItems -= returnPurchaseItemDto.numberOfReturned;
+            await transactionalEntityManager.save(PurchaseItem, purchaseItem);
+
+            // Create, save, and return
+            const returnPurchaseItem = await transactionalEntityManager.create(ReturnPurchaseItem, returnPurchaseItemDto);
+            return await transactionalEntityManager.save(ReturnPurchaseItem, returnPurchaseItem);
         });
-        if (!purchaseItem) {
-            throw new NotFoundException(`Purchase item with id ${returnPurchaseItemDto.purchaseItemId} not found`);
-        }
-
-        // Validate the number of returned
-        if (returnPurchaseItemDto.numberOfReturned > purchaseItem.numberOfItems) {
-            throw new ConflictException(`Cannot return more items than available. Available: ${purchaseItem.numberOfItems}, Attempted: ${returnPurchaseItemDto.numberOfReturned}`);
-        }
-        // Valid? => Update the number of items in the purchase item
-        purchaseItem.numberOfItems -= returnPurchaseItemDto.numberOfReturned;
-        await this.purchaseItemRepo.save(purchaseItem);
-
-        // Create, save, and return
-        const returnPurchaseItem = await this.returnPurchaseItemRepo.create(returnPurchaseItemDto);
-        return await this.returnPurchaseItemRepo.save(returnPurchaseItem);
     }
 
     async findAll(): Promise<ReturnPurchaseItem[]> {
@@ -49,46 +53,53 @@ export class ReturnPurchaseItemService {
     }
 
     async update(id: number, updateReturnPurchaseItemDto: UpdateReturnPurchaseItemDto): Promise<ReturnPurchaseItem> {
-        // Validate the existence of the return purchase item
-        const returnPurchaseItem = await this.findOne(id);
-        if (!returnPurchaseItem) {
-            throw new NotFoundException(`Return purchase item with id ${id} not found`);
-        }
+        return this.returnPurchaseItemRepo.manager.transaction(async (transactionalEntityManager) => {
+            // Validate the existence of the return purchase item
+            const returnPurchaseItem = await this.findOne(id);
+            if (!returnPurchaseItem) {
+                throw new NotFoundException(`Return purchase item with id ${id} not found`);
+            }
 
-        // Validate the new number of returned
-        const purchaseItem = await this.purchaseItemRepo.findOne({
-            where: { id: returnPurchaseItem.purchaseItemId },
-        });
-        const difference = updateReturnPurchaseItemDto.numberOfReturned - returnPurchaseItem.numberOfReturned;
-        if (difference > purchaseItem.numberOfItems) {
-            throw new ConflictException(`Cannot return more items than available. Available: ${purchaseItem.numberOfItems}, Attempted: ${updateReturnPurchaseItemDto.numberOfReturned}`);
-        }
+            // Validate the new number of returned
+            const purchaseItem = await transactionalEntityManager.findOne(PurchaseItem, {
+                where: { id: returnPurchaseItem.purchaseItemId },
+            });
+            const difference = updateReturnPurchaseItemDto.numberOfReturned - returnPurchaseItem.numberOfReturned;
+            if (difference > purchaseItem.numberOfItems) {
+                throw new ConflictException(`Cannot return more items than available. Available: ${purchaseItem.numberOfItems}, Attempted: ${updateReturnPurchaseItemDto.numberOfReturned}`);
+            }
 
-        // Update the purchase item and save it
-        purchaseItem.numberOfItems -= difference;
-        await this.purchaseItemRepo.save(purchaseItem);
-        
-        // Finally, update our entity
-        returnPurchaseItem.numberOfReturned = updateReturnPurchaseItemDto.numberOfReturned;
-        await this.returnPurchaseItemRepo.save(returnPurchaseItem);
-        return returnPurchaseItem;
+            // Update the purchase item and save it
+            purchaseItem.numberOfItems -= difference;
+            await transactionalEntityManager.save(PurchaseItem, purchaseItem);
+
+            // Finally, update our entity
+            returnPurchaseItem.numberOfReturned = updateReturnPurchaseItemDto.numberOfReturned;
+            await transactionalEntityManager.save(ReturnPurchaseItem, returnPurchaseItem);
+            return returnPurchaseItem;
+        })
     }
 
     async remove(id: number): Promise<ReturnPurchaseItem> {
-        // Check for the existence
-        const returnPurchaseItem = await this.findOne(id);
-        if (!returnPurchaseItem) {
-            throw new NotFoundException(`Return purchase item with id ${id} not found`);
-        }
+        return this.returnPurchaseItemRepo.manager.transaction(async (transactionalEntityManager) => {
+            // Check for the existence
+            const returnPurchaseItem = await this.findOne(id);
+            if (!returnPurchaseItem) {
+                throw new NotFoundException(`Return purchase item with id ${id} not found`);
+            }
 
-        // Update the purchase item number of items
-        const purchaseItem = await this.purchaseItemRepo.findOne({
-            where: { id: returnPurchaseItem.purchaseItemId },
+            // Update the purchase item number of items
+            const purchaseItem = await transactionalEntityManager.findOne(PurchaseItem, {
+                where: { id: returnPurchaseItem.purchaseItemId },
+            });
+            if (!purchaseItem) {
+                throw new NotFoundException(`Purchase item with id ${returnPurchaseItem.purchaseItemId} not found`);
+            }
+            purchaseItem.numberOfItems += returnPurchaseItem.numberOfReturned;
+            await transactionalEntityManager.save(PurchaseItem, purchaseItem);
+
+            await transactionalEntityManager.softDelete(ReturnPurchaseItem, returnPurchaseItem.id);
+            return returnPurchaseItem;
         });
-        purchaseItem.numberOfItems += returnPurchaseItem.numberOfReturned;
-        await this.purchaseItemRepo.save(purchaseItem);
-
-        await this.returnPurchaseItemRepo.softDelete(returnPurchaseItem);
-        return returnPurchaseItem;
     }
 }
