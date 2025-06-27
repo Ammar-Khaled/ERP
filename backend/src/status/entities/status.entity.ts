@@ -15,13 +15,12 @@ export class Status {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 10, unique: true, nullable: false })
+  @Column({ type: 'varchar', unique: true, nullable: false })
   name: string;
 
   // Arabic name
   @Column({
     type: 'varchar',
-    length: 20,
     nullable: true,
     default: 'اسم الحالة',
   })
@@ -29,7 +28,6 @@ export class Status {
 
   @Column({
     type: 'varchar',
-    length: 50,
     default: 'Status Description',
     nullable: true,
   })
@@ -38,7 +36,6 @@ export class Status {
   // Arabic description
   @Column({
     type: 'varchar',
-    length: 100,
     nullable: true,
     default: 'وصف الحالة',
   })

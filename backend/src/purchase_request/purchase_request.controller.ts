@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpException,
   Param,
   Patch,
@@ -28,6 +29,21 @@ export class PurchaseRequestController {
   @UseInterceptors(LoggingInterceptor)
   create(@Body() createPurchaseRequestDto: CreatePurchaseRequestDto) {
     return this.purchaseRequestService.create(createPurchaseRequestDto);
+  }
+
+  @Patch('update-status/:id')
+  updateStatus(
+    @Param('id') id: string,
+    @Headers('userId') userId: string,
+    @Body('reviewNotes') reviewNotes: string,
+    @Body('approved') approved: boolean,
+  ) {
+    return this.purchaseRequestService.review(
+      +id,
+      +userId,
+      reviewNotes,
+      approved,
+    );
   }
 
   @Get('find-all')
