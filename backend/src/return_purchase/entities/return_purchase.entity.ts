@@ -19,12 +19,6 @@ export class ReturnPurchase {
     @Column({ type: 'varchar', length: 255, nullable: true, default: 'غير محدد' })
     reasonAr: string;
 
-    @OneToMany(() => ReturnPurchaseItem, (returnPurchaseItems) => returnPurchaseItems.returnPurchase, {
-        nullable: false,
-        eager: true,
-    })
-    returnPurchaseItems: ReturnPurchaseItem[];
-
     // Relation with the purchase request
     @Column({ type: 'int', nullable: false })
     purchaseRequestId: number;
@@ -32,6 +26,12 @@ export class ReturnPurchase {
         nullable: false,
     })
     purchaseRequest: PurchaseRequest;
+
+    @OneToMany(() => ReturnPurchaseItem, (returnPurchaseItems) => returnPurchaseItems.returnPurchase, {
+        nullable: false,
+        eager: true,
+    })
+    returnPurchaseItems: ReturnPurchaseItem[];
 
     // Relation with the status
     @Column({ type: 'int', nullable: false })
