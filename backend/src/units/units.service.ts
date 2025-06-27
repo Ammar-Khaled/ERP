@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { Unit } from './entities/unit.entity';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class UnitsService {
@@ -40,8 +41,28 @@ export class UnitsService {
     }
   }
 
-  async findAll() {
-    return await this.unitRepository.find();
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Unit>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.unitRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {

@@ -1,15 +1,17 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
 import { ReturnService } from './return.service';
 import { CreateReturnDto } from './dto/create-return.dto';
 import { UpdateReturnDto } from './dto/update-return.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('return')
 export class ReturnController {
@@ -23,8 +25,8 @@ export class ReturnController {
   }
 
   @Get('find-all')
-  findAll() {
-    return this.returnService.findAll();
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.returnService.findAll(paginationDto);
   }
 
   @Get('find-by-id/:id')

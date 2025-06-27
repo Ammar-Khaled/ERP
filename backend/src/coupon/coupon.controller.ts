@@ -6,10 +6,12 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CouponService } from './coupon.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('coupon')
 export class CouponController {
@@ -21,8 +23,8 @@ export class CouponController {
   }
 
   @Get('/findAll')
-  findAll() {
-    return this.couponService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return await this.couponService.findAll(paginationDto);
   }
 
   @Get('/findOne/:id')

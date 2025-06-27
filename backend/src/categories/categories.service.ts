@@ -1,9 +1,10 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
-import { Branch } from 'src/branches/entities/branch.entity'; // Assuming you have a Branch entity
+import { Branch } from 'src/branches/entities/branch.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class CategoriesService {
@@ -53,8 +54,30 @@ export class CategoriesService {
     return category;
   }
 
-  async findAll() {
-    return await this.categoryRepository.find();
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Category>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.categoryRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {

@@ -19,6 +19,7 @@ import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
 import { UpdatePurchaseItemDto } from './dto/update-purchase_item.dto';
 import { PurchaseItem } from './entities/purchase_item.entity';
 import { PurchaseEntity } from '../purchase_entity/entities/purchase_entity.entity';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 config();
 
@@ -293,8 +294,30 @@ export class PurchaseRequestService {
     return purchaseRequest;
   }
 
-  async findAll() {
-    return await this.purchaseRequestRepository.find();
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<PurchaseRequest>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.purchaseRequestRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number, withRelations: boolean = false) {

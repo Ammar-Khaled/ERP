@@ -15,6 +15,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { Unit } from 'src/units/entities/unit.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { ProductItemService } from 'src/product_item/product_item.service';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class ProductsService {
@@ -101,15 +102,30 @@ export class ProductsService {
     }
   }
 
-  async findAll() {
-    const products = await this.productRepository.find({
-      relations: ['productItems'], // Include branch and category relations
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Product>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.productRepository.findAndCount({
+      skip,
+      take: limit,
     });
-    products.forEach((product) => {
-      product.productItemIds = product.productItems?.map((item) => item.id);
-      delete product.productItems;
-    });
-    return products;
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {
