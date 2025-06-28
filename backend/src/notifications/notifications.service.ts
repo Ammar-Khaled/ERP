@@ -84,15 +84,13 @@ export class NotificationsService {
       { userId, isRead: false },
       { isRead: true },
     );
-
-    return { success: true };
   }
 
   async remove(id: number) {
     const notification = await this.notificationRepository.findOneBy({ id });
     if (!notification) return null;
 
-    await this.notificationRepository.remove(notification);
+    await this.notificationRepository.softRemove(notification);
     return { id };
   }
 }

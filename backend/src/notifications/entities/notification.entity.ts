@@ -10,6 +10,9 @@ import { User } from 'src/users/entities/user.entity';
 
 export enum NotificationType {
   LOW_INVENTORY = 'low_inventory',
+  PURCHASE_REQUEST_CREATED = 'purchase_request_created',
+  PURCHASE_REQUEST_APPROVED = 'purchase_request_approved',
+  PURCHASE_REQUEST_REJECTED = 'purchase_request_rejected',
   GENERAL = 'general',
 }
 

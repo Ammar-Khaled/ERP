@@ -18,6 +18,7 @@ import { Status } from 'src/status/entities/status.entity';
 import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
 import { UpdateProductItemInventoryDto } from 'src/product_item_inventory/dto/update-product_item_inventory.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class ReturnService {
@@ -157,8 +158,28 @@ export class ReturnService {
     return await this.returnRepository.save(newReturn);
   }
 
-  async findAll() {
-    return await this.returnRepository.find();
+  async findAll(paginationDto: PaginationDto) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.returnRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number, relations: string[] = []) {

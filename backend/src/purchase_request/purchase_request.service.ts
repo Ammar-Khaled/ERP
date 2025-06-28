@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   Inject,
   Injectable,
@@ -18,6 +19,7 @@ import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
 import { UpdatePurchaseItemDto } from './dto/update-purchase_item.dto';
 import { PurchaseItem } from './entities/purchase_item.entity';
 import { PurchaseEntity } from '../purchase_entity/entities/purchase_entity.entity';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 config();
 
@@ -179,15 +181,15 @@ export class PurchaseRequestService {
     newPurchaseRequest.supplier = supplier;
 
     // Handle the status
-    const status = await this.statusRepository.findOneBy({
-      id: createPurchaseRequestDto.statusId,
+    const pendingStatus = await this.statusRepository.findOneBy({
+      name: 'purchase_request_pending',
     });
-    if (!status) {
+    if (!pendingStatus) {
       throw new NotFoundException({
-        message: `This status is not found!`,
+        message: `purchase_request_pending status is not found!`,
       });
     }
-    newPurchaseRequest.status = status;
+    newPurchaseRequest.status = pendingStatus;
 
     // Handle the currency
     const currency = await this.currencyRepository.findOneBy({
@@ -236,8 +238,86 @@ export class PurchaseRequestService {
     return this.findOne(savedPurchaseRequest.id, false);
   }
 
-  async findAll() {
-    return await this.purchaseRequestRepository.find();
+  async review(
+    purchaseRequestId: number,
+    reviewerId: number,
+    reviewNotes: string,
+    approved: boolean,
+  ) {
+    const purchaseRequest = await this.purchaseRequestRepository.findOne({
+      where: { id: purchaseRequestId },
+      relations: ['status', 'purchaseItems'],
+    });
+    if (!purchaseRequest) {
+      throw new NotFoundException(
+        `No purchase request with ID of (${purchaseRequestId})!`,
+      );
+    }
+
+    const reviewer = await this.userRepository.findOneBy({
+      id: reviewerId,
+    });
+    if (!reviewer) {
+      throw new NotFoundException(`Reviewer with ID ${reviewerId} not found!`);
+    }
+
+    if (purchaseRequest.status.name !== 'purchase_request_pending') {
+      throw new ConflictException('This request has already been processed');
+    }
+
+    // update the status
+    if (approved) {
+      const approvedStatus = await this.statusRepository.findOneBy({
+        name: 'purchase_request_approved',
+      });
+      if (!approvedStatus) {
+        throw new NotFoundException({
+          message: `purchase_request_approved status is not found!`,
+        });
+      }
+      purchaseRequest.status = approvedStatus;
+    } else {
+      const rejectedStatus = await this.statusRepository.findOneBy({
+        name: 'purchase_request_rejected',
+      });
+      if (!rejectedStatus) {
+        throw new NotFoundException({
+          message: `purchase_request_rejected status is not found!`,
+        });
+      }
+      purchaseRequest.status = rejectedStatus;
+    }
+
+    purchaseRequest.reviewer = reviewer;
+    purchaseRequest.reviewNotes = reviewNotes;
+    await this.purchaseRequestRepository.save(purchaseRequest);
+    return purchaseRequest;
+  }
+
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<PurchaseRequest>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.purchaseRequestRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number, withRelations: boolean = false) {
@@ -305,17 +385,6 @@ export class PurchaseRequestService {
           message: `This supplier name is not found!`,
         });
       purchaseRequest.supplier = supplier;
-    }
-
-    if (updatePurchaseRequestDto.statusId) {
-      const status = await this.statusRepository.findOneBy({
-        id: updatePurchaseRequestDto.statusId,
-      });
-      if (!status)
-        throw new NotFoundException({
-          message: `This status name is not found!`,
-        });
-      purchaseRequest.status = status;
     }
 
     if (updatePurchaseRequestDto.currencyId) {
@@ -395,8 +464,6 @@ export class PurchaseRequestService {
   async remove(id: number) {
     const purchaseRequest = await this.findOne(id);
     await this.purchaseRequestRepository.softDelete({ id });
-
-    console.log(`Removed purchase request with ID: ${id} successfully!`);
     return purchaseRequest;
   }
 }

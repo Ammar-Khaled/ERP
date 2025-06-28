@@ -6,13 +6,15 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { PurchaseEntityService } from './purchase_entity.service';
 import { CreatePurchaseEntityDto } from './dto/create-purchase_entity.dto';
 import { UpdatePurchaseEntityDto } from './dto/update-purchase_entity.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('purchase-entities')
-export class PurchaseEntityController {
+export class PurchaseEntitiesController {
   constructor(private readonly purchaseEntityService: PurchaseEntityService) {}
 
   @Post('create')
@@ -21,8 +23,8 @@ export class PurchaseEntityController {
   }
 
   @Get('find-all')
-  findAll() {
-    return this.purchaseEntityService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return await this.purchaseEntityService.findAll(paginationDto);
   }
 
   @Get('find-by-id/:id')

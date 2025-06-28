@@ -6,13 +6,15 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CurrencyService } from './currency.service';
 import { CreateCurrencyDto } from './dto/create-currency.dto';
 import { UpdateCurrencyDto } from './dto/update-currency.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('currencies')
-export class CurrencyController {
+export class CurrenciesController {
   constructor(private readonly currencyService: CurrencyService) {}
 
   @Post()
@@ -21,8 +23,8 @@ export class CurrencyController {
   }
 
   @Get()
-  findAll() {
-    return this.currencyService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return await this.currencyService.findAll(paginationDto);
   }
 
   @Get(':id')

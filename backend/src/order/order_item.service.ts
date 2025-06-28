@@ -3,7 +3,6 @@ import { CreateOrderItemDto } from './dto/create-order_item.dto';
 import { UpdateOrderItemDto } from './dto/update-order_item.dto';
 import { OrderItem } from './entities/order_item.entity';
 import { Repository } from 'typeorm';
-import * as jsend from 'jsend';
 
 @Injectable()
 export class OrderItemService {
@@ -18,7 +17,7 @@ export class OrderItemService {
 
   async findAll() {
     const orderItems = await this.orderItemRepo.find();
-    return jsend.success(orderItems);
+    return orderItems;
   }
 
   async findOne(id: number) {
@@ -28,7 +27,7 @@ export class OrderItemService {
         message: `There is NO order item with id : ${id}`,
       });
     }
-    return jsend.success(orderItem);
+    return orderItem;
   }
 
   update(id: number, updateOrderItemDto: UpdateOrderItemDto) {

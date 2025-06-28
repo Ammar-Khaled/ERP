@@ -10,21 +10,24 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Repository } from 'typeorm';
 import { Order } from './entities/order.entity';
-import { Branch } from 'src/branches/entities/branch.entity';
-import { User } from 'src/users/entities/user.entity';
 import { Client } from 'src/clients/entities/client.entity';
-import { Coupon } from 'src/coupon/entities/coupon.entity';
-import { Currency } from 'src/currency/entities/currency.entity';
-import { OrderItem } from 'src/order/entities/order_item.entity';
-import { ProductItem } from '../product_item/entities/product_item.entity';
-import { CreateOrderItemDto } from 'src/order/dto/create-order_item.dto';
-import { Status } from 'src/status/entities/status.entity';
+import { Branch } from '../branches/entities/branch.entity';
+import { User } from '../users/entities/user.entity';
+import { Currency } from '../currency/entities/currency.entity';
+import { ProductItemInventoryService } from '../product_item_inventory/product_item_inventory.service';
+import { OrderItem } from './entities/order_item.entity';
+import { ProductItem } from 'src/product_item/entities/product_item.entity';
+import { CreateOrderItemDto } from './dto/create-order_item.dto';
 import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
-import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
+import { Status } from 'src/status/entities/status.entity';
+import { Coupon } from 'src/coupon/entities/coupon.entity';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { BaseService } from 'src/common/services/base.service';
 
 @Injectable()
-export class OrderService {
+export class OrderService extends BaseService<Order> {
+
   constructor(
     @Inject('ORDER_REPOSITORY')
     private orderRepo: Repository<Order>,
@@ -49,7 +52,9 @@ export class OrderService {
     @Inject('INVENTORY_REPOSITORY')
     private inventoryRepo: Repository<Inventory>,
     private readonly productItemInventoryService: ProductItemInventoryService,
-  ) {}
+  ) {
+    super(orderRepo);
+  }
 
   async create(createOrderDto: CreateOrderDto) {
     const _newOrder = new Order();
@@ -181,31 +186,37 @@ export class OrderService {
     }
   }
 
-  async findAll(branchId: number) {
-    return await this.orderRepo.find({ where: {branchId}  ,  relations: ['items'] });
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Order>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.orderRepo.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
-  async findOne(id: number, withRelations: boolean = false) {
-    let order;
+  async findOne(id: number, relations: string[] = [],branchId?: number) {
+    let order; 
 
-    if (withRelations) {
-      order = await this.orderRepo.findOne({
-        where: { id },
-        relations: [
-          'branch',
-          'inventory',
-          'user',
-          'client',
-          'status',
-          'coupon',
-          'currency',
-          'items',
-          'returns',
-        ],
-      });
-    } else {
-      order = await this.orderRepo.findOneBy({ id });
-    }
+    order = await this.orderRepo.findOne({
+      where: { id },
+      relations,
+    });
 
     return order;
   }
@@ -347,7 +358,7 @@ export class OrderService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number, branchId: number) {
     const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
     const inventoryId = order.inventoryId;
     for (const orderItem of order.items) {

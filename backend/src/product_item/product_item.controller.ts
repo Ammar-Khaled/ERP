@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
@@ -18,9 +19,10 @@ import { CreateProductItemDto } from './dto/create-product_item.dto';
 import { UpdateProductItemDto } from './dto/update-product_item.dto';
 import { UpdateDamagedDto } from './dto/update-damaged.dto';
 import { UpdateExpiredDto } from './dto/update-expired.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('product-item')
-export class ProductItemController {
+export class ProductItemsController {
   constructor(private readonly productItemService: ProductItemService) {}
 
   @Post()
@@ -29,8 +31,8 @@ export class ProductItemController {
   }
 
   @Get()
-  findAll() {
-    return this.productItemService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return await this.productItemService.findAll(paginationDto);
   }
 
   @Get('/damaged')

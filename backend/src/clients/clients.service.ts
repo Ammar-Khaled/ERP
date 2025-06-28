@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class ClientsService {
@@ -31,8 +32,30 @@ export class ClientsService {
     return await this.clientRepository.save(client);
   }
 
-  async findAll() {
-    return await this.clientRepository.find();
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Client>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.clientRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {
@@ -50,7 +73,7 @@ export class ClientsService {
   //     { email },
   //     'Client not found',
   //   );
-  //   return jsend.success(client);
+  //   return client;
   // }
   //
   // async findByPhone(phoneNumber: string) {
@@ -58,6 +81,6 @@ export class ClientsService {
   //     { phone_number: phoneNumber },
   //     'Client not found',
   //   );
-  //   return jsend.success(client);
+  //   return client;
   // }
 }

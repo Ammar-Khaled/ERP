@@ -1,16 +1,26 @@
 import { Repository, FindManyOptions, FindOneOptions, DeepPartial } from 'typeorm';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { PaginatedResult, PaginationDto } from '../dtos/pagination.dto';
 
 @Injectable()
 export abstract class BaseService<T> {
   constructor(protected repository: Repository<T>) {}
 
-  protected addBranchFilter(options: FindManyOptions<T> | FindOneOptions<T>, branchId?: number): void {
+  /*protected addBranchFilter(options: FindManyOptions<T> | FindOneOptions<T>, branchId?: number): void {
     if (branchId) {
       options.where = {
         ...options.where,
-        branch_id: branchId,
+        branchId: branchId,
+      };
+    }
+  }*/
+
+  protected addBranchFilter(options: FindManyOptions<T> | FindOneOptions<T>, branchId?: number): void {
+    if (branchId) {
+      const where = options.where ?? {};
+      options.where = {
+        ...(where as any),
+        branchId,
       };
     }
   }
@@ -24,7 +34,9 @@ export abstract class BaseService<T> {
       take: limit,
     };
 
-    this.addBranchFilter(options, branchId);
+    //
+    if(branchId !== 1)
+        this.addBranchFilter(options, branchId);
 
     const [data, total] = await this.repository.findAndCount(options);
     const totalPages = Math.ceil(total / limit);
@@ -44,15 +56,15 @@ export abstract class BaseService<T> {
 
   async findOne(id: number, relations?: string[], branchId?: number): Promise<T> {
     const options: FindOneOptions<T> = {
-      where: { id } as any,
-      relations,
+        where: { id } as any,
+        relations,
     };
 
     this.addBranchFilter(options, branchId);
 
     const entity = await this.repository.findOne(options);
     if (!entity) {
-      throw new NotFoundException(`Entity with id ${id} not found`);
+      throw new NotFoundException(`Order with id ${id} not found`);
     }
 
     return entity;
@@ -73,8 +85,9 @@ export abstract class BaseService<T> {
     return this.repository.save(entity);
   }
 
-  async remove(id: number, branchId?: number): Promise<void> {
+  async remove(id: number, branchId?: number): Promise<T> {
     const entity = await this.findOne(id, [], branchId);
-    await this.repository.softDelete(id);
+    await this.repository.softRemove(entity);
+    return entity;
   }
 }

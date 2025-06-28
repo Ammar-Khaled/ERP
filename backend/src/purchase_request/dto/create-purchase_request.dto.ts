@@ -24,9 +24,6 @@ export class CreatePurchaseRequestDto {
   supplierId: number;
 
   @IsNotEmpty()
-  statusId: number;
-
-  @IsNotEmpty()
   currencyId: number;
 
   @IsNotEmpty()

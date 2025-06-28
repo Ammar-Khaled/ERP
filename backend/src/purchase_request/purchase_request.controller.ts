@@ -3,10 +3,12 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpException,
   Param,
   Patch,
   Post,
+  Query,
   Res,
   UseInterceptors,
 } from '@nestjs/common';
@@ -16,9 +18,10 @@ import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
 import { PdfService } from 'src/common/pdf/pdf.service';
 import { Response } from 'express';
 import { LoggingInterceptor } from 'src/logging/logging.interceptor';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('purchase-requests')
-export class PurchaseRequestController {
+export class PurchaseRequestsController {
   constructor(
     private readonly purchaseRequestService: PurchaseRequestService,
     private readonly pdfService: PdfService,
@@ -30,9 +33,24 @@ export class PurchaseRequestController {
     return this.purchaseRequestService.create(createPurchaseRequestDto);
   }
 
-  @Get('find-all')
-  findAll() {
-    return this.purchaseRequestService.findAll();
+  @Patch('update-status/:id')
+  updateStatus(
+    @Param('id') id: string,
+    @Headers('userId') userId: string,
+    @Body('reviewNotes') reviewNotes: string,
+    @Body('approved') approved: boolean,
+  ) {
+    return this.purchaseRequestService.review(
+      +id,
+      +userId,
+      reviewNotes,
+      approved,
+    );
+  }
+
+  @Get()
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return await this.purchaseRequestService.findAll(paginationDto);
   }
 
   @Get('find-by-id/:id')

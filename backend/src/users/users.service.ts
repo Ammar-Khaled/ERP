@@ -13,6 +13,7 @@ import { Role } from '../roles/entities/role.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { config } from 'dotenv';
 import * as process from 'node:process';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 config();
 
@@ -24,10 +25,16 @@ export class UsersService {
     @Inject('BRANCH_REPOSITORY') private branchRepository: Repository<Branch>,
   ) {}
 
-  async findAll() {
-    const users = await this.userRepository.find({
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<any>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await this.userRepository.findAndCount({
       relations: ['roles', 'purchaseRequests'],
+      skip,
+      take: limit,
     });
+
     users.forEach((user) => delete user.password);
     users.forEach((user) => {
       user.roleIds = user.roles.map((role) => role.id);
@@ -38,7 +45,19 @@ export class UsersService {
       delete user.purchaseRequests;
     });
 
-    return users;
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: users,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {
@@ -120,7 +139,7 @@ export class UsersService {
     if (updateUserDto.password) {
       updateUserDto.password = await hash(
         updateUserDto.password,
-        process.env.BYCRYPT_SALT_ROUNDS,
+        Number(process.env.BCRYPT_SALT_ROUNDS),
       );
     }
 

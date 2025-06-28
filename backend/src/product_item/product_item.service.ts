@@ -23,6 +23,7 @@ import { Unit } from 'src/units/entities/unit.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { ProductItemToInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class ProductItemService {
@@ -146,21 +147,45 @@ export class ProductItemService {
     );
   }
 
-  async findAll() {
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<any>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [productItems, total] = await this.productItemRepository.findAndCount(
+      {
+        skip,
+        take: limit,
+        relations: [
+          'variationOptions',
+          'variationOptions.variation',
+          'product',
+        ],
+      },
+    );
+
+    const totalPages = Math.ceil(total / limit);
+
     const returnedProductItems = [];
-
-    const productItems = await this.productItemRepository.find({
-      relations: ['variationOptions', 'variationOptions.variation', 'product'], // Include the variation relation
-    });
-
     productItems.forEach((productItem) => {
       delete productItem.product.id;
+      delete productItem.product.name;
+      delete productItem.product.nameAr;
       const productDate = productItem.product;
       delete productItem.product;
       returnedProductItems.push({ ...productItem, ...productDate });
     });
 
-    return returnedProductItems;
+    return {
+      data: returnedProductItems,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {
@@ -169,6 +194,8 @@ export class ProductItemService {
       'Product item not found',
     );
     delete productItem.product.id;
+    delete productItem.product.name;
+    delete productItem.product.nameAr;
     const productDate = productItem.product;
     delete productItem.product;
     return { ...productItem, ...productDate };

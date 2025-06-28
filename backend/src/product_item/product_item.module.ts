@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ProductItemService } from './product_item.service'; // Service for ProductItem
-import { ProductItemController } from './product_item.controller'; // Controller for ProductItem
+import { ProductItemsController } from './product_item.controller'; // Controller for ProductItem
 import { productItemProviders } from './product_item.providers'; // Providers for ProductItem
 import { DatabaseModule } from '../common/database.module'; // Import DatabaseModule
 import { productsProviders } from '../products/products.providers'; // Import Product providers if needed
@@ -15,10 +15,11 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { ConfigModule } from '@nestjs/config';
 import { productItemInventoryProviders } from '../product_item_inventory/product_item_inventory.providers';
 import { inventoriesProviders } from '../inventories/inventories.providers';
+import { ExpiredProductsScheduler } from './scheduler/expired-products.scheduler';
 
 @Module({
   imports: [ConfigModule, DatabaseModule, ProductItemInventoryModule], // Include the DatabaseModule for DataSource injection
-  controllers: [ProductItemController], // Add ProductItem controller
+  controllers: [ProductItemsController], // Add ProductItem controller
   providers: [
     ...productItemProviders,
     ...branchesProviders,
@@ -32,6 +33,7 @@ import { inventoriesProviders } from '../inventories/inventories.providers';
     CloudinaryService,
     ...productItemInventoryProviders,
     ...inventoriesProviders,
+    ExpiredProductsScheduler,
   ], // Add providers including related products
   exports: [ProductItemService], // Export ProductItemsService if other modules need it
 })
