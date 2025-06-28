@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { OrderService } from './order.service';
-import { OrderController } from './order.controller';
+import { OrdersController } from './order.controller';
 import { DatabaseModule } from 'src/common/database.module';
 import { orderProviders } from './order.providers';
 import { branchesProviders } from 'src/branches/branches.providers';
@@ -23,7 +23,7 @@ import { logRepositoryProvider } from 'src/logging/log.repository';
 
 @Module({
   imports: [DatabaseModule, ProductItemModule, ProductItemInventoryModule],
-  controllers: [OrderController, OrderItemController],
+  controllers: [OrdersController, OrderItemController],
   providers: [
     OrderService,
     ...orderProviders,

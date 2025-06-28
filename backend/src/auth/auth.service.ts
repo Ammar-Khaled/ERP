@@ -40,7 +40,7 @@ export class AuthService {
       sub: user.id,
       username: user.username,
       email: user.email,
-      roles: user.roles,
+      roleIds: user.roles.map((role) => role.id),
     };
 
     delete user.password;

@@ -20,7 +20,7 @@ import { LoggingInterceptor } from 'src/logging/logging.interceptor';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('orders')
-export class OrderController {
+export class OrdersController {
   constructor(
     private readonly orderService: OrderService,
     private readonly pdfService: PdfService,

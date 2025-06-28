@@ -10,6 +10,8 @@ import { config } from 'dotenv';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
+import { PermissionsGuard } from './permissions.guard';
+import { RolesModule } from '../roles/roles.module';
 
 config();
 
@@ -44,6 +46,7 @@ config();
         from: `"No Reply" <${process.env.MAIL_FROM}>`,
       },
     }),
+    RolesModule,
   ],
   providers: [
     AuthService,
@@ -51,6 +54,10 @@ config();
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionsGuard,
     },
   ],
   controllers: [AuthController],

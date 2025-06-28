@@ -14,7 +14,7 @@ import { UpdatePurchaseEntityDto } from './dto/update-purchase_entity.dto';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('purchase-entities')
-export class PurchaseEntityController {
+export class PurchaseEntitiesController {
   constructor(private readonly purchaseEntityService: PurchaseEntityService) {}
 
   @Post('create')

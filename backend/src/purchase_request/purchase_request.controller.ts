@@ -21,7 +21,7 @@ import { LoggingInterceptor } from 'src/logging/logging.interceptor';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('purchase-requests')
-export class PurchaseRequestController {
+export class PurchaseRequestsController {
   constructor(
     private readonly purchaseRequestService: PurchaseRequestService,
     private readonly pdfService: PdfService,

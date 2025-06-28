@@ -14,7 +14,7 @@ import { UpdateReturnDto } from './dto/update-return.dto';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('return')
-export class ReturnController {
+export class ReturnsController {
   constructor(private readonly returnService: ReturnService) {}
 
   @Post('create')
