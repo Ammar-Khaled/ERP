@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { IsArray, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
-import { ReturnPurchaseItem } from "../entities/return_purchase_item.entity";
+import { CreateReturnPurchaseItemDto } from "./create-return_purchase_item.dto";
 
 export class CreateReturnPurchaseDto {
     @IsOptional()
@@ -23,8 +23,8 @@ export class CreateReturnPurchaseDto {
     @IsNotEmpty()
     @IsArray()
     @ValidateNested({ each: true, always: true})
-    @Type(() => ReturnPurchaseItem)
-    returnPurchaseItems: ReturnPurchaseItem[];
+    @Type(() => CreateReturnPurchaseItemDto)
+    returnPurchaseItemDtos: CreateReturnPurchaseItemDto[];
 
     @IsNotEmpty()
     @IsNumber()

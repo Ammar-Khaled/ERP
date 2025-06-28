@@ -9,8 +9,4 @@ export class CreateReturnPurchaseItemDto {
     @IsNumber()
     @IsPositive()
     numberOfReturned: number;
-
-    @IsNotEmpty()
-    @IsNumber()
-    returnPurchaseId: number;
 }
