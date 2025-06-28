@@ -36,7 +36,7 @@ export class ReturnService {
     private statusRepository: Repository<Status>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
     private productItemInvRepository: Repository<ProductItemToInventory>,
-  ) {}
+  ) { }
 
   /// Utility Functions ///
   uniqueDtos(dtos: CreateReturnItemDto[]) {
@@ -232,7 +232,7 @@ export class ReturnService {
           if (
             itemDto.numberOfItems - existingItem.numberOfItems >
             existingItem.orderItem.numberOfItems -
-              existingItem.orderItem.numberOfReturned
+            existingItem.orderItem.numberOfReturned
           ) {
             throw new ConflictException({
               message: `The number of items to return is greater than the number of items in the order of the ID (${itemDto.orderItemId})!`,
@@ -289,35 +289,35 @@ export class ReturnService {
         const returnItem = await this.returnItemService.create(returnItemDto);
         returnObj.returnItems.push(returnItem);
       }
-
-      // Update the order //
-      if (updateReturnDto.orderId) {
-        const order = await this.orderRepository.findOneBy({
-          id: updateReturnDto.orderId,
-        });
-        if (!order) {
-          throw new NotFoundException({
-            message: `No order with ID of (${updateReturnDto.orderId})!`,
-          });
-        }
-        returnObj.order = order;
-      }
-
-      // Update the status //
-      if (updateReturnDto.statusId) {
-        const status = await this.statusRepository.findOneBy({
-          id: updateReturnDto.statusId,
-        });
-        if (!status) {
-          throw new NotFoundException({
-            message: `No status with ID of (${updateReturnDto.statusId})!`,
-          });
-        }
-        returnObj.status = status;
-      }
-
-      return await this.returnRepository.save(returnObj);
     }
+
+    // Update the order //
+    if (updateReturnDto.orderId) {
+      const order = await this.orderRepository.findOneBy({
+        id: updateReturnDto.orderId,
+      });
+      if (!order) {
+        throw new NotFoundException({
+          message: `No order with ID of (${updateReturnDto.orderId})!`,
+        });
+      }
+      returnObj.order = order;
+    }
+
+    // Update the status //
+    if (updateReturnDto.statusId) {
+      const status = await this.statusRepository.findOneBy({
+        id: updateReturnDto.statusId,
+      });
+      if (!status) {
+        throw new NotFoundException({
+          message: `No status with ID of (${updateReturnDto.statusId})!`,
+        });
+      }
+      returnObj.status = status;
+    }
+
+    return await this.returnRepository.save(returnObj);
   }
 
   async remove(id: number) {
