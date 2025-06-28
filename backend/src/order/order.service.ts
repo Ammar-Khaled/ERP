@@ -23,9 +23,11 @@ import { Status } from 'src/status/entities/status.entity';
 import { Coupon } from 'src/coupon/entities/coupon.entity';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { BaseService } from 'src/common/services/base.service';
 
 @Injectable()
-export class OrderService {
+export class OrderService extends BaseService<Order> {
+
   constructor(
     @Inject('ORDER_REPOSITORY')
     private orderRepo: Repository<Order>,
@@ -50,7 +52,9 @@ export class OrderService {
     @Inject('INVENTORY_REPOSITORY')
     private inventoryRepo: Repository<Inventory>,
     private readonly productItemInventoryService: ProductItemInventoryService,
-  ) {}
+  ) {
+    super(orderRepo);
+  }
 
   async create(createOrderDto: CreateOrderDto) {
     const _newOrder = new Order();
@@ -206,27 +210,13 @@ export class OrderService {
     };
   }
 
-  async findOne(id: number, withRelations: boolean = false) {
-    let order;
+  async findOne(id: number, relations: string[] = [],branchId?: number) {
+    let order; 
 
-    if (withRelations) {
-      order = await this.orderRepo.findOne({
-        where: { id },
-        relations: [
-          'branch',
-          'inventory',
-          'user',
-          'client',
-          'status',
-          'coupon',
-          'currency',
-          'items',
-          'returns',
-        ],
-      });
-    } else {
-      order = await this.orderRepo.findOneBy({ id });
-    }
+    order = await this.orderRepo.findOne({
+      where: { id },
+      relations,
+    });
 
     return order;
   }
@@ -368,7 +358,7 @@ export class OrderService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number, branchId: number) {
     const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
     const inventoryId = order.inventoryId;
     for (const orderItem of order.items) {

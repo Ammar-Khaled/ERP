@@ -10,6 +10,7 @@ import {
   Query,
   Res,
   UseInterceptors,
+  Headers
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -28,7 +29,7 @@ export class OrdersController {
 
   @Post('/create')
   @UseInterceptors(LoggingInterceptor)
-  create(@Body() createOrderDto: CreateOrderDto) {
+  create(@Body() createOrderDto: CreateOrderDto,@Headers() header: Headers) {
     return this.orderService.create(createOrderDto);
   }
 
@@ -37,9 +38,10 @@ export class OrdersController {
     return await this.orderService.findAll(paginationDto);
   }
 
+  
   @Get('/findOne/:id')
-  findOne(@Param('id') id: number) {
-    return this.orderService.findOne(+id);
+  findOne(@Param('id') id: number,@Headers('branchId') branchId: number) {
+    return this.orderService.findOne(+id,[],branchId);
   }
 
   @Patch('/update/:id')
@@ -50,15 +52,15 @@ export class OrdersController {
 
   @Delete('/delete/:id')
   @UseInterceptors(LoggingInterceptor)
-  remove(@Param('id') id: number) {
-    return this.orderService.remove(+id);
+  remove(@Param('id') id: number, @Headers('branchId') branchId: number) {
+    return this.orderService.remove(+id, branchId);
   }
 
   @Get(':id/pdf')
-  async generateOrderPdf(@Param('id') id: string, @Res() res: Response) {
+  async generateOrderPdf(@Param('id') id: number, @Res() res: Response) {
     try {
       // 1. Fetch order data from your database
-      const orderData = await this.orderService.findOne(+id, true);
+      const orderData = await this.orderService.findOne(+id);
 
       // 2. Generate PDF
       const pdfBuffer = await this.pdfService.generatePdf('order', orderData);
