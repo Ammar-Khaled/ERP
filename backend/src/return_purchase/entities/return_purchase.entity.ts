@@ -1,4 +1,4 @@
-import { Column, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, BeforeUpdate, Column, DeleteDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ReturnPurchaseItem } from "./return_purchase_item.entity";
 import { PurchaseRequest } from "src/purchase_request/entities/purchase_request.entity";
 import { Status } from "src/status/entities/status.entity";
@@ -32,6 +32,17 @@ export class ReturnPurchase {
         eager: true,
     })
     returnPurchaseItems: ReturnPurchaseItem[];
+
+    @Column({ type: 'float' })
+    totalReturnedMoney: number;
+    // Auto calculate before insertion or update
+    @BeforeInsert()
+    @BeforeUpdate()
+    calculateTotalReturnedMoney() {
+        this.totalReturnedMoney = this.returnPurchaseItems.reduce(
+            (total: number, item: ReturnPurchaseItem) => total + item.returnedMoney, 0
+        );
+    }
 
     // Relation with the status
     @Column({ type: 'int', nullable: false })
