@@ -181,8 +181,8 @@ export class OrderService {
     }
   }
 
-  async findAll() {
-    return await this.orderRepo.find({ relations: ['items'] });
+  async findAll(branchId: number) {
+    return await this.orderRepo.find({ where: {branchId}  ,  relations: ['items'] });
   }
 
   async findOne(id: number, withRelations: boolean = false) {

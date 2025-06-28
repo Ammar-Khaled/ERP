@@ -16,14 +16,13 @@ import { statusProviders } from 'src/status/status.providers';
 import { productItemInventoryProviders } from 'src/product_item_inventory/product_item_inventory.providers';
 import { ProductItemInventoryModule } from 'src/product_item_inventory/product_item_inventory.module';
 import { PdfService } from '../common/pdf/pdf.service';
-import { OrderItemController } from './order_item.controller';
 import { inventoriesProviders } from 'src/inventories/inventories.providers';
 import { DatabaseLoggerService } from 'src/logging/database-logger.service';
 import { logRepositoryProvider } from 'src/logging/log.repository';
 
 @Module({
   imports: [DatabaseModule, ProductItemModule, ProductItemInventoryModule],
-  controllers: [OrderController, OrderItemController],
+  controllers: [OrderController],
   providers: [
     OrderService,
     ...orderProviders,

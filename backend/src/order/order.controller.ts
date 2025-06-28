@@ -9,6 +9,7 @@ import {
   Post,
   Res,
   UseInterceptors,
+  Headers
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -26,13 +27,13 @@ export class OrderController {
 
   @Post('/create')
   @UseInterceptors(LoggingInterceptor)
-  create(@Body() createOrderDto: CreateOrderDto) {
+  create(@Body() createOrderDto: CreateOrderDto,@Headers() header: Headers) {
     return this.orderService.create(createOrderDto);
   }
 
   @Get('/findAll')
-  findAll() {
-    return this.orderService.findAll();
+  findAll(@Headers('branchId') branchId: number) {
+    return this.orderService.findAll(+branchId);
   }
 
   @Get('/findOne/:id')
