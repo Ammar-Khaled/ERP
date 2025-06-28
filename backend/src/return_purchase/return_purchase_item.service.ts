@@ -34,8 +34,12 @@ export class ReturnPurchaseItemService {
             purchaseItem.numberOfItems -= returnPurchaseItemDto.numberOfReturned;
             await transactionalEntityManager.save(PurchaseItem, purchaseItem);
 
+            // Calculate the returned money
+            const returnedMoney = purchaseItem.purchaseEntity.unitPrice * returnPurchaseItemDto.numberOfReturned;
+
             // Create, save, and return
             const returnPurchaseItem = await transactionalEntityManager.create(ReturnPurchaseItem, returnPurchaseItemDto);
+            returnPurchaseItem.returnedMoney = returnedMoney;
             return await transactionalEntityManager.save(ReturnPurchaseItem, returnPurchaseItem);
         });
     }
