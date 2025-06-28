@@ -4,6 +4,7 @@ import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Repository } from 'typeorm';
 import { Inventory } from './entities/inventory.entity';
 import { Branch } from '../branches/entities/branch.entity';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class InventoriesService {
@@ -14,8 +15,30 @@ export class InventoriesService {
     private branchRepository: Repository<Branch>,
   ) {}
 
-  async findAll() {
-    return await this.inventoryRepository.find();
+  async findAll(
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<Inventory>> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.inventoryRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {

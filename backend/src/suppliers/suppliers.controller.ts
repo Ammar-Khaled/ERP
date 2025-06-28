@@ -6,10 +6,12 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('suppliers')
 export class SuppliersController {
@@ -20,9 +22,9 @@ export class SuppliersController {
     return await this.supplierService.create(createSupplierDto);
   }
 
-  @Get('/all')
-  async findAll() {
-    return await this.supplierService.findAll();
+  @Get()
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return await this.supplierService.findAll(paginationDto);
   }
 
   @Get(':id')
