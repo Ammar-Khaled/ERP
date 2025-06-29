@@ -26,6 +26,7 @@ export class ReturnPurchaseItemService {
         // Validate purchase item id
         const purchaseItem = await manager.findOne(PurchaseItem, {
             where: { id: returnPurchaseItemDto.purchaseItemId },
+            relations: ['purchaseEntity'],
         });
         if (!purchaseItem) {
             throw new NotFoundException(`Purchase item with id ${returnPurchaseItemDto.purchaseItemId} not found`);
@@ -78,6 +79,9 @@ export class ReturnPurchaseItemService {
         const purchaseItem = await manager.findOne(PurchaseItem, {
             where: { id: returnPurchaseItem.purchaseItemId },
         });
+        if (!purchaseItem) {
+            throw new NotFoundException(`Purchase item with id ${returnPurchaseItem.purchaseItemId} not found`);
+        }
 
         const difference = updateReturnPurchaseItemDto.numberOfReturned - returnPurchaseItem.numberOfReturned;
 
@@ -86,6 +90,8 @@ export class ReturnPurchaseItemService {
                 `Cannot return more items than available. Available: ${purchaseItem.numberOfItems}, Attempted: ${difference}`
             );
         }
+
+        console.log(difference);
 
         // 3. Update purchase item stock
         purchaseItem.numberOfItems -= difference;

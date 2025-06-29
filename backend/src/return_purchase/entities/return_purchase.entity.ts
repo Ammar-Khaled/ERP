@@ -10,7 +10,7 @@ export class ReturnPurchase {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'date' })
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     date: Date;
 
     // Both arabic and english reasons

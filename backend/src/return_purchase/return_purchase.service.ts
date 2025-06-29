@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateReturnPurchaseDto } from './dto/create-return_purchase.dto';
 import { UpdateReturnPurchaseDto } from './dto/update-return_purchase.dto';
 import { ReturnPurchase } from './entities/return_purchase.entity';
@@ -21,7 +21,45 @@ export class ReturnPurchaseService {
     @Inject('STATUS_REPOSITORY')
     private readonly statusRepo: Repository<Status>,
   ) { }
+
+  /////////////////Utility Methods////////////////////
+
+  /**
+   * Checks for duplicate purchaseItemId in an array of returnPurchaseItemDtos.
+   * Returns true if all are unique, false if duplicates exist.
+   */
+  hasDuplicatePurchaseItemIds(returnPurchaseItemDtos: { purchaseItemId: number }[]): boolean {
+    const seen = new Set<number>();
+    for (const dto of returnPurchaseItemDtos) {
+      if (seen.has(dto.purchaseItemId)) {
+        return true; // Duplicate found
+      }
+      seen.add(dto.purchaseItemId);
+    }
+    return false; // All unique
+  }
+
+  /**
+   * Checks if all purchaseItemIds in returnPurchaseItemDtos exist in the given purchaseRequest's purchaseItems.
+   * Returns true if all exist, false if any are missing.
+   */
+  areAllPurchaseItemIdsInRequest(
+    returnPurchaseItemDtos: { purchaseItemId: number }[],
+    purchaseRequest: PurchaseRequest,
+  ): boolean {
+    if (!purchaseRequest?.purchaseItems?.length) return false;
+    const validIds = new Set(purchaseRequest.purchaseItems.map(item => item.id));
+    return returnPurchaseItemDtos.every(dto => validIds.has(dto.purchaseItemId));
+  }
+
+  /////////////////Service Methods////////////////////
+
   async create(createReturnPurchaseDto: CreateReturnPurchaseDto) {
+    // Restrict the duplicate return items
+    if (this.hasDuplicatePurchaseItemIds(createReturnPurchaseDto.returnPurchaseItemDtos)) {
+      throw new ConflictException('Conflict: Duplicate purchase item IDs found in return purchase items');
+    }
+
     // Use the transaction method to ensure atomicity
     return await this.returnPurchaseRepo.manager.transaction(async (transactionalEntityManager) => {
       // Store the basic info
@@ -30,9 +68,14 @@ export class ReturnPurchaseService {
       // Check the existence of the purchase request
       const purchaseRequest = await transactionalEntityManager.findOne(PurchaseRequest, {
         where: { id: createReturnPurchaseDto.purchaseRequestId },
+        relations: ['purchaseItems'],
       });
       if (!purchaseRequest) {
         throw new NotFoundException(`Purchase Request with ID ${createReturnPurchaseDto.purchaseRequestId} not found`);
+      }
+
+      if (!this.areAllPurchaseItemIdsInRequest(createReturnPurchaseDto.returnPurchaseItemDtos, purchaseRequest)) {
+        throw new ConflictException('Conflict: Some purchase item IDs do not exist in the specified purchase request');
       }
 
       // Validate the status existence
@@ -52,7 +95,7 @@ export class ReturnPurchaseService {
           returnPurchaseItems.push(returnPurchaseItem);
         }
       } catch (error) {
-        throw new Error(`Failed to create return purchase items: ${error.message}`);
+        throw new ConflictException(`Failed to create return purchase items: ${error.message}`);
       }
       newReturnPurchase.returnPurchaseItems = returnPurchaseItems;
 
@@ -62,15 +105,12 @@ export class ReturnPurchaseService {
   }
 
   async findAll(): Promise<ReturnPurchase[]> {
-    return this.returnPurchaseRepo.find({
-      relations: ['returnPurchaseItems'],
-    });
+    return this.returnPurchaseRepo.find();
   }
 
   async findOne(id: number): Promise<ReturnPurchase> {
     const returnPurchase = await this.returnPurchaseRepo.findOne({
       where: { id },
-      relations: ['returnPurchaseItems'],
     });
     if (!returnPurchase) {
       throw new NotFoundException(`Return Purchase with ID ${id} not found`);
@@ -88,30 +128,66 @@ export class ReturnPurchaseService {
     id: number,
     updateReturnPurchaseDto: UpdateReturnPurchaseDto,
   ): Promise<ReturnPurchase> {
+    // Restrict the duplicate return items
+    if (this.hasDuplicatePurchaseItemIds(updateReturnPurchaseDto.returnPurchaseItemDtos)) {
+      throw new ConflictException('Conflict: Duplicate purchase item IDs found in return purchase items');
+    }
+
     return await this.returnPurchaseRepo.manager.transaction(async (transactionalEntityManager) => {
       // Find the existing return purchase
       const existingReturnPurchase = await transactionalEntityManager.findOne(ReturnPurchase, {
         where: { id },
+        relations: ['purchaseRequest', 'purchaseRequest.purchaseItems', 'returnPurchaseItems'],
       });
       if (!existingReturnPurchase) {
         throw new NotFoundException(`Return Purchase with ID ${id} not found`);
       }
 
+      if (!this.areAllPurchaseItemIdsInRequest(
+        updateReturnPurchaseDto.returnPurchaseItemDtos,
+        existingReturnPurchase.purchaseRequest,
+      )) {
+        throw new ConflictException('Conflict: Some purchase item IDs do not exist in the specified purchase request');
+      }
+
       // Update the return purchase items if exist and store them
       if (updateReturnPurchaseDto.returnPurchaseItemDtos) {
-        const itemUpdates = updateReturnPurchaseDto.returnPurchaseItemDtos.map(async itemDto => {
-          // Does the item already exist?
-          const existingItem = existingReturnPurchase.returnPurchaseItems.find(
-            item => item.id === itemDto.purchaseItemId,
-          );
+        const oldItems = existingReturnPurchase.returnPurchaseItems || [];
+        const updatedItems: ReturnPurchaseItem[] = [];
 
-          // Update if found. Create if not.
-          return existingItem
-            ? this.returnPurchaseItemService.update(existingItem.id, itemDto, transactionalEntityManager)
-            : this.returnPurchaseItemService.create(itemDto, transactionalEntityManager);
-        });
+        for (const itemDto of updateReturnPurchaseDto.returnPurchaseItemDtos) {
+          try {
+            const existingItem = existingReturnPurchase.returnPurchaseItems.find(
+              item => item.purchaseItemId === itemDto.purchaseItemId
+            );
 
-        existingReturnPurchase.returnPurchaseItems = await Promise.all(itemUpdates);
+            const result = existingItem
+              ? await this.returnPurchaseItemService.update(
+                existingItem.id,
+                itemDto,
+                transactionalEntityManager
+              )
+              : await this.returnPurchaseItemService.create(
+                itemDto,
+                transactionalEntityManager
+              );
+
+            updatedItems.push(result);
+          } catch (error) {
+            // Transaction will auto-rollback when we rethrow
+            throw new ConflictException(`Failed to process item ${itemDto.purchaseItemId}: ${error.message}`);
+          }
+        }
+
+        // Remove the items that are no longer in the updated items
+        const itemsToRemove = oldItems.filter(
+          item => !updatedItems.some(updatedItem => updatedItem.id === item.id)
+        );
+        for (const item of itemsToRemove) {
+          await this.returnPurchaseItemService.remove(item.id, transactionalEntityManager);
+        }
+
+        existingReturnPurchase.returnPurchaseItems = updatedItems;
       }
 
       // Validate the existence of the status
@@ -136,18 +212,21 @@ export class ReturnPurchaseService {
       // 1. Find the return purchase
       const returnPurchase = await transactionalEntityManager.findOne(ReturnPurchase, {
         where: { id },
+        relations: ['returnPurchaseItems'],
       });
       if (!returnPurchase) {
         throw new NotFoundException(`Return Purchase with ID ${id} not found`);
       }
 
       // 2. Remove all associated items transactionally
+      // Note: Use the sequential `for` instead of parallel `map + Promise.all` to ensure the transactional integrity
       if (returnPurchase.returnPurchaseItems?.length) {
-        await Promise.all(
-          returnPurchase.returnPurchaseItems.map(
-            item => this.returnPurchaseItemService.remove(item.id, transactionalEntityManager)
-          )
-        );
+        for (const item of returnPurchase.returnPurchaseItems) {
+          await this.returnPurchaseItemService.remove(
+            item.id,
+            transactionalEntityManager  
+          );
+        }
       }
 
       // 3. Soft delete and return

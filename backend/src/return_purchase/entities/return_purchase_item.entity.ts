@@ -27,7 +27,9 @@ export class ReturnPurchaseItem {
     @BeforeInsert()
     @BeforeUpdate()
     calculateReturnedMoney() {
-        this.returnedMoney = this.purchaseItem.purchaseEntity.unitPrice * this.numberOfReturned;
+        if (this.purchaseItem) {
+            this.returnedMoney = this.purchaseItem.purchaseEntity.unitPrice * this.numberOfReturned;
+        }
     }
 
     // Relation with the return purchase receipt
