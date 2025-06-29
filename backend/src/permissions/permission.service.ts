@@ -24,7 +24,6 @@ export class PermissionService implements OnModuleInit {
 
   async onModuleInit() {
     await this.permissionsSeeder.seed();
-    console.log('Permissions seeded successfully');
 
     // Seed roles after permissions are created
     const rolesSeeder = new (await import('../roles/roles.seeder')).RolesSeeder(

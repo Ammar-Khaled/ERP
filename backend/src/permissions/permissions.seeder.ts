@@ -319,15 +319,15 @@ export class PermissionsSeeder {
       { name: 'UsersController:*', description: 'All users permissions' },
     ];
 
+    console.log('Seeding permissions...');
     for (const permission of permissions) {
       const exists = await this.permissionRepository.findOne({
         where: { name: permission.name },
       });
       if (!exists) {
         await this.permissionRepository.save(permission);
-        console.log(`Permission '${permission.name}' seeded successfully`);
       }
     }
-    console.log('All permissions seeded successfully');
+    console.log('Permissions seeded successfully');
   }
 }
