@@ -1,4 +1,9 @@
-import { Repository, FindManyOptions, FindOneOptions, DeepPartial } from 'typeorm';
+import {
+  DeepPartial,
+  FindManyOptions,
+  FindOneOptions,
+  Repository,
+} from 'typeorm';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PaginatedResult, PaginationDto } from '../dtos/pagination.dto';
 
@@ -15,7 +20,10 @@ export abstract class BaseService<T> {
     }
   }*/
 
-  protected addBranchFilter(options: FindManyOptions<T> | FindOneOptions<T>, branchId?: number): void {
+  protected addBranchFilter(
+    options: FindManyOptions<T> | FindOneOptions<T>,
+    branchId?: number,
+  ): void {
     if (branchId) {
       const where = options.where ?? {};
       options.where = {
@@ -25,7 +33,10 @@ export abstract class BaseService<T> {
     }
   }
 
-  async findAll(paginationDto: PaginationDto, branchId?: number): Promise<PaginatedResult<T>> {
+  async findAll(
+    paginationDto: PaginationDto,
+    branchId?: number,
+  ): Promise<PaginatedResult<T>> {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
 
@@ -35,8 +46,7 @@ export abstract class BaseService<T> {
     };
 
     //
-    if(branchId !== 1)
-        this.addBranchFilter(options, branchId);
+    if (branchId !== 1) this.addBranchFilter(options, branchId);
 
     const [data, total] = await this.repository.findAndCount(options);
     const totalPages = Math.ceil(total / limit);
@@ -54,10 +64,14 @@ export abstract class BaseService<T> {
     };
   }
 
-  async findOne(id: number, relations?: string[], branchId?: number): Promise<T> {
+  async findOne(
+    id: number,
+    relations?: string[],
+    branchId?: number,
+  ): Promise<T> {
     const options: FindOneOptions<T> = {
-        where: { id } as any,
-        relations,
+      where: { id } as any,
+      relations,
     };
 
     this.addBranchFilter(options, branchId);
@@ -79,7 +93,11 @@ export abstract class BaseService<T> {
     return this.repository.save(entity);
   }
 
-  async update(id: number, updateDto: DeepPartial<T>, branchId?: number): Promise<T> {
+  async update(
+    id: number,
+    updateDto: DeepPartial<T>,
+    branchId?: number,
+  ): Promise<T> {
     const entity = await this.findOne(id, [], branchId);
     Object.assign(entity, updateDto);
     return this.repository.save(entity);
