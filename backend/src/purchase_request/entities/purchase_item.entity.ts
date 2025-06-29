@@ -55,7 +55,10 @@ export class PurchaseItem {
   }
 
   // Relation with the return purchase items
-  @OneToMany(() => ReturnPurchaseItem, (returnPurchaseItems) => returnPurchaseItems.purchaseItem)
+  @OneToMany(
+    () => ReturnPurchaseItem,
+    (returnPurchaseItems) => returnPurchaseItems.purchaseItem,
+  )
   returnPurchaseItems: ReturnPurchaseItem[];
 
   @DeleteDateColumn()

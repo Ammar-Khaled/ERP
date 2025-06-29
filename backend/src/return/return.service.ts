@@ -36,7 +36,7 @@ export class ReturnService {
     private statusRepository: Repository<Status>,
     @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
     private productItemInvRepository: Repository<ProductItemToInventory>,
-  ) { }
+  ) {}
 
   /// Utility Functions ///
   uniqueDtos(dtos: CreateReturnItemDto[]) {
@@ -232,7 +232,7 @@ export class ReturnService {
           if (
             itemDto.numberOfItems - existingItem.numberOfItems >
             existingItem.orderItem.numberOfItems -
-            existingItem.orderItem.numberOfReturned
+              existingItem.orderItem.numberOfReturned
           ) {
             throw new ConflictException({
               message: `The number of items to return is greater than the number of items in the order of the ID (${itemDto.orderItemId})!`,

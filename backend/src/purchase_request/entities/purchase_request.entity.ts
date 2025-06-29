@@ -78,7 +78,10 @@ export class PurchaseRequest {
   purchaseItems: PurchaseItem[];
 
   // Relation with return purchases
-  @OneToMany(() => ReturnPurchase, (returnPurchases) => returnPurchases.purchaseRequest)
+  @OneToMany(
+    () => ReturnPurchase,
+    (returnPurchases) => returnPurchases.purchaseRequest,
+  )
   returnPurchases: ReturnPurchase[];
 
   @DeleteDateColumn() // Add DeleteDateColumn for soft delete
