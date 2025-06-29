@@ -13,9 +13,10 @@ import { PdfService } from '../common/pdf/pdf.service';
 import { DatabaseLoggerService } from 'src/logging/database-logger.service';
 import { logRepositoryProvider } from 'src/logging/log.repository';
 import { PurchaseEntityModule } from '../purchase_entity/purchase_entity.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [DatabaseModule, PurchaseEntityModule],
+  imports: [DatabaseModule, PurchaseEntityModule, NotificationsModule],
   controllers: [PurchaseRequestsController],
   providers: [
     PurchaseRequestService,
