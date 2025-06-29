@@ -22,7 +22,7 @@ import { UpdateExpiredDto } from './dto/update-expired.dto';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('product-item')
-export class ProductItemController {
+export class ProductItemsController {
   constructor(private readonly productItemService: ProductItemService) {}
 
   @Post()

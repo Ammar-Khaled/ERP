@@ -14,7 +14,7 @@ import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('currencies')
-export class CurrencyController {
+export class CurrenciesController {
   constructor(private readonly currencyService: CurrencyService) {}
 
   @Post()

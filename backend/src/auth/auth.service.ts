@@ -40,10 +40,12 @@ export class AuthService {
       sub: user.id,
       username: user.username,
       email: user.email,
-      roles: user.roles,
+      roleIds: user.roles.map((role) => role.id),
     };
 
     delete user.password;
+    user.roleIds = payload.roleIds;
+    delete user.roles;
 
     return {
       token: await this.jwtService.signAsync(payload),
@@ -104,7 +106,9 @@ export class AuthService {
         password: newPassword,
       });
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired reset token');
+      throw new UnauthorizedException(
+        'Invalid or expired reset token' + error.message,
+      );
     }
   }
 }

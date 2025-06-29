@@ -12,11 +12,13 @@ import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { PaginationDto } from '../common/dtos/pagination.dto';
+import { Permissions } from '../decorators/permissions.decorator';
 
 @Controller('suppliers')
 export class SuppliersController {
   constructor(private readonly supplierService: SuppliersService) {}
 
+  @Permissions(['SuppliersController:create'])
   @Post()
   async create(@Body() createSupplierDto: CreateSupplierDto) {
     return await this.supplierService.create(createSupplierDto);

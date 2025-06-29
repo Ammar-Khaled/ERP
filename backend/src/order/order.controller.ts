@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpException,
   Param,
   Patch,
@@ -20,7 +21,7 @@ import { LoggingInterceptor } from 'src/logging/logging.interceptor';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('orders')
-export class OrderController {
+export class OrdersController {
   constructor(
     private readonly orderService: OrderService,
     private readonly pdfService: PdfService,
@@ -38,8 +39,8 @@ export class OrderController {
   }
 
   @Get('/findOne/:id')
-  findOne(@Param('id') id: number) {
-    return this.orderService.findOne(+id);
+  findOne(@Param('id') id: number, @Headers('branchId') branchId: number) {
+    return this.orderService.findOne(+id, [], branchId);
   }
 
   @Patch('/update/:id')
@@ -50,15 +51,15 @@ export class OrderController {
 
   @Delete('/delete/:id')
   @UseInterceptors(LoggingInterceptor)
-  remove(@Param('id') id: number) {
-    return this.orderService.remove(+id);
+  remove(@Param('id') id: number, @Headers('branchId') branchId: number) {
+    return this.orderService.remove(+id, branchId);
   }
 
   @Get(':id/pdf')
-  async generateOrderPdf(@Param('id') id: string, @Res() res: Response) {
+  async generateOrderPdf(@Param('id') id: number, @Res() res: Response) {
     try {
       // 1. Fetch order data from your database
-      const orderData = await this.orderService.findOne(+id, true);
+      const orderData = await this.orderService.findOne(+id);
 
       // 2. Generate PDF
       const pdfBuffer = await this.pdfService.generatePdf('order', orderData);

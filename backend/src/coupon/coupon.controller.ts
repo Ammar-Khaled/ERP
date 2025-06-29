@@ -13,8 +13,8 @@ import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 
-@Controller('coupon')
-export class CouponController {
+@Controller('coupons')
+export class CouponsController {
   constructor(private readonly couponService: CouponService) {}
 
   @Post('/create')

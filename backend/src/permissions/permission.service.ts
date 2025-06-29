@@ -2,6 +2,7 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
@@ -23,7 +24,13 @@ export class PermissionService implements OnModuleInit {
 
   async onModuleInit() {
     await this.permissionsSeeder.seed();
-    console.log('Permissions seeded successfully');
+
+    // Seed roles after permissions are created
+    const rolesSeeder = new (await import('../roles/roles.seeder')).RolesSeeder(
+      this.roleRepository,
+      this.permissionRepository,
+    );
+    await rolesSeeder.seed();
   }
 
   findAll(): Promise<Permission[]> {
@@ -48,7 +55,7 @@ export class PermissionService implements OnModuleInit {
       for (const id of createPermissionDto.roleIds) {
         const role = await this.roleRepository.findOneBy({ id });
         if (!role) {
-          throw new Error(`Role with id ${id} not found`);
+          throw new NotFoundException(`Role with id ${id} not found`);
         }
         roles.push(role);
       }
@@ -56,18 +63,41 @@ export class PermissionService implements OnModuleInit {
 
     const permission = this.permissionRepository.create(createPermissionDto);
     permission.roles = roles;
-    return this.permissionRepository.save(createPermissionDto);
+    return this.permissionRepository.save(permission);
   }
 
   async update(
     id: number,
     updatePermissionDto: UpdatePermissionDto,
   ): Promise<Permission> {
-    await this.permissionRepository.update(id, updatePermissionDto);
-    return this.findOne(id);
+    const permission = await this.findOne(id);
+    if (!permission) {
+      throw new NotFoundException(`Permission with id ${id} not found`);
+    }
+
+    // Handle role updates if provided
+    if (updatePermissionDto.roleIds) {
+      const roles = [];
+      for (const roleId of updatePermissionDto.roleIds) {
+        const role = await this.roleRepository.findOneBy({ id: roleId });
+        if (!role) {
+          throw new NotFoundException(`Role with id ${roleId} not found`);
+        }
+        roles.push(role);
+      }
+      permission.roles = roles;
+    }
+
+    // Update other fields
+    Object.assign(permission, updatePermissionDto);
+    return this.permissionRepository.save(permission);
   }
 
   async remove(id: number): Promise<void> {
+    const permission = await this.findOne(id);
+    if (!permission) {
+      throw new NotFoundException(`Permission with id ${id} not found`);
+    }
     await this.permissionRepository.delete(id);
   }
 }

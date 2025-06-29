@@ -14,8 +14,36 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('ERP backend API')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
     .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
+
+  const documentFactory = () => {
+    const document = SwaggerModule.createDocument(app, config);
+
+    // Apply JWT auth to all endpoints by default
+    const paths = document.paths;
+    Object.keys(paths).forEach((path) => {
+      Object.keys(paths[path]).forEach((method) => {
+        // Skip auth endpoints
+        if (!path.includes('/auth/login') && !path.includes('/auth/register')) {
+          paths[path][method].security = [{ 'JWT-auth': [] }];
+        }
+      });
+    });
+
+    return document;
+  };
+
   SwaggerModule.setup('/api/v1/docs/swagger', app, documentFactory);
   app.useGlobalPipes(
     new ValidationPipe({

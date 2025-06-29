@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PurchaseRequestService } from './purchase_request.service';
-import { PurchaseRequestController } from './purchase_request.controller';
+import { PurchaseRequestsController } from './purchase_request.controller';
 import { DatabaseModule } from 'src/common/database.module';
 import { purchaseRequestProviders } from './purchase_request.providers';
 import { userProviders } from 'src/users/users.providers';
@@ -16,7 +16,7 @@ import { PurchaseEntityModule } from '../purchase_entity/purchase_entity.module'
 
 @Module({
   imports: [DatabaseModule, PurchaseEntityModule],
-  controllers: [PurchaseRequestController],
+  controllers: [PurchaseRequestsController],
   providers: [
     PurchaseRequestService,
     ...purchaseRequestProviders,
