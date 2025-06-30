@@ -1,5 +1,6 @@
 import {
   Column,
+  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -57,4 +58,7 @@ export class ProductItemToInventory {
 
   @Column({ default: 0 })
   notificationCount: number;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }
