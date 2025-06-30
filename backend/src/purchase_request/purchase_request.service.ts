@@ -20,6 +20,8 @@ import { UpdatePurchaseItemDto } from './dto/update-purchase_item.dto';
 import { PurchaseItem } from './entities/purchase_item.entity';
 import { PurchaseEntity } from '../purchase_entity/entities/purchase_entity.entity';
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 
 config();
 
@@ -42,6 +44,7 @@ export class PurchaseRequestService {
     private purchaseItemRepository: Repository<PurchaseItem>,
     @Inject('PURCHASE_ENTITY_REPOSITORY')
     private purchaseEntityRepository: Repository<PurchaseEntity>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async createPurchaseItem(createPurchaseItemDto: CreatePurchaseItemDto) {
@@ -234,6 +237,27 @@ export class PurchaseRequestService {
     // Save and log
     const savedPurchaseRequest =
       await this.purchaseRequestRepository.save(newPurchaseRequest);
+
+    // Find users with the PurchaseRequestsController:updateStatus permission
+    const reviewers = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .innerJoin('role.permissions', 'permission')
+      .where('permission.name = :permissionName', {
+        permissionName: 'PurchaseRequestsController:updateStatus',
+      })
+      .getMany();
+
+    for (const reviewer of reviewers) {
+      await this.notificationsService.create({
+        title: 'New Purchase Request',
+        message: `A new purchase request has been created by ${user.username}. Please review it.`,
+        type: NotificationType.PURCHASE_REQUEST_REJECTED,
+        userId: reviewer.id,
+        relatedEntityId: savedPurchaseRequest.id,
+        relatedEntityType: 'purchase_request',
+      });
+    }
 
     return this.findOne(savedPurchaseRequest.id, false);
   }

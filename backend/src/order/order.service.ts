@@ -27,7 +27,6 @@ import { BaseService } from 'src/common/services/base.service';
 
 @Injectable()
 export class OrderService extends BaseService<Order> {
-
   constructor(
     @Inject('ORDER_REPOSITORY')
     private orderRepo: Repository<Order>,
@@ -210,8 +209,8 @@ export class OrderService extends BaseService<Order> {
     };
   }
 
-  async findOne(id: number, relations: string[] = [],branchId?: number) {
-    let order; 
+  async findOne(id: number, relations: string[] = [], branchId?: number) {
+    let order;
 
     order = await this.orderRepo.findOne({
       where: { id },

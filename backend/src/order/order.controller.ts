@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpException,
   Param,
   Patch,
@@ -10,7 +11,6 @@ import {
   Query,
   Res,
   UseInterceptors,
-  Headers
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -38,10 +38,9 @@ export class OrdersController {
     return await this.orderService.findAll(paginationDto);
   }
 
-  
   @Get('/findOne/:id')
-  findOne(@Param('id') id: number,@Headers('branchId') branchId: number) {
-    return this.orderService.findOne(+id,[],branchId);
+  findOne(@Param('id') id: number, @Headers('branchId') branchId: number) {
+    return this.orderService.findOne(+id, [], branchId);
   }
 
   @Patch('/update/:id')

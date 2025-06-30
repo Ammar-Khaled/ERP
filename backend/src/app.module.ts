@@ -28,6 +28,7 @@ import { ReturnModule } from './return/return.module';
 import { LoggingModule } from './logging/logging.module';
 import { ConfigModule } from '@nestjs/config';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ReturnPurchaseModule } from './return_purchase/return_purchase.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     ReturnModule,
     LoggingModule,
     NotificationsModule,
+    ReturnPurchaseModule,
   ],
   controllers: [AppController],
   providers: [AppService],

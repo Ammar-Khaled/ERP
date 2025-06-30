@@ -1,5 +1,6 @@
 import { PurchaseEntity } from 'src/purchase_entity/entities/purchase_entity.entity';
 import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
+import { ReturnPurchaseItem } from 'src/return_purchase/entities/return_purchase_item.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -8,6 +9,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -51,6 +53,13 @@ export class PurchaseItem {
     this.totalPrice =
       this.numberOfItems * this.purchaseEntity.unitPrice - this.discount;
   }
+
+  // Relation with the return purchase items
+  @OneToMany(
+    () => ReturnPurchaseItem,
+    (returnPurchaseItems) => returnPurchaseItems.purchaseItem,
+  )
+  returnPurchaseItems: ReturnPurchaseItem[];
 
   @DeleteDateColumn()
   deletedAt?: Date;

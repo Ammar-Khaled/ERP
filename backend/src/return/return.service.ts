@@ -289,35 +289,35 @@ export class ReturnService {
         const returnItem = await this.returnItemService.create(returnItemDto);
         returnObj.returnItems.push(returnItem);
       }
-
-      // Update the order //
-      if (updateReturnDto.orderId) {
-        const order = await this.orderRepository.findOneBy({
-          id: updateReturnDto.orderId,
-        });
-        if (!order) {
-          throw new NotFoundException({
-            message: `No order with ID of (${updateReturnDto.orderId})!`,
-          });
-        }
-        returnObj.order = order;
-      }
-
-      // Update the status //
-      if (updateReturnDto.statusId) {
-        const status = await this.statusRepository.findOneBy({
-          id: updateReturnDto.statusId,
-        });
-        if (!status) {
-          throw new NotFoundException({
-            message: `No status with ID of (${updateReturnDto.statusId})!`,
-          });
-        }
-        returnObj.status = status;
-      }
-
-      return await this.returnRepository.save(returnObj);
     }
+
+    // Update the order //
+    if (updateReturnDto.orderId) {
+      const order = await this.orderRepository.findOneBy({
+        id: updateReturnDto.orderId,
+      });
+      if (!order) {
+        throw new NotFoundException({
+          message: `No order with ID of (${updateReturnDto.orderId})!`,
+        });
+      }
+      returnObj.order = order;
+    }
+
+    // Update the status //
+    if (updateReturnDto.statusId) {
+      const status = await this.statusRepository.findOneBy({
+        id: updateReturnDto.statusId,
+      });
+      if (!status) {
+        throw new NotFoundException({
+          message: `No status with ID of (${updateReturnDto.statusId})!`,
+        });
+      }
+      returnObj.status = status;
+    }
+
+    return await this.returnRepository.save(returnObj);
   }
 
   async remove(id: number) {
