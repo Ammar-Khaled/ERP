@@ -91,7 +91,7 @@ export class Order {
 
   //----------------
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: 0 })
   couponId: number;
 
   @ManyToOne(() => Coupon)

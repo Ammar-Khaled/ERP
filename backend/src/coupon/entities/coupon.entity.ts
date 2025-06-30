@@ -16,11 +16,11 @@ export class Coupon {
   @Column({ nullable: true }) //# ToFix: should not be nullable
   code: string;
 
-  @Column()
-  startDate: string;
+  @Column({ type: 'date', nullable: false })
+  startDate: Date;
 
-  @Column()
-  endDate: string;
+  @Column({ type: 'date', nullable: false })
+  endDate: Date;
 
   @Column({ type: 'float' })
   discountPercentage: number;
@@ -28,7 +28,7 @@ export class Coupon {
   @Column()
   maxAllowed: number;
 
-  @Column()
+  @Column({ default: 0 })
   currentUsage: number;
 
   @Column()

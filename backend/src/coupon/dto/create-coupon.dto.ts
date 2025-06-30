@@ -1,17 +1,17 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsString, IsDateString } from 'class-validator';
 
 export class CreateCouponDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @IsString()
+  @IsDateString()
   @IsNotEmpty()
-  startDate: string;
+  startDate: Date;
 
-  @IsString()
+  @IsDateString()
   @IsNotEmpty()
-  endDate: string;
+  endDate: Date;
 
   @IsNumber()
   @IsNotEmpty()
@@ -21,9 +21,9 @@ export class CreateCouponDto {
   @IsNotEmpty()
   maxAllowed: number;
 
-  @IsNumber()
+  /*@IsNumber()
   @IsNotEmpty()
-  currentUsage: number;
+  currentUsage: number;*/
 
   @IsNumber()
   @IsNotEmpty()

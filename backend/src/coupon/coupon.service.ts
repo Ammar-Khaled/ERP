@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   HttpStatus,
   Inject,
@@ -19,7 +20,11 @@ export class CouponService {
   ) {}
 
   async create(createCouponDto: CreateCouponDto) {
-    // TODO: make sure that start_date not bigger than end_date.
+
+    if(createCouponDto.endDate < createCouponDto.startDate){
+      throw new ConflictException('end date is less than start date !!');
+    }
+    
     const coupon = this.couponRepo.create(createCouponDto);
 
     try {

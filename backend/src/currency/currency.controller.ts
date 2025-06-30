@@ -17,12 +17,12 @@ import { PaginationDto } from '../common/dtos/pagination.dto';
 export class CurrenciesController {
   constructor(private readonly currencyService: CurrencyService) {}
 
-  @Post()
+  @Post('/create')
   create(@Body() createCurrencyDto: CreateCurrencyDto) {
     return this.currencyService.create(createCurrencyDto);
   }
 
-  @Get()
+  @Get('/findAll')
   async findAll(@Query() paginationDto: PaginationDto) {
     return await this.currencyService.findAll(paginationDto);
   }
@@ -40,7 +40,7 @@ export class CurrenciesController {
     return this.currencyService.update(+id, updateCurrencyDto);
   }
 
-  @Delete(':id')
+  @Delete('/delete/:id')
   remove(@Param('id') id: string) {
     return this.currencyService.remove(+id);
   }
