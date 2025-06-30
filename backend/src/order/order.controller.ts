@@ -29,7 +29,7 @@ export class OrdersController {
 
   @Post('/create')
   @UseInterceptors(LoggingInterceptor)
-  create(@Body() createOrderDto: CreateOrderDto,@Headers() header: Headers) {
+  create(@Body() createOrderDto: CreateOrderDto) {
     return this.orderService.create(createOrderDto);
   }
 
