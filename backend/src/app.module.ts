@@ -27,6 +27,8 @@ import { CouponModule } from './coupon/coupon.module';
 import { ReturnModule } from './return/return.module';
 import { LoggingModule } from './logging/logging.module';
 import { ConfigModule } from '@nestjs/config';
+import { AccountType } from './account_types/entities/account_type.entity';
+import { AccountTypesModule } from './account_types/account_types.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -54,6 +56,7 @@ import { ConfigModule } from '@nestjs/config';
     VariationModule,
     VariationOptionModule,
     OrderModule,
+    AccountTypesModule,
     CouponModule,
     ReturnModule,
     LoggingModule,
