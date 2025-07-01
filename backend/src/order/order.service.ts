@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  NotAcceptableException
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -56,7 +57,7 @@ export class OrderService extends BaseService<Order> {
   }
 
   async create(createOrderDto: CreateOrderDto) {
-    const _newOrder = new Order();
+    let _newOrder = new Order();
     _newOrder.date = createOrderDto.date || new Date();
 
     // Verify the existence of the inventory
@@ -102,20 +103,6 @@ export class OrderService extends BaseService<Order> {
     if (!status)
       throw new NotFoundException('There is NO status with that id !!');
     _newOrder.status = status;
-
-    // the order doesn't necessarily has coupons,
-    // so that, coupon_id is optional.
-    // if its value doesn't equal to zero, we will check the existence of the coupon.
-    if (createOrderDto.couponId > 0) {
-      // Verify the existence of the coupon
-      const coupon = await this.couponRepo.findOne({
-        where: { id: createOrderDto.couponId },
-      });
-      if (!coupon) {
-        throw new NotFoundException('There is NO coupon with that id !!');
-      }
-      _newOrder.coupon = coupon;
-    }
 
     // Verify the existence of the currency
     const currency = await this.currencyRepo.findOne({
@@ -177,6 +164,33 @@ export class OrderService extends BaseService<Order> {
     }
 
     _newOrder.items = orderItems;
+
+    // the order doesn't necessarily has coupons,
+    // so that, couponId is optional.
+    // if its value doesn't equal to zero, we will check the existence of the coupon.
+    if (createOrderDto.couponId > 0) {
+      // Verify the existence of the coupon
+      const coupon = await this.couponRepo.findOne({
+        where: { id: createOrderDto.couponId },
+      });
+      if (!coupon) {
+        throw new NotFoundException('There is NO coupon with that id !!');
+      }
+
+      // check if the coupon is still available
+      if(!coupon.isActive || coupon.currentUsage >= coupon.maxAllowed){
+        throw new NotAcceptableException('Sorry! this coupon in no longer available.');
+      }
+
+      // apply the discount
+      const discountAmount = (coupon.discountPercentage/100.0) * _newOrder.totalAmount;
+      _newOrder.totalAmount -= discountAmount;
+
+      coupon.currentUsage += 1;
+      await this.couponRepo.update(coupon.id,coupon);
+
+      _newOrder.coupon = coupon;
+    }
 
     try {
       return await this.orderRepo.save(_newOrder);

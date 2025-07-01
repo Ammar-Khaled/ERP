@@ -21,10 +21,6 @@ export class CreateCouponDto {
   @IsNotEmpty()
   maxAllowed: number;
 
-  /*@IsNumber()
-  @IsNotEmpty()
-  currentUsage: number;*/
-
   @IsNumber()
   @IsNotEmpty()
   numberOfUsageTimePerUser: number;
