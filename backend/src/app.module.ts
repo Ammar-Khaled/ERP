@@ -60,6 +60,7 @@ import { ReturnPurchaseModule } from './return_purchase/return_purchase.module';
     CouponModule,
     ReturnModule,
     LoggingModule,
+    LoggingModule,
     NotificationsModule,
     ReturnPurchaseModule,
   ],

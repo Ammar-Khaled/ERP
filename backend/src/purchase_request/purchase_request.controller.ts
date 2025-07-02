@@ -91,7 +91,7 @@ export class PurchaseRequestsController {
         +id,
         true,
       );
-
+      
       // Generate the PDF
       const pdfBuffer = await this.pdfService.generatePdf(
         'purchase_request',
