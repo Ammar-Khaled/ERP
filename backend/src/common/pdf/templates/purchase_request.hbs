@@ -16,7 +16,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>Purchase Request ${{id}}</h1>
+        <h1>Purchase Request #{{id}}</h1>
         <p>Date: {{formatDate date}}</p>
     </div>
 
@@ -55,11 +55,11 @@
         <tbody>
             {{#each purchaseItems}}
             <tr>
-                <td>{{this.purchaseEntity.name}}</td>
-                <td>{{this.purchaseEntity.description}}</td>
-                <td>{{this.numberOfItems}}</td>
-                <td>{{formatCurrency this.purchaseEntity.unit_price ../currency.symbol}}</td>
-                <td>{{formatCurrency this.total_price ../currency.symbol}}</td>
+                <td>{{purchaseEntity.name}}</td>
+                <td>{{purchaseEntity.description}}</td>
+                <td>{{numberOfItems}}</td>
+                <td>{{formatCurrency purchaseEntity.unitPrice ../currency.symbol}}</td>
+                <td>{{formatCurrency totalPrice ../currency.symbol}}</td>
             </tr>
             {{/each}}
         </tbody>
