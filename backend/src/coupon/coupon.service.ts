@@ -9,9 +9,8 @@ import {
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
 import { Coupon } from './entities/coupon.entity';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, Repository } from 'typeorm';
 import { PaginationDto } from '../common/dtos/pagination.dto';
-import { LessThanOrEqual } from 'typeorm';
 
 @Injectable()
 export class CouponService {
@@ -21,8 +20,7 @@ export class CouponService {
   ) {}
 
   async create(createCouponDto: CreateCouponDto) {
-
-    if(createCouponDto.endDate < createCouponDto.startDate){
+    if (createCouponDto.endDate < createCouponDto.startDate) {
       throw new ConflictException('end date is less than start date !!');
     }
 
@@ -108,17 +106,17 @@ export class CouponService {
     const expiredCoupons = await this.couponRepo.find({
       where: {
         endDate: LessThanOrEqual(today),
-      }
+      },
     });
 
-    if(!expiredCoupons.length){
+    if (!expiredCoupons.length) {
       return { message: 'No expired coupons found' };
     }
 
-    const res = []
-    for(let coupon of expiredCoupons){
+    const res = [];
+    for (const coupon of expiredCoupons) {
       coupon.isActive = false;
-      const updatedCoupon =  await this.couponRepo.update(coupon.id,coupon);
+      const updatedCoupon = await this.couponRepo.update(coupon.id, coupon);
       res.push(updatedCoupon);
     }
 

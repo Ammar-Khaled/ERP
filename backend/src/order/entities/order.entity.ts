@@ -30,7 +30,6 @@ export class Order {
   @Column({ type: 'float', default: 0.0, nullable: false })
   totalPrice: number = 0;
 
-
   @BeforeInsert()
   @BeforeUpdate()
   calculateTheTotalAmount() {
