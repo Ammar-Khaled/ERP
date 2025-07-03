@@ -30,10 +30,6 @@ export class CreateOrderDto {
   @IsNumber()
   clientId: number;
 
-  @IsNotEmpty()
-  @IsNumber()
-  statusId: number;
-
   @IsOptional()
   @IsNumber()
   couponId?: number;

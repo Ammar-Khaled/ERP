@@ -56,8 +56,8 @@ export class OrderService extends BaseService<Order> {
   }
 
   async create(createOrderDto: CreateOrderDto) {
-    const _newOrder = new Order();
-    _newOrder.date = createOrderDto.date || new Date();
+    const newOrder = new Order();
+    newOrder.date = createOrderDto.date || new Date();
 
     // Verify the existence of the inventory
     const inventory = await this.inventoryRepo.findOne({
@@ -66,7 +66,7 @@ export class OrderService extends BaseService<Order> {
     if (!inventory) {
       throw new NotFoundException('There is NO inventory with that id !!');
     }
-    _newOrder.inventory = inventory;
+    newOrder.inventory = inventory;
 
     // Verify the existence of the branch
     const branch = await this.branchRepo.findOne({
@@ -75,7 +75,7 @@ export class OrderService extends BaseService<Order> {
     if (!branch) {
       throw new NotFoundException('There is NO branch with that id !!');
     }
-    _newOrder.branch = branch;
+    newOrder.branch = branch;
 
     // Verify the existence of the user
     const user = await this.userRepo.findOne({
@@ -84,7 +84,7 @@ export class OrderService extends BaseService<Order> {
     if (!user) {
       throw new NotFoundException('There is NO user with that id !!');
     }
-    _newOrder.user = user;
+    newOrder.user = user;
 
     // Verify the existence of the client
     const client = await this.clientRepo.findOne({
@@ -93,17 +93,14 @@ export class OrderService extends BaseService<Order> {
     if (!client) {
       throw new NotFoundException('There is NO client with that id !!');
     }
-    _newOrder.client = client;
+    newOrder.client = client;
 
     // Verify the existence of the status
-    const status = await this.statusRepo.findOneBy({
-      id: createOrderDto.statusId,
+    newOrder.status = await this.statusRepo.findOneBy({
+      name: 'order_pending',
     });
-    if (!status)
-      throw new NotFoundException('There is NO status with that id !!');
-    _newOrder.status = status;
 
-    // the order doesn't necessarily has coupons,
+    // the order doesn't necessarily have coupons,
     // so that, coupon_id is optional.
     // if its value doesn't equal to zero, we will check the existence of the coupon.
     if (createOrderDto.couponId > 0) {
@@ -114,7 +111,7 @@ export class OrderService extends BaseService<Order> {
       if (!coupon) {
         throw new NotFoundException('There is NO coupon with that id !!');
       }
-      _newOrder.coupon = coupon;
+      newOrder.coupon = coupon;
     }
 
     // Verify the existence of the currency
@@ -124,8 +121,9 @@ export class OrderService extends BaseService<Order> {
     if (!currency) {
       throw new NotFoundException('There is NO currency with that id !!');
     }
-    _newOrder.currency = currency;
+    newOrder.currency = currency;
 
+    // Merge duplicate order items
     const _orderItems = createOrderDto.items;
     const uniqueOrderItems = _orderItems.reduce((merged, item) => {
       const existingItem = merged.find(
@@ -147,42 +145,45 @@ export class OrderService extends BaseService<Order> {
 
       const productItemInv = await this.productItemInventoryRepo.findOneBy({
         productItemId: orderItem.productItemId,
-        inventoryId: _newOrder.inventoryId,
+        inventoryId: newOrder.inventoryId,
       });
 
-      // make the price & name of same item equal in both of order_item and product_item
+      // make the price and name of the same item equal in both of order_item and product_item
       orderItem.unitPrice = productItem.price;
       orderItem.name = productItem.name;
 
-      // validating the amount of items in the order and stock
+      // validating the number of items in the order and stock
       if (orderItem.numberOfItems > productItemInv.numberOfValid) {
         throw new ConflictException(
           `There are NO enough items of ${productItem.name} in this stock at the moment`,
         );
       }
 
-      productItemInv.numberOfValid -= orderItem.numberOfItems;
-      await this.productItemInventoryService.update(productItemInv.id, {
-        numberOfValid: productItemInv.numberOfValid,
-      });
-
-      // calculate total price for one order item
+      // calculate the total price for one order item
       orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
 
-      // calculate total amount of the order
-      _newOrder.totalAmount += orderItem.totalPrice;
-
-      await this.orderItemRepo.save(orderItem);
+      // calculate the total amount of the order
+      newOrder.totalPrice += orderItem.totalPrice;
       orderItems.push(orderItem);
     }
 
-    _newOrder.items = orderItems;
+    // TODO: APPLY THE COUPON DISCOUNT TO THE ORDER TOTAL AMOUNT
 
-    try {
-      return await this.orderRepo.save(_newOrder);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    // Save the items and the order in the database in one transaction
+    await this.orderRepo.manager.transaction(
+      async (transactionalEntityManager) => {
+        // Save order items first
+        for (const orderItem of orderItems) {
+          await transactionalEntityManager.save(OrderItem, orderItem);
+        }
+
+        // Then save the order with the items
+        newOrder.items = orderItems;
+        return await transactionalEntityManager.save(Order, newOrder);
+      },
+    );
+
+    return newOrder;
   }
 
   async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Order>> {
@@ -209,19 +210,23 @@ export class OrderService extends BaseService<Order> {
     };
   }
 
-  async findOne(id: number, relations: string[] = [], branchId?: number) {
-    let order;
-
-    order = await this.orderRepo.findOne({
+  async findOne(id: number, relations: string[] = []) {
+    return await this.orderRepo.findOne({
       where: { id },
       relations,
     });
-
-    return order;
   }
 
   async update(id: number, updateOrderDto: UpdateOrderDto) {
-    const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      relations: ['items', 'status'],
+    });
+
+    // verify the order status is pending
+    if (order.status.name !== 'order_pending') {
+      throw new ConflictException('Order status must be pending to update it');
+    }
 
     if (updateOrderDto.couponId > 0) {
       // Verify the existence of the coupon
@@ -268,7 +273,7 @@ export class OrderService extends BaseService<Order> {
       // in updateOrderDto exists or not in the items of order
       for (let i = 0; i < order.items.length; ++i) {
         if (item.productItemId === order.items[i].productItemId) {
-          // merge the new order item with the old one as they share same product item id
+          // merge the new order item with the old one as they share the same product item id
           if (item.numberOfItems > order.items[i].numberOfItems) {
             // in case of more items are needed
 
@@ -283,12 +288,12 @@ export class OrderService extends BaseService<Order> {
             order.items[i].numberOfItems += difference;
             order.items[i].totalPrice += difference * order.items[i].unitPrice;
 
-            order.totalAmount += difference * order.items[i].unitPrice;
-            productItemInv.numberOfValid -= difference;
-            await this.productItemInventoryService.update(
-              productItemInv.id,
-              productItemInv,
-            );
+            order.totalPrice += difference * order.items[i].unitPrice;
+            // productItemInv.numberOfValid -= difference;
+            // await this.productItemInventoryService.update(
+            //   productItemInv.id,
+            //   productItemInv,
+            // );
           } else if (item.numberOfItems <= order.items[i].numberOfItems) {
             // in case of some items are returned
             const difference =
@@ -297,44 +302,44 @@ export class OrderService extends BaseService<Order> {
             order.items[i].numberOfItems -= difference;
             order.items[i].totalPrice -= difference * order.items[i].unitPrice;
 
-            order.totalAmount -= difference * order.items[i].unitPrice;
-            productItemInv.numberOfValid += difference;
-            await this.productItemInventoryService.update(
-              productItemInv.id,
-              productItemInv,
-            );
+            order.totalPrice -= difference * order.items[i].unitPrice;
+            // productItemInv.numberOfValid += difference;
+            // await this.productItemInventoryService.update(
+            //   productItemInv.id,
+            //   productItemInv,
+            // );
           }
           flag = true;
           break;
         }
       }
       if (!flag) {
-        // Add new order item that doesn't exist in old items array of order
-        const orderItem = await this.orderItemRepo.create(item);
+        // Add the new order item that doesn't exist in the old items array of order
+        const orderItem = this.orderItemRepo.create(item);
         orderItem.productItem = productItem;
 
-        // make the price & name of same item equal in both of order_item and product_item
+        // make the price and name of the same item equal in both of order_item and product_item
         orderItem.unitPrice = productItem.price;
         orderItem.name = productItem.name;
 
-        // validating the amount of items in the order and stock
+        // validating the number of items in the order and stock
         if (orderItem.numberOfItems > productItemInv.numberOfValid) {
           throw new ConflictException(
             `There are NO enough items of ${productItem.name} in the stock`,
           );
         }
 
-        productItemInv.numberOfValid -= orderItem.numberOfItems;
-        await this.productItemInventoryService.update(
-          productItemInv.id,
-          productItemInv,
-        );
+        // productItemInv.numberOfValid -= orderItem.numberOfItems;
+        // await this.productItemInventoryService.update(
+        //   productItemInv.id,
+        //   productItemInv,
+        // );
 
-        // calculate total price for one order item
+        // calculate the total price for one order item
         orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
 
-        // calculate total amount of the order
-        order.totalAmount += orderItem.totalPrice;
+        // calculate the total amount of the order
+        order.totalPrice += orderItem.totalPrice;
 
         await this.orderItemRepo.save(orderItem);
         newOrderItems.push(orderItem);
@@ -345,8 +350,8 @@ export class OrderService extends BaseService<Order> {
       await this.orderItemRepo.save(orderItem);
     }
 
-    for (const order_item of newOrderItems) {
-      order.items.push(order_item);
+    for (const orderItem of newOrderItems) {
+      order.items.push(orderItem);
     }
 
     Object.assign(updateOrderDto, order);
@@ -357,38 +362,140 @@ export class OrderService extends BaseService<Order> {
     }
   }
 
-  async remove(id: number, branchId: number) {
-    const order = await this.findOrderByCondition({ id }, 'Order Not Found !');
-    const inventoryId = order.inventoryId;
-    for (const orderItem of order.items) {
-      await this.orderItemRepo.softRemove(orderItem);
-
-      const pii = await this.productItemInventoryRepo.findOneBy({
-        inventoryId,
-        productItemId: orderItem.productItemId,
-      });
-      if (!pii) {
-        throw new NotFoundException(
-          `ProductItemInventory with inventoryId ${inventoryId} and productItemId ${orderItem.productItemId} not found`,
-        );
-      }
-
-      pii.numberOfValid += orderItem.numberOfItems;
-      await this.productItemInventoryService.update(pii.id, pii); // will also update the product item table
+  async remove(id: number) {
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      relations: ['items', 'status'],
+    });
+    if (!order) {
+      throw new NotFoundException('Order Not Found !');
     }
 
-    await this.orderRepo.softRemove(order);
+    // ensure status is completed or canceled
+    if (
+      order.status.name !== 'order_completed' &&
+      order.status.name !== 'order_cancelled'
+    ) {
+      throw new ConflictException(
+        'Order status must be completed or cancelled to delete it',
+      );
+    }
+
+    await this.orderRepo.manager.transaction(
+      async (transactionalEntityManager) => {
+        for (const orderItem of order.items) {
+          await transactionalEntityManager.softRemove(OrderItem, orderItem);
+        }
+        await transactionalEntityManager.softRemove(Order, order);
+      },
+    );
+
     return order;
   }
 
-  private async findOrderByCondition(condition: object, errorMessage: string) {
+  async applyOrderFromInventory(id: number) {
     const order = await this.orderRepo.findOne({
-      where: condition,
-      relations: ['items'],
+      where: { id },
+      relations: ['items', 'status'],
     });
     if (!order) {
-      throw new NotFoundException(errorMessage);
+      throw new NotFoundException('Order Not Found !');
     }
-    return order;
+
+    if (order.status.name !== 'order_pending') {
+      throw new ConflictException(
+        'Order status must be pending to apply it from inventory',
+      );
+    }
+
+    // validating the number of items in the order and stock
+    for (const orderItem of order.items) {
+      const productItemInv = await this.productItemInventoryRepo.findOneBy({
+        productItemId: orderItem.productItemId,
+        inventoryId: order.inventoryId,
+      });
+
+      if (orderItem.numberOfItems > productItemInv.numberOfValid) {
+        throw new ConflictException(
+          `There are NO enough items of ${orderItem.name} in this stock at the moment`,
+        );
+      }
+    }
+
+    // Apply all inventory updates in a single transaction
+    await this.orderRepo.manager.transaction(
+      async (transactionalEntityManager) => {
+        // First, validate all order items have sufficient inventory
+        const inventoryUpdates = [];
+
+        for (const orderItem of order.items) {
+          const productItemInv = await transactionalEntityManager.findOneBy(
+            ProductItemToInventory,
+            {
+              productItemId: orderItem.productItemId,
+              inventoryId: order.inventoryId,
+            },
+          );
+
+          if (!productItemInv) {
+            throw new NotFoundException(
+              `Product item ID ${orderItem.productItemId} not found in inventory ID ${order.inventoryId}`,
+            );
+          }
+
+          // validating the number of items in the order and stock
+          if (orderItem.numberOfItems > productItemInv.numberOfValid) {
+            throw new ConflictException(
+              `There are NO enough items of ${orderItem.productItem.name} in this stock at the moment`,
+            );
+          }
+
+          // Prepare the inventory update
+          inventoryUpdates.push({
+            entity: productItemInv,
+            newNumberOfValid:
+              productItemInv.numberOfValid - orderItem.numberOfItems,
+          });
+        }
+
+        // Apply all inventory updates
+        for (const update of inventoryUpdates) {
+          await this.productItemInventoryService.update(update.entity.id, {
+            numberOfValid: update.newNumberOfValid,
+          });
+        }
+
+        // Update the order status to 'order_completed'
+        const completedStatus = await transactionalEntityManager.findOneBy(
+          Status,
+          {
+            name: 'order_completed',
+          },
+        );
+        if (completedStatus) {
+          order.status = completedStatus;
+          await transactionalEntityManager.save(Order, order);
+        }
+      },
+    );
+  }
+
+  async cancelOrder(id: number) {
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      relations: ['status'],
+    });
+    if (!order) {
+      throw new NotFoundException('Order Not Found !');
+    }
+
+    // ensure status is pending
+    if (order.status.name !== 'order_pending') {
+      throw new ConflictException('Order status must be pending to cancel it');
+    }
+
+    // Update order status to cancelled
+    order.status = await this.statusRepo.findOneBy({ name: 'order_cancelled' });
+    return this.orderRepo.save(order);
   }
 }

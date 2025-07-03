@@ -96,6 +96,14 @@ export class PermissionsSeeder {
         name: 'OrdersController:generateOrderPdf',
         description: 'Generate PDFs for orders',
       },
+      {
+        name: 'OrdersController:applyOrderFromInventory',
+        description: 'Apply order from inventory',
+      },
+      {
+        name: 'OrdersController:cancelOrder',
+        description: 'Cancel an order',
+      },
       { name: 'OrdersController:*', description: 'All orders permissions' },
 
       // ProductsController permissions
