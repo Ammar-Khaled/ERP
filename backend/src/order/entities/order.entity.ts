@@ -28,7 +28,8 @@ export class Order {
   date: Date;
 
   @Column({ type: 'float', default: 0.0, nullable: false })
-  totalPrice: number;
+  totalPrice: number = 0;
+
 
   @BeforeInsert()
   @BeforeUpdate()
@@ -91,7 +92,7 @@ export class Order {
 
   //----------------
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: 0 })
   couponId: number;
 
   @ManyToOne(() => Coupon)

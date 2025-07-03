@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  HttpCode,
 } from '@nestjs/common';
 import { CouponService } from './coupon.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
@@ -40,5 +41,11 @@ export class CouponsController {
   @Delete('/delete/:id')
   remove(@Param('id') id: number) {
     return this.couponService.remove(+id);
+  }
+
+  @Post('/checkExpiration')
+  @HttpCode(200)
+  checkExpiredCoupons() {
+    return this.couponService.checkExpiredCoupons();
   }
 }

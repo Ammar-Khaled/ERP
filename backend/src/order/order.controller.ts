@@ -32,7 +32,7 @@ export class OrdersController {
     return this.orderService.create(createOrderDto);
   }
 
-  @Get()
+  @Get('/findAll')
   async findAll(@Query() paginationDto: PaginationDto) {
     return await this.orderService.findAll(paginationDto);
   }
