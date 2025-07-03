@@ -34,7 +34,7 @@ export class OrdersController {
   }
 
   @Get('/findAll')
-  async findAll(@Query() paginationDto: PaginationDto) {
+  async findAll(@Query() paginationDto: PaginationDto,@Headers('lang') lang: string) {
     return await this.orderService.findAll(paginationDto);
   }
 
