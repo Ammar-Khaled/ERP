@@ -238,16 +238,20 @@ export class PermissionsSeeder {
         description: 'Remove purchase request',
       },
       {
-        name: 'PurchaseRequestsController:removeItem',
-        description: 'Remove item from a purchase request',
-      },
-      {
         name: 'PurchaseRequestsController:generatePdf',
         description: 'Generate PDFs for purchase requests',
       },
       {
-        name: 'PurchaseRequestsController:updateStatus',
+        name: 'PurchaseRequestsController:review',
         description: 'Update status of purchase request',
+      },
+      {
+        name: 'PurchaseRequestsController:cancelRequest',
+        description: 'cancel a pending purchase request',
+      },
+      {
+        name: 'PurchaseRequestsController:addToInventory',
+        description: 'add an approved purchase request to inventory',
       },
       {
         name: 'PurchaseRequestsController:*',

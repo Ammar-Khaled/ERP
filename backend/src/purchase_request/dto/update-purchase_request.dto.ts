@@ -10,5 +10,5 @@ export class UpdatePurchaseRequestDto extends PartialType(
   @IsNotEmpty()
   @ValidateNested({ each: true }) // Validates each element in the array
   @Type(() => UpdatePurchaseItemDto) // Transforms each element to CreatePurchaseItemDto
-  purchaseItemsDtos: UpdatePurchaseItemDto[];
+  purchaseItemsDtos: UpdatePurchaseItemDto[]; // the new items list of the purchase request
 }

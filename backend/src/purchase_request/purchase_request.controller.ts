@@ -33,8 +33,13 @@ export class PurchaseRequestsController {
     return this.purchaseRequestService.create(createPurchaseRequestDto);
   }
 
-  @Patch('update-status/:id')
-  updateStatus(
+  @Patch('/cancel/:id')
+  cancelRequest(@Param('id') id: string) {
+    return this.purchaseRequestService.cancelRequest(+id);
+  }
+
+  @Patch('review/:id')
+  review(
     @Param('id') id: string,
     @Headers('userId') userId: string,
     @Body('reviewNotes') reviewNotes: string,
@@ -46,6 +51,11 @@ export class PurchaseRequestsController {
       reviewNotes,
       approved,
     );
+  }
+
+  @Patch('add-to-inventory/:id')
+  addToInventory(@Param('id') id: string) {
+    return this.purchaseRequestService.addToInventory(+id);
   }
 
   @Get()
@@ -81,7 +91,7 @@ export class PurchaseRequestsController {
         +id,
         true,
       );
-
+      
       // Generate the PDF
       const pdfBuffer = await this.pdfService.generatePdf(
         'purchase_request',
@@ -98,10 +108,5 @@ export class PurchaseRequestsController {
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);
     }
-  }
-
-  @Delete('delete-item/:id')
-  async removeItem(@Param('id') id: string) {
-    return this.purchaseRequestService.removeItem(+id);
   }
 }
