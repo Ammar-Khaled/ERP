@@ -1,4 +1,10 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString, IsDateString } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 
 export class CreateCouponDto {
   @IsString()

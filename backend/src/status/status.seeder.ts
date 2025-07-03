@@ -10,6 +10,7 @@ export class StatusSeeder {
   ) {}
 
   async seed() {
+    console.log('Seeding statuses...');
     const statuses = [
       // Purchase request statuses
       {
@@ -59,22 +60,10 @@ export class StatusSeeder {
         descriptionAr: 'تم إلغاء الطلب',
       },
       {
-        name: 'order_approved',
-        nameAr: 'طلب بيع مؤكد',
-        description: 'Order has been approved',
-        descriptionAr: 'تم تأكيد الطلب',
-      },
-      {
-        name: 'order_rejected',
-        nameAr: 'طلب بيع مرفوض',
-        description: 'Order has been rejected',
-        descriptionAr: 'تم رفض الطلب',
-      },
-      {
-        name: 'order_delivered',
-        nameAr: 'طلب تم تسليمه',
-        description: 'Order has been delivered',
-        descriptionAr: 'تم تسليم الطلب',
+        name: 'order_completed',
+        nameAr: 'طلب مكتمل',
+        description: 'Order has been completed and processed',
+        descriptionAr: 'تم إكمال الطلب ومعالجته',
       },
     ];
 
@@ -88,7 +77,6 @@ export class StatusSeeder {
         await this.statusRepository.save(status);
       }
     }
-
     console.log('Status seeded successfully');
   }
 }
