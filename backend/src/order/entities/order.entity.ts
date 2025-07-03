@@ -28,12 +28,13 @@ export class Order {
   date: Date;
 
   @Column({ type: 'float', default: 0.0, nullable: false })
-  totalAmount: number = 0;
+  totalPrice: number = 0;
+
 
   @BeforeInsert()
   @BeforeUpdate()
   calculateTheTotalAmount() {
-    this.totalAmount = this.items.reduce(
+    this.totalPrice = this.items.reduce(
       (total, item) => total + item.totalPrice,
       0,
     );

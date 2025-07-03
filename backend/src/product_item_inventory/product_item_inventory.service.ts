@@ -237,7 +237,7 @@ export class ProductItemInventoryService {
       throw new NotFoundException('inventory not found.');
     }
 
-    await this.productItemInventoryRepository.delete({ id });
+    await this.productItemInventoryRepository.softDelete({ id });
 
     // update the product item and inventory totals
     productItem.totalNumberOfValid -= productItemInventory.numberOfValid;

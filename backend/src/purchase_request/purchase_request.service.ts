@@ -66,15 +66,6 @@ export class PurchaseRequestService {
     return await this.purchaseItemRepository.save(newPurchaseItem);
   }
 
-  async findItem(id: number) {
-    const item = await this.purchaseItemRepository.findOneBy({ id });
-    if (!item)
-      throw new NotFoundException(
-        `There is no purchase item with id of ${id}!`,
-      );
-    return item;
-  }
-
   // async updateItem(id: number, updatePurchaseItemDto: UpdatePurchaseItemDto) {
   //   const purchaseItem = await this.purchaseItemRepository.findOne({
   //     where: { id },
@@ -184,15 +175,9 @@ export class PurchaseRequestService {
     newPurchaseRequest.supplier = supplier;
 
     // Handle the status
-    const pendingStatus = await this.statusRepository.findOneBy({
+    newPurchaseRequest.status = await this.statusRepository.findOneBy({
       name: 'purchase_request_pending',
     });
-    if (!pendingStatus) {
-      throw new NotFoundException({
-        message: `purchase_request_pending status is not found!`,
-      });
-    }
-    newPurchaseRequest.status = pendingStatus;
 
     // Handle the currency
     const currency = await this.currencyRepository.findOneBy({
@@ -238,13 +223,13 @@ export class PurchaseRequestService {
     const savedPurchaseRequest =
       await this.purchaseRequestRepository.save(newPurchaseRequest);
 
-    // Find users with the PurchaseRequestsController:updateStatus permission
+    // Find users with the PurchaseRequestsController:review permission
     const reviewers = await this.userRepository
       .createQueryBuilder('user')
       .innerJoin('user.roles', 'role')
       .innerJoin('role.permissions', 'permission')
       .where('permission.name = :permissionName', {
-        permissionName: 'PurchaseRequestsController:updateStatus',
+        permissionName: 'PurchaseRequestsController:review',
       })
       .getMany();
 
@@ -482,12 +467,36 @@ export class PurchaseRequestService {
     await this.purchaseRequestRepository.save(purchaseRequest);
 
     return this.findOne(purchaseRequest.id, false);
-    // TODO what about deleteing items when updating the invoice?
   }
 
   async remove(id: number) {
     const purchaseRequest = await this.findOne(id);
     await this.purchaseRequestRepository.softDelete({ id });
     return purchaseRequest;
+  }
+
+  async cancelRequest(id: number) {
+    const purchaseRequest = await this.findOne(id);
+    if (!purchaseRequest) {
+      throw new NotFoundException(`No purchase request with ID of (${id})!`);
+    }
+
+    if (purchaseRequest.status.name !== 'purchase_request_pending') {
+      throw new ConflictException(
+        'This request cannot be cancelled as it is not pending.',
+      );
+    }
+
+    purchaseRequest.status = await this.statusRepository.findOneBy({
+      name: 'purchase_request_cancelled',
+    });
+
+    await this.purchaseRequestRepository.save(purchaseRequest);
+    return purchaseRequest;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  addToInventory(id: number) {
+    // TODO: Implement the logic to add the APPROVED purchase request items to the inventory
   }
 }

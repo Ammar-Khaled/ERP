@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   HttpException,
   Param,
   Patch,
@@ -39,8 +38,8 @@ export class OrdersController {
   }
 
   @Get('/findOne/:id')
-  findOne(@Param('id') id: number, @Headers('branchId') branchId: number) {
-    return this.orderService.findOne(+id, [], branchId);
+  findOne(@Param('id') id: number) {
+    return this.orderService.findOne(+id, []);
   }
 
   @Patch('/update/:id')
@@ -51,8 +50,8 @@ export class OrdersController {
 
   @Delete('/delete/:id')
   @UseInterceptors(LoggingInterceptor)
-  remove(@Param('id') id: number, @Headers('branchId') branchId: number) {
-    return this.orderService.remove(+id, branchId);
+  remove(@Param('id') id: number) {
+    return this.orderService.remove(+id);
   }
 
   @Get(':id/pdf')
@@ -74,5 +73,17 @@ export class OrdersController {
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);
     }
+  }
+
+  @Patch('/apply-from-inventory/:id')
+  @UseInterceptors(LoggingInterceptor)
+  applyOrderFromInventory(@Param('id') id: number) {
+    return this.orderService.applyOrderFromInventory(+id);
+  }
+
+  @Patch('/cancel/:id')
+  @UseInterceptors(LoggingInterceptor)
+  cancelOrder(@Param('id') id: number) {
+    return this.orderService.cancelOrder(+id);
   }
 }
