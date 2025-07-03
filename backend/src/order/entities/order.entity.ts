@@ -30,15 +30,6 @@ export class Order {
   @Column({ type: 'float', default: 0.0, nullable: false })
   totalPrice: number = 0;
 
-  @BeforeInsert()
-  @BeforeUpdate()
-  calculateTheTotalAmount() {
-    this.totalPrice = this.items.reduce(
-      (total, item) => total + item.totalPrice,
-      0,
-    );
-  }
-
   @DeleteDateColumn()
   deletedAt: Date;
 
@@ -91,7 +82,7 @@ export class Order {
 
   //----------------
 
-  @Column({ nullable: true, default: 0 })
+  @Column({ nullable: true })
   couponId: number;
 
   @ManyToOne(() => Coupon)
