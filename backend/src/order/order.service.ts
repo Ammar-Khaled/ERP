@@ -208,7 +208,7 @@ export class OrderService extends BaseService<Order> {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
 
-    const [data, total] = await this.orderRepo.findAndCount({
+    const [data, total] = await this.orderRepo.findAndCount({ 
       skip,
       take: limit,
     });

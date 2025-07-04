@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { QueryFailedErrorFilter } from './common/filters/query-failed-error.filter';
 import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 import { SuccessInterceptor } from './common/interceptors/success.interceptor';
+import { LanguageInterceptor } from './common/interceptors/language.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -62,6 +63,7 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalFilters(new QueryFailedErrorFilter());
   app.useGlobalInterceptors(new SuccessInterceptor());
+  app.useGlobalInterceptors(new LanguageInterceptor());
   await app.listen(process.env.PORT ?? 3000);
 }
 
