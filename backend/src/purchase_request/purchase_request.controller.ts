@@ -44,12 +44,14 @@ export class PurchaseRequestsController {
     @Headers('userId') userId: string,
     @Body('reviewNotes') reviewNotes: string,
     @Body('approved') approved: boolean,
+    @Body('inventoryId') inventoryId: number, // 👈 Add this
   ) {
     return this.purchaseRequestService.review(
       +id,
       +userId,
       reviewNotes,
       approved,
+      inventoryId,
     );
   }
 
@@ -91,7 +93,7 @@ export class PurchaseRequestsController {
         +id,
         true,
       );
-      
+
       // Generate the PDF
       const pdfBuffer = await this.pdfService.generatePdf(
         'purchase_request',

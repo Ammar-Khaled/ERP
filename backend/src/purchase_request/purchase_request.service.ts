@@ -22,7 +22,8 @@ import { PurchaseEntity } from '../purchase_entity/entities/purchase_entity.enti
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
-
+import { Inventory } from 'src/inventories/entities/inventory.entity';
+import { PurchaseInventoryService } from 'src/purchase_inventory/purchase_inventory.service';
 config();
 
 @Injectable()
@@ -44,6 +45,9 @@ export class PurchaseRequestService {
     private purchaseItemRepository: Repository<PurchaseItem>,
     @Inject('PURCHASE_ENTITY_REPOSITORY')
     private purchaseEntityRepository: Repository<PurchaseEntity>,
+    @Inject('INVENTORY_REPOSITORY')
+    private inventoryRepository: Repository<Inventory>,
+    private purchaseInventoryService: PurchaseInventoryService,
     private readonly notificationsService: NotificationsService,
   ) {}
 
@@ -252,6 +256,7 @@ export class PurchaseRequestService {
     reviewerId: number,
     reviewNotes: string,
     approved: boolean,
+    inventoryId?: number, // 👈 add optional param
   ) {
     const purchaseRequest = await this.purchaseRequestRepository.findOne({
       where: { id: purchaseRequestId },
@@ -285,6 +290,25 @@ export class PurchaseRequestService {
         });
       }
       purchaseRequest.status = approvedStatus;
+
+      // Automatically link to inventory if inventoryId is provided
+      if (inventoryId) {
+        await this.purchaseInventoryService.linkPurchaseRequestToInventory(
+          purchaseRequestId,
+          inventoryId,
+        );
+
+        //  Set status to "purchase_request_completed"
+        const completedStatus = await this.statusRepository.findOneBy({
+          name: 'purchase_request_completed',
+        });
+        if (!completedStatus) {
+          throw new NotFoundException({
+            message: `purchase_request_completed status is not found!`,
+          });
+        }
+        purchaseRequest.status = completedStatus;
+      }
     } else {
       const rejectedStatus = await this.statusRepository.findOneBy({
         name: 'purchase_request_rejected',
