@@ -329,6 +329,28 @@ export class PermissionsSeeder {
       { name: 'UsersController:update', description: 'Update user' },
       { name: 'UsersController:removeRequest', description: 'Remove user' },
       { name: 'UsersController:*', description: 'All users permissions' },
+
+      // PurchaseInventoryController
+      {
+        name: 'PurchaseInventoryController:findAll',
+        description: 'Find all purchase inventories',
+      },
+      {
+        name: 'PurchaseInventoryController:findOne',
+        description: 'Find one purchase inventory',
+      },
+      {
+        name: 'PurchaseInventoryController:findByPurchase',
+        description: 'Update purchase inventory',
+      },
+      {
+        name: 'PurchaseInventoryController:create',
+        description: 'Create purchase inventory',
+      },
+      {
+        name: 'PurchaseInventoryController:*',
+        description: 'All purchase inventories permissions',
+      },
     ];
 
     console.log('Seeding permissions...');
