@@ -1,4 +1,6 @@
 import {
+  BeforeInsert,
+  BeforeUpdate,
   Column,
   DeleteDateColumn,
   Entity,
@@ -103,4 +105,20 @@ export class Order {
 
   @OneToMany(() => Return, (returnParam: Return) => returnParam.order)
   returns: Return[];
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  calculateTotalPrice() {
+    const subtotal = this.items.reduce((total, item) => {
+      return total + item.unitPrice * item.numberOfItems;
+    }, 0);
+
+    // Apply coupon discount if available
+    if (this.coupon) {
+      const discount = (subtotal * this.coupon.discountPercentage) / 100;
+      this.totalPrice = Math.max(0, subtotal - discount);
+    } else {
+      this.totalPrice = subtotal;
+    }
+  }
 }

@@ -13,7 +13,7 @@ export class Coupon {
   @Column()
   name: string;
 
-  @Column({ nullable: true }) //# ToFix: should not be nullable
+  @Column({ nullable: false })
   code: string;
 
   @Column({ type: 'date', nullable: false })

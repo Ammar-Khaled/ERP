@@ -125,4 +125,8 @@ export class CouponService {
       details: res,
     };
   }
+
+  findByCode(code: string) {
+    return this.couponRepo.findOneBy({ code });
+  }
 }

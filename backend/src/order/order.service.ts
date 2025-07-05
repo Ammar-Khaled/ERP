@@ -4,7 +4,6 @@ import {
   HttpStatus,
   Inject,
   Injectable,
-  NotAcceptableException,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -110,6 +109,17 @@ export class OrderService extends BaseService<Order> {
     }
     newOrder.currency = currency;
 
+    // Verify the existence of the coupon if provided
+    if (createOrderDto.couponId) {
+      const coupon = await this.couponRepo.findOne({
+        where: { id: createOrderDto.couponId },
+      });
+      if (!coupon) {
+        throw new NotFoundException('There is NO coupon with that id !!');
+      }
+      newOrder.coupon = coupon;
+    }
+
     // Merge duplicate order items
     const _orderItems = createOrderDto.items;
     const uniqueOrderItems = _orderItems.reduce((merged, item) => {
@@ -150,46 +160,12 @@ export class OrderService extends BaseService<Order> {
       orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
 
       // calculate the total amount of the order
-      newOrder.totalPrice += orderItem.totalPrice;
       orderItems.push(orderItem);
-    }
-
-    // the order doesn't necessarily has coupons,
-    // so that, couponId is optional.
-    // if its value doesn't equal to zero, we will check the existence of the coupon.
-    if (createOrderDto.couponId > 0) {
-      // Verify the existence of the coupon
-      const coupon = await this.couponRepo.findOne({
-        where: { id: createOrderDto.couponId },
-      });
-      if (!coupon) {
-        throw new NotFoundException('There is NO coupon with that id !!');
-      }
-
-      // check if the coupon is still available
-      if (!coupon.isActive || coupon.currentUsage >= coupon.maxAllowed) {
-        throw new NotAcceptableException(
-          'Sorry! this coupon in no longer available.',
-        );
-      }
-
-      // apply the discount
-      const discount =
-        (coupon.discountPercentage / 100.0) * newOrder.totalPrice;
-      newOrder.totalPrice -= discount;
-
-      coupon.currentUsage += 1;
-      newOrder.coupon = coupon;
     }
 
     // Save the items and the order in the database in one transaction
     await this.orderRepo.manager.transaction(
       async (transactionalEntityManager) => {
-        // Save the coupon if applied
-        if (newOrder.coupon) {
-          await transactionalEntityManager.save(Coupon, newOrder.coupon);
-        }
-
         // Save order items first
         for (const orderItem of orderItems) {
           await transactionalEntityManager.save(OrderItem, orderItem);
@@ -238,7 +214,7 @@ export class OrderService extends BaseService<Order> {
   async update(id: number, updateOrderDto: UpdateOrderDto) {
     const order = await this.orderRepo.findOne({
       where: { id },
-      relations: ['items', 'status'],
+      relations: ['items', 'status', 'coupon'],
     });
 
     // verify the order status is pending
@@ -246,7 +222,7 @@ export class OrderService extends BaseService<Order> {
       throw new ConflictException('Order status must be pending to update it');
     }
 
-    if (updateOrderDto.couponId > 0) {
+    if (updateOrderDto.couponId) {
       // Verify the existence of the coupon
       const coupon = await this.couponRepo.findOne({
         where: { id: updateOrderDto.couponId },
@@ -254,7 +230,7 @@ export class OrderService extends BaseService<Order> {
       if (!coupon) {
         throw new NotFoundException('There is NO coupon with that id !!');
       }
-      order.couponId = updateOrderDto.couponId;
+      order.coupon = coupon;
     }
 
     if (updateOrderDto.currencyId > 0) {
@@ -305,13 +281,6 @@ export class OrderService extends BaseService<Order> {
 
             order.items[i].numberOfItems += difference;
             order.items[i].totalPrice += difference * order.items[i].unitPrice;
-
-            order.totalPrice += difference * order.items[i].unitPrice;
-            // productItemInv.numberOfValid -= difference;
-            // await this.productItemInventoryService.update(
-            //   productItemInv.id,
-            //   productItemInv,
-            // );
           } else if (item.numberOfItems <= order.items[i].numberOfItems) {
             // in case of some items are returned
             const difference =
@@ -319,13 +288,6 @@ export class OrderService extends BaseService<Order> {
 
             order.items[i].numberOfItems -= difference;
             order.items[i].totalPrice -= difference * order.items[i].unitPrice;
-
-            order.totalPrice -= difference * order.items[i].unitPrice;
-            // productItemInv.numberOfValid += difference;
-            // await this.productItemInventoryService.update(
-            //   productItemInv.id,
-            //   productItemInv,
-            // );
           }
           flag = true;
           break;
@@ -346,18 +308,6 @@ export class OrderService extends BaseService<Order> {
             `There are NO enough items of ${productItem.name} in the stock`,
           );
         }
-
-        // productItemInv.numberOfValid -= orderItem.numberOfItems;
-        // await this.productItemInventoryService.update(
-        //   productItemInv.id,
-        //   productItemInv,
-        // );
-
-        // calculate the total price for one order item
-        orderItem.totalPrice = orderItem.unitPrice * orderItem.numberOfItems;
-
-        // calculate the total amount of the order
-        order.totalPrice += orderItem.totalPrice;
 
         await this.orderItemRepo.save(orderItem);
         newOrderItems.push(orderItem);

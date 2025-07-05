@@ -3,8 +3,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { CouponService } from '../coupon.service';
 
 @Injectable()
-export class ExpiredProductsScheduler {
-  private readonly logger = new Logger(ExpiredProductsScheduler.name);
+export class ExpiredCouponsScheduler {
+  private readonly logger = new Logger(ExpiredCouponsScheduler.name);
 
   constructor(private readonly couponService: CouponService) {}
 

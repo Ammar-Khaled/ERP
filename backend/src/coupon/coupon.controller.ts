@@ -3,11 +3,11 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   Query,
-  HttpCode,
 } from '@nestjs/common';
 import { CouponService } from './coupon.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
@@ -31,6 +31,11 @@ export class CouponsController {
   @Get('/findOne/:id')
   findOne(@Param('id') id: number) {
     return this.couponService.findOne(+id);
+  }
+
+  @Get('/findByCode/:code')
+  findByCode(@Param('code') code: string) {
+    return this.couponService.findByCode(code);
   }
 
   @Patch('/update/:id')

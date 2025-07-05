@@ -36,5 +36,5 @@ export class CreateCouponDto {
   minInvoiceTotal: number;
 
   @IsBoolean()
-  isActive;
+  isActive: boolean;
 }
