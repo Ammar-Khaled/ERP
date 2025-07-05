@@ -1,29 +1,32 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
-import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
+import { PurchaseEntity } from '../../purchase_entity/entities/purchase_entity.entity';
 
-@Entity('purchase_inventory')
+@Entity('purchase_entity_inventory')
 export class PurchaseInventory {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  purchaseRequestId: number;
+  purchaseEntityId: number;
 
   @Column()
   inventoryId: number;
 
-  @ManyToOne(() => PurchaseRequest)
-  @JoinColumn({ name: 'purchaseRequestId' })
-  purchaseRequest: PurchaseRequest;
+  @ManyToOne(() => PurchaseEntity)
+  @JoinColumn({ name: 'purchaseEntityId' })
+  purchaseEntity: PurchaseEntity;
 
   @ManyToOne(() => Inventory)
   @JoinColumn({ name: 'inventoryId' })
   inventory: Inventory;
+
+  @Column()
+  amount: number;
 }

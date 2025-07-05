@@ -1,12 +1,20 @@
 import { Module } from '@nestjs/common';
-import { purchaseInventoryProviders } from './purchase_inventory.providers';
 import { PurchaseInventoryService } from './purchase_inventory.service';
-import { DatabaseModule } from 'src/common/database.module';
-import { InventoriesModule } from 'src/inventories/inventories.module';
+import { purchaseInventoryProviders } from './purchase_inventory.providers';
+import { purchaseEntityProviders } from '../purchase_entity/purchase_entity.providers';
+import { InventoriesModule } from '../inventories/inventories.module';
+import { DatabaseModule } from '../common/database.module';
 
 @Module({
-  imports: [DatabaseModule, InventoriesModule],
-  providers: [PurchaseInventoryService, ...purchaseInventoryProviders],
+  imports: [
+    DatabaseModule, // Add DatabaseModule to provide DATA_SOURCE
+    InventoriesModule,
+  ],
+  providers: [
+    PurchaseInventoryService,
+    ...purchaseInventoryProviders,
+    ...purchaseEntityProviders,
+  ],
   exports: [PurchaseInventoryService],
 })
 export class PurchaseInventoryModule {}

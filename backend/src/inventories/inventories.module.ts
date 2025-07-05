@@ -15,5 +15,6 @@ import { DatabaseModule } from '../common/database.module';
     ...addressProviders,
     ...branchesProviders,
   ],
+  exports: [...inventoriesProviders],
 })
 export class InventoriesModule {}

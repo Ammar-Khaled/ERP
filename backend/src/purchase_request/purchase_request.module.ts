@@ -16,8 +16,14 @@ import { PurchaseEntityModule } from '../purchase_entity/purchase_entity.module'
 import { NotificationsModule } from '../notifications/notifications.module';
 import { inventoriesProviders } from 'src/inventories/inventories.providers';
 import { PurchaseInventoryModule } from 'src/purchase_inventory/purchase_inventory.module';
+
 @Module({
-  imports: [DatabaseModule, PurchaseEntityModule, NotificationsModule, PurchaseInventoryModule],
+  imports: [
+    DatabaseModule,
+    PurchaseEntityModule,
+    NotificationsModule,
+    PurchaseInventoryModule,
+  ],
   controllers: [PurchaseRequestsController],
   providers: [
     PurchaseRequestService,

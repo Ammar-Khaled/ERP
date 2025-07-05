@@ -24,6 +24,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
 import { PurchaseInventoryService } from 'src/purchase_inventory/purchase_inventory.service';
+
 config();
 
 @Injectable()
@@ -65,7 +66,7 @@ export class PurchaseRequestService {
     newPurchaseItem.purchaseEntity = existedEntity;
     newPurchaseItem.numberOfItems = createPurchaseItemDto.numberOfItems;
     newPurchaseItem.discount = createPurchaseItemDto.discount;
-    // newPurchaseItem.purchaseRequestId = purchaseRequestId;
+    // newPurchaseItem.purchaseEntityId = purchaseEntityId;
 
     return await this.purchaseItemRepository.save(newPurchaseItem);
   }
@@ -146,6 +147,17 @@ export class PurchaseRequestService {
   async create(createPurchaseRequestDto: CreatePurchaseRequestDto) {
     const newPurchaseRequest = new PurchaseRequest();
     newPurchaseRequest.date = createPurchaseRequestDto.date;
+
+    // Handle the inventory
+    const inventory = await this.inventoryRepository.findOneBy({
+      id: createPurchaseRequestDto.inventoryId,
+    });
+    if (!inventory) {
+      throw new NotFoundException({
+        message: `This inventory is not found!`,
+      });
+    }
+    newPurchaseRequest.inventory = inventory;
 
     // Handle the user
     const user = await this.userRepository.findOneBy({
@@ -256,7 +268,6 @@ export class PurchaseRequestService {
     reviewerId: number,
     reviewNotes: string,
     approved: boolean,
-    inventoryId?: number, // 👈 add optional param
   ) {
     const purchaseRequest = await this.purchaseRequestRepository.findOne({
       where: { id: purchaseRequestId },
@@ -290,25 +301,6 @@ export class PurchaseRequestService {
         });
       }
       purchaseRequest.status = approvedStatus;
-
-      // Automatically link to inventory if inventoryId is provided
-      if (inventoryId) {
-        await this.purchaseInventoryService.linkPurchaseRequestToInventory(
-          purchaseRequestId,
-          inventoryId,
-        );
-
-        //  Set status to "purchase_request_completed"
-        const completedStatus = await this.statusRepository.findOneBy({
-          name: 'purchase_request_completed',
-        });
-        if (!completedStatus) {
-          throw new NotFoundException({
-            message: `purchase_request_completed status is not found!`,
-          });
-        }
-        purchaseRequest.status = completedStatus;
-      }
     } else {
       const rejectedStatus = await this.statusRepository.findOneBy({
         name: 'purchase_request_rejected',
@@ -390,6 +382,17 @@ export class PurchaseRequestService {
     }
 
     // Update related entities if necessary
+    if (updatePurchaseRequestDto.inventoryId) {
+      const inventory = await this.inventoryRepository.findOneBy({
+        id: updatePurchaseRequestDto.inventoryId,
+      });
+      if (!inventory)
+        throw new NotFoundException({
+          message: `This inventory is not found!`,
+        });
+      purchaseRequest.inventory = inventory;
+    }
+
     if (updatePurchaseRequestDto.userId) {
       const user = await this.userRepository.findOneBy({
         id: updatePurchaseRequestDto.userId,
@@ -519,8 +522,36 @@ export class PurchaseRequestService {
     return purchaseRequest;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  addToInventory(id: number) {
-    // TODO: Implement the logic to add the APPROVED purchase request items to the inventory
+  async addToInventory(id: number) {
+    const purchaseRequest = await this.purchaseRequestRepository.findOne({
+      where: { id },
+      relations: ['purchaseItems', 'status'],
+    });
+    if (!purchaseRequest) {
+      throw new NotFoundException(`No purchase request with ID of (${id})!`);
+    }
+
+    // verify the status is approved
+    if (purchaseRequest.status.name !== 'purchase_request_approved') {
+      throw new ConflictException(
+        'This request cannot be added to inventory as it is not approved.',
+      );
+    }
+
+    // Create purchase inventory records for each item in the request
+    for (const item of purchaseRequest.purchaseItems) {
+      await this.purchaseInventoryService.create({
+        purchaseEntityId: item.purchaseEntity.id,
+        inventoryId: purchaseRequest.inventoryId,
+        amount: item.numberOfItems,
+      });
+    }
+
+    // Update the purchase request status to 'purchase_request_completed'
+    purchaseRequest.status = await this.statusRepository.findOneBy({
+      name: 'purchase_request_completed',
+    });
+
+    return this.purchaseRequestRepository.save(purchaseRequest);
   }
 }

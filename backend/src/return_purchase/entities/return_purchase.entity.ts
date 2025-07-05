@@ -14,7 +14,7 @@ import { Status } from 'src/status/entities/status.entity';
 
 @Entity('return_purchases')
 export class ReturnPurchase {
-  // Properties and relationships: id, date, reason, returnPurchaseItems, purchaseRequestId, status, deletedAt
+  // Properties and relationships: id, date, reason, returnPurchaseItems, purchaseEntityId, status, deletedAt
 
   @PrimaryGeneratedColumn()
   id: number;

@@ -49,4 +49,7 @@ export class PurchaseEntity {
 
   @DeleteDateColumn() // Add DeleteDateColumn for soft delete
   deletedAt?: Date;
+
+  @Column({ type: 'int', default: 0 })
+  totalAmount: number = 0;
 }
