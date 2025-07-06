@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   Param,
   Patch,
   Post,
@@ -23,13 +24,18 @@ export class InventoriesController {
   }
 
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
-    return await this.inventoriesService.findAll(paginationDto);
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+    @Headers('branchId') branchId: string,
+  ) {
+    return await this.inventoriesService.findAll(paginationDto, +branchId);
   }
 
   @Get(':id')
-  findOneById(@Param('id') id: string) {
-    return this.inventoriesService.findOne(+id);
+  findOneById(@Param('id') id: string, @Headers('branchId') branchId: string) {
+    return this.inventoriesService.findOne(+id, +branchId, [
+      'productItemToInventories',
+    ]);
   }
 
   @Patch(':id')
@@ -41,7 +47,7 @@ export class InventoriesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.inventoriesService.remove(+id);
+  remove(@Param('id') id: string, @Headers('branchId') branchId: string) {
+    return this.inventoriesService.remove(+id, +branchId);
   }
 }

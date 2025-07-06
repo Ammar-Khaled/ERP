@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
@@ -10,15 +11,21 @@ import { Repository } from 'typeorm';
 import { Inventory } from './entities/inventory.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { BaseService } from '../common/services/base.service';
 
 @Injectable()
-export class InventoriesService implements OnModuleInit {
+export class InventoriesService
+  extends BaseService<Inventory>
+  implements OnModuleInit
+{
   constructor(
     @Inject('INVENTORY_REPOSITORY')
     private inventoryRepository: Repository<Inventory>,
     @Inject('BRANCH_REPOSITORY')
     private branchRepository: Repository<Branch>,
-  ) {}
+  ) {
+    super(inventoryRepository);
+  }
 
   async onModuleInit() {
     // await this.inventoryRepository.save({
@@ -32,40 +39,13 @@ export class InventoriesService implements OnModuleInit {
 
   async findAll(
     paginationDto: PaginationDto,
+    branchId: number,
   ): Promise<PaginatedResult<Inventory>> {
-    const { page = 1, limit = 10 } = paginationDto;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await this.inventoryRepository.findAndCount({
-      skip,
-      take: limit,
-    });
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
-    };
+    return super.findAll(paginationDto, branchId);
   }
 
-  async findOne(id: number) {
-    const inventory = await this.inventoryRepository.findOne({
-      where: { id },
-      relations: ['productItemToInventories'],
-    });
-    if (!inventory) {
-      throw new NotFoundException('Inventory not found with id: ' + id);
-    }
-
-    return inventory;
+  async findOne(id: number, branchId: number, relations?: string[]) {
+    return await super.findOne(id, branchId, relations);
   }
 
   async create(createInventoryDto: CreateInventoryDto) {
@@ -81,17 +61,17 @@ export class InventoriesService implements OnModuleInit {
       throw new NotFoundException('Inventory not found with id: ' + id);
     }
 
-    // update the branch
-    if (updateInventoryDto.branchId) {
-      const branch = await this.branchRepository.findOneBy({
-        id: updateInventoryDto.branchId,
-      });
-      if (!branch) {
-        throw new NotFoundException(
-          'Branch not found with id: ' + updateInventoryDto.branchId,
-        );
-      }
-    }
+    // // update the branch
+    // if (updateInventoryDto.branchId) {
+    //   const branch = await this.branchRepository.findOneBy({
+    //     id: updateInventoryDto.branchId,
+    //   });
+    //   if (!branch) {
+    //     throw new NotFoundException(
+    //       'Branch not found with id: ' + updateInventoryDto.branchId,
+    //     );
+    //   }
+    // }
 
     if (updateInventoryDto.address) {
       if (inventory.address?.id) {
@@ -104,10 +84,17 @@ export class InventoriesService implements OnModuleInit {
     return inventory;
   }
 
-  async remove(id: number) {
-    const inventory = await this.inventoryRepository.findOneBy({ id });
-    if (!inventory) {
-      throw new NotFoundException('Inventory not found with id: ' + id);
+  async remove(id: number, branchId: number): Promise<Inventory> {
+    const inventory = await this.findOne(id, branchId);
+
+    if (
+      inventory.totalNumberOfValid > 0 ||
+      inventory.totalNumberOfDamaged > 0 ||
+      inventory.totalNumberOfPurchaseEntities > 0
+    ) {
+      throw new ConflictException(
+        'Inventory cannot be deleted because it contains stock.',
+      );
     }
 
     return await this.inventoryRepository.softRemove(inventory);
