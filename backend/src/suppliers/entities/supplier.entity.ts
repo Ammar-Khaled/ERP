@@ -3,8 +3,8 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
@@ -30,7 +30,7 @@ export class Supplier {
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+  @Column({ type: 'varchar', nullable: true, unique: true })
   phone: string;
 
   @DeleteDateColumn()
@@ -39,7 +39,7 @@ export class Supplier {
   @Column({ nullable: true })
   addressId: number;
 
-  @OneToOne(() => Address, {
+  @ManyToOne(() => Address, {
     cascade: true,
     eager: false,
     nullable: true,

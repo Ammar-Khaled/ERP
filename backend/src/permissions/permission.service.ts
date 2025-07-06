@@ -23,14 +23,14 @@ export class PermissionService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    await this.permissionsSeeder.seed();
-
-    // Seed roles after permissions are created
-    const rolesSeeder = new (await import('../roles/roles.seeder')).RolesSeeder(
-      this.roleRepository,
-      this.permissionRepository,
-    );
-    await rolesSeeder.seed();
+    // await this.permissionsSeeder.seed();
+    //
+    // // Seed roles after permissions are created
+    // const rolesSeeder = new (await import('../roles/roles.seeder')).RolesSeeder(
+    //   this.roleRepository,
+    //   this.permissionRepository,
+    // );
+    // await rolesSeeder.seed();
   }
 
   findAll(): Promise<Permission[]> {

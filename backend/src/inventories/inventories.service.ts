@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Repository } from 'typeorm';
@@ -7,13 +12,23 @@ import { Branch } from '../branches/entities/branch.entity';
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
-export class InventoriesService {
+export class InventoriesService implements OnModuleInit {
   constructor(
     @Inject('INVENTORY_REPOSITORY')
     private inventoryRepository: Repository<Inventory>,
     @Inject('BRANCH_REPOSITORY')
     private branchRepository: Repository<Branch>,
   ) {}
+
+  async onModuleInit() {
+    // await this.inventoryRepository.save({
+    //   name: 'Main Inventory',
+    //   nameAr: 'المخزن الرئيسي',
+    //   description: 'Main inventory for the main branch',
+    //   descriptionAr: 'المخزن الرئيسي للفرع الرئيسي',
+    //   branchId: 1,
+    // });
+  }
 
   async findAll(
     paginationDto: PaginationDto,

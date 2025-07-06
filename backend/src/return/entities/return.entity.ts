@@ -1,6 +1,5 @@
 import { Order } from 'src/order/entities/order.entity';
 import { ReturnItem } from 'src/return/entities/return_item.entity';
-import { Status } from 'src/status/entities/status.entity';
 import {
   Column,
   DeleteDateColumn,
@@ -39,13 +38,13 @@ export class Return {
   })
   order: Order;
 
-  @Column({ type: 'int', nullable: false })
-  statusId: number;
+  // @Column({ type: 'int', nullable: false })
+  // statusId: number;
 
-  @ManyToOne(() => Status, (status) => status.returns, {
-    nullable: false,
-  })
-  status: Status;
+  // @ManyToOne(() => Status, (status) => status.returns, {
+  //   nullable: false,
+  // })
+  // status: Status;
 
   @DeleteDateColumn()
   deletedAt?: Date;

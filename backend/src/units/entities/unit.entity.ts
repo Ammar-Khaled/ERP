@@ -11,7 +11,6 @@ export class Unit {
   // Arabic name
   @Column({
     type: 'varchar',
-    length: 20,
     nullable: true,
     default: 'اسم الوحدة',
   })

@@ -7,7 +7,6 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
@@ -41,7 +40,7 @@ export class User {
   })
   nameAr: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+  @Column({ type: 'varchar', nullable: true, unique: true })
   phone: string;
 
   @Column({ type: 'boolean', default: true })
@@ -56,7 +55,7 @@ export class User {
   @Column({ nullable: true })
   addressId: number;
 
-  @OneToOne(() => Address, {
+  @ManyToOne(() => Address, {
     eager: false,
     cascade: true,
     nullable: true,

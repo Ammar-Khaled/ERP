@@ -18,7 +18,6 @@ export class Category {
   // Arabic name
   @Column({
     type: 'varchar',
-    length: 20,
     nullable: true,
     default: 'اسم فئة المنتج',
   })

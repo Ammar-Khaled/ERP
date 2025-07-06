@@ -1,6 +1,5 @@
 import { Order } from 'src/order/entities/order.entity';
 import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
-import { Return } from 'src/return/entities/return.entity';
 import { ReturnPurchase } from 'src/return_purchase/entities/return_purchase.entity';
 import {
   Column,
@@ -44,8 +43,8 @@ export class Status {
   @OneToMany(() => PurchaseRequest, (purchaseRequest) => purchaseRequest.status)
   purchaseRequests: PurchaseRequest[];
 
-  @OneToMany(() => Return, (returns) => returns.status)
-  returns: Return[];
+  // @OneToMany(() => Return, (returns) => returns.status)
+  // returns: Return[];
 
   @DeleteDateColumn() // Add DeleteDateColumn for soft delete
   deletedAt?: Date;

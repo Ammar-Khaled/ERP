@@ -36,7 +36,7 @@ export class Address {
   @Column({ type: 'varchar', length: 50, nullable: true, default: 'المنطقة' })
   stateAr: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   zipCode: string;
 
   @Column({ type: 'varchar', length: 100, nullable: true })

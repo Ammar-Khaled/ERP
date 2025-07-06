@@ -12,13 +12,12 @@ export class PurchaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 20, nullable: false, unique: true })
+  @Column({ type: 'varchar', nullable: false, unique: true })
   name: string;
 
   // Arabic name
   @Column({
     type: 'varchar',
-    length: 20,
     nullable: true,
     default: 'اسم العنصر',
   })

@@ -1,15 +1,27 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Branch } from './entities/branch.entity';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
-export class BranchesService {
+export class BranchesService implements OnModuleInit {
   constructor(
     @Inject('BRANCH_REPOSITORY')
     private readonly branchRepository: Repository<Branch>,
   ) {}
+
+  async onModuleInit() {
+    // await this.branchRepository.save({
+    //   name: 'Main Branch',
+    //   nameAr: 'الفرع الرئيسي',
+    // });
+  }
 
   async findAll(
     paginationDto: PaginationDto,

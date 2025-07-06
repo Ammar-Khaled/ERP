@@ -29,6 +29,7 @@ import { LoggingModule } from './logging/logging.module';
 import { ConfigModule } from '@nestjs/config';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReturnPurchaseModule } from './return_purchase/return_purchase.module';
+import { SeederModule } from './common/seeder.module';
 
 @Module({
   imports: [
@@ -60,9 +61,9 @@ import { ReturnPurchaseModule } from './return_purchase/return_purchase.module';
     CouponModule,
     ReturnModule,
     LoggingModule,
-    LoggingModule,
     NotificationsModule,
     ReturnPurchaseModule,
+    SeederModule,
   ],
   controllers: [AppController],
   providers: [AppService],
