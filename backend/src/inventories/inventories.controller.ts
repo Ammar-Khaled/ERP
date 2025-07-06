@@ -1,5 +1,6 @@
 import {
   Body,
+  ConflictException,
   Controller,
   Delete,
   Get,
@@ -19,7 +20,15 @@ export class InventoriesController {
   constructor(private readonly inventoriesService: InventoriesService) {}
 
   @Post()
-  create(@Body() createInventoryDto: CreateInventoryDto) {
+  create(
+    @Body() createInventoryDto: CreateInventoryDto,
+    @Headers('branchId') branchId: string,
+  ) {
+    if (+branchId != createInventoryDto.branchId) {
+      throw new ConflictException(
+        'Can not create inventory outside your branch',
+      );
+    }
     return this.inventoriesService.create(createInventoryDto);
   }
 
