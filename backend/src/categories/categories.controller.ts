@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
@@ -18,18 +19,21 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoriesService.create(createCategoryDto);
+  create(@Body() createCategoryDto: CreateCategoryDto, @Req() req) {
+    return this.categoriesService.create(createCategoryDto, req.user.branchId);
   }
 
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
-    return await this.categoriesService.findAll(paginationDto);
+  async findAll(@Query() paginationDto: PaginationDto, @Req() req) {
+    return await this.categoriesService.findAll(
+      paginationDto,
+      req.user.branchId,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(+id);
+  findOne(@Param('id') id: string, @Req() req) {
+    return this.categoriesService.findOne(+id, req.user.branchId);
   }
 
   @Patch(':id')
@@ -41,7 +45,7 @@ export class CategoriesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoriesService.remove(+id);
+  remove(@Param('id') id: string, @Req() req) {
+    return this.categoriesService.remove(+id, req.user.branchId);
   }
 }
