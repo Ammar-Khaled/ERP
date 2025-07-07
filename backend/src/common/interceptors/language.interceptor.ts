@@ -23,8 +23,12 @@ export class LanguageInterceptor implements NestInterceptor {
     } else if (data && typeof data === 'object') {
       const transformed = { ...data };
       for (const key of Object.keys(transformed)) {
-        if (lang === 'ar' && transformed.hasOwnProperty(key + 'Ar')) {
-          transformed[key] = transformed[key + 'Ar'];
+        if (transformed.hasOwnProperty(key + 'Ar')) {
+          const arValue = transformed[key + 'Ar'];
+          delete transformed[key + 'Ar'];
+          if (lang === 'ar') {
+            transformed[key] = arValue;
+          }
         }
         if (typeof transformed[key] === 'object') {
           transformed[key] = this.transformResponse(transformed[key], lang);
