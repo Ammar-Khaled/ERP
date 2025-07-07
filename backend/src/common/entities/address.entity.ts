@@ -29,11 +29,11 @@ export class Address {
   @Column({ type: 'varchar', length: 100, nullable: true, default: 'المدينة' })
   cityAr: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 100, nullable: true })
   state: string;
 
   // Arabic state
-  @Column({ type: 'varchar', length: 50, nullable: true, default: 'المنطقة' })
+  @Column({ type: 'varchar', length: 100, nullable: true, default: 'المنطقة' })
   stateAr: string;
 
   @Column({ type: 'varchar', nullable: true })

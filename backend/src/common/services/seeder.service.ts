@@ -99,24 +99,15 @@ export class SeederService {
   }
 
   async translateIntoArabic(englishText: string) {
-    // const response = await fetch('https://libretranslate.de/translate', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({
-    //     q: 'School',
-    //     source: 'en',
-    //     target: 'ar',
-    //     format: 'text',
-    //   }),
-    // });
-    //
-    // if (!response.ok) {
-    //   throw new Error(`HTTP error! status: ${response.status}`);
-    // }
-    //
-    // const data = await response.json();
-    // return data.translatedText || englishText;
-    return englishText;
+    const response = await fetch(
+      `https://api.mymemory.translated.net/get?q=${englishText}&langpair=en|ar`,
+      {
+        method: 'GET',
+      },
+    );
+
+    const data = await response.json();
+    return data.responseData.translatedText || englishText;
   }
 
   // Generate demo addresses

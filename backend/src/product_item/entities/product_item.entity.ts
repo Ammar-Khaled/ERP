@@ -40,7 +40,6 @@ export class ProductItem {
   // Arabic name
   @Column({
     type: 'varchar',
-    length: 50,
     nullable: true,
     default: 'اسم المنتج',
   })
