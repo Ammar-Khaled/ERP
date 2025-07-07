@@ -8,13 +8,19 @@ import { Repository } from 'typeorm';
 import { Branch } from './entities/branch.entity';
 import { CreateBranchDto } from './dto/create-branch.dto';
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { BaseService } from '../common/services/base.service';
 
 @Injectable()
-export class BranchesService implements OnModuleInit {
+export class BranchesService
+  extends BaseService<Branch>
+  implements OnModuleInit
+{
   constructor(
     @Inject('BRANCH_REPOSITORY')
     private readonly branchRepository: Repository<Branch>,
-  ) {}
+  ) {
+    super(branchRepository);
+  }
 
   async onModuleInit() {
     // await this.branchRepository.save({
@@ -26,27 +32,7 @@ export class BranchesService implements OnModuleInit {
   async findAll(
     paginationDto: PaginationDto,
   ): Promise<PaginatedResult<Branch>> {
-    const { page = 1, limit = 10 } = paginationDto;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await this.branchRepository.findAndCount({
-      skip,
-      take: limit,
-    });
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
-    };
+    return super.findAll(paginationDto);
   }
 
   async findOne(id: number) {
@@ -84,9 +70,7 @@ export class BranchesService implements OnModuleInit {
   }
 
   async create(createBranchDto: CreateBranchDto) {
-    console.log(createBranchDto);
     const branch = this.branchRepository.create(createBranchDto);
-    console.log(branch);
     return await this.branchRepository.save(branch);
   }
 
