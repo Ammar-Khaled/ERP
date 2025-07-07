@@ -47,6 +47,7 @@ import { ReturnPurchaseModule } from './return_purchase/return_purchase.module';
     InventoriesModule,
     ProductsModule,
     CategoriesModule,
+
     ProductItemModule,
     ProductItemInventoryModule,
     UnitsModule,

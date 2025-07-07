@@ -19,6 +19,8 @@ import { PdfService } from '../common/pdf/pdf.service';
 import { inventoriesProviders } from 'src/inventories/inventories.providers';
 import { DatabaseLoggerService } from 'src/logging/database-logger.service';
 import { logRepositoryProvider } from 'src/logging/log.repository';
+import { Order } from './entities/order.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [DatabaseModule, ProductItemModule, ProductItemInventoryModule],
