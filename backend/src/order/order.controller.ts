@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpException,
   Param,
   Patch,
@@ -33,13 +34,16 @@ export class OrdersController {
   }
 
   @Get('/findAll')
-  async findAll(@Query() paginationDto: PaginationDto) {
-    return await this.orderService.findAll(paginationDto);
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+    @Headers('branchId') branchId: string,
+  ) {
+    return await this.orderService.findAll(paginationDto, +branchId);
   }
 
   @Get('/findOne/:id')
-  findOne(@Param('id') id: number) {
-    return this.orderService.findOne(+id, []);
+  findOne(@Param('id') id: number, @Headers('branchId') branchId: string) {
+    return this.orderService.findOne(+id, +branchId);
   }
 
   @Patch('/update/:id')
@@ -55,10 +59,14 @@ export class OrdersController {
   }
 
   @Get(':id/pdf')
-  async generateOrderPdf(@Param('id') id: number, @Res() res: Response) {
+  async generateOrderPdf(
+    @Param('id') id: number,
+    @Headers('branchId') branchId: string,
+    @Res() res: Response,
+  ) {
     try {
       // 1. Fetch order data from your database
-      const orderData = await this.orderService.findOne(+id);
+      const orderData = await this.orderService.findOne(+id, +branchId);
 
       // 2. Generate PDF
       const pdfBuffer = await this.pdfService.generatePdf('order', orderData);

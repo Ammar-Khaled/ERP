@@ -180,35 +180,15 @@ export class OrderService extends BaseService<Order> {
     return newOrder;
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Order>> {
-    const { page = 1, limit = 10 } = paginationDto;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await this.orderRepo.findAndCount({
-      skip,
-      take: limit,
-    });
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
-    };
+  async findAll(
+    paginationDto: PaginationDto,
+    branchId: number,
+  ): Promise<PaginatedResult<Order>> {
+    return await super.findAll(paginationDto, branchId);
   }
 
-  async findOne(id: number, relations: string[] = []) {
-    return await this.orderRepo.findOne({
-      where: { id },
-      relations,
-    });
+  async findOne(id: number, branchId: number, relations?: string[]) {
+    return await super.findOne(id, branchId, relations);
   }
 
   async update(id: number, updateOrderDto: UpdateOrderDto) {
