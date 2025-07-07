@@ -4,11 +4,11 @@ import {
   Controller,
   Delete,
   Get,
-  Headers,
   Param,
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { InventoriesService } from './inventories.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
@@ -20,10 +20,8 @@ export class InventoriesController {
   constructor(private readonly inventoriesService: InventoriesService) {}
 
   @Post()
-  create(
-    @Body() createInventoryDto: CreateInventoryDto,
-    @Headers('branchId') branchId: string,
-  ) {
+  create(@Body() createInventoryDto: CreateInventoryDto, @Req() request: any) {
+    const branchId = request.branchId;
     if (+branchId != createInventoryDto.branchId) {
       throw new ConflictException(
         'Can not create inventory outside your branch',
@@ -33,15 +31,14 @@ export class InventoriesController {
   }
 
   @Get()
-  async findAll(
-    @Query() paginationDto: PaginationDto,
-    @Headers('branchId') branchId: string,
-  ) {
+  async findAll(@Query() paginationDto: PaginationDto, @Req() request: any) {
+    const branchId = request.branchId;
     return await this.inventoriesService.findAll(paginationDto, +branchId);
   }
 
   @Get(':id')
-  findOneById(@Param('id') id: string, @Headers('branchId') branchId: string) {
+  findOneById(@Param('id') id: string, @Req() request: any) {
+    const branchId = request.branchId;
     return this.inventoriesService.findOne(+id, +branchId, [
       'productItemToInventories',
     ]);
@@ -56,7 +53,8 @@ export class InventoriesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @Headers('branchId') branchId: string) {
+  remove(@Param('id') id: string, @Req() request: any) {
+    const branchId = request.branchId;
     return this.inventoriesService.remove(+id, +branchId);
   }
 }
