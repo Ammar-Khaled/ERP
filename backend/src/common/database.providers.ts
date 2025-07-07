@@ -14,25 +14,19 @@ export const databaseProviders = [
       const dataSource = new DataSource({
         type: 'mysql',
         host: isTestEnvironment
-          ? process.env.TEST_DB_HOST ||
-            process.env.DB_HOST ||
-            'mysql-erp-amarkhaled701-e559.g.aivencloud.com'
+          ? process.env.TEST_DB_HOST
           : process.env.DB_HOST,
         port: isTestEnvironment
-          ? Number(process.env.TEST_DB_PORT || process.env.DB_PORT || 27522)
+          ? Number(process.env.TEST_DB_PORT)
           : Number(process.env.DB_PORT),
         username: isTestEnvironment
-          ? process.env.TEST_DB_USERNAME ||
-            process.env.DB_USERNAME ||
-            'avnadmin'
+          ? process.env.TEST_DB_USERNAME
           : process.env.DB_USERNAME,
         password: isTestEnvironment
-          ? process.env.TEST_DB_PASSWORD ||
-            process.env.DB_PASSWORD ||
-            'AVNS_hDwhDhxktie6lTcPQ9q'
+          ? process.env.TEST_DB_PASSWORD
           : process.env.DB_PASSWORD,
         database: isTestEnvironment
-          ? process.env.TEST_DB_NAME || 'erp_test'
+          ? process.env.TEST_DB_NAME
           : process.env.DB_DATABASE,
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: true,
@@ -44,11 +38,6 @@ export const databaseProviders = [
           : undefined,
         connectTimeout: isTestEnvironment ? 60000 : undefined,
         acquireTimeout: isTestEnvironment ? 60000 : undefined,
-        extra: isTestEnvironment
-          ? {
-              charset: 'utf8mb4_unicode_ci',
-            }
-          : undefined,
       });
 
       return dataSource.initialize();
