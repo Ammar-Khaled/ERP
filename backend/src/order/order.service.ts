@@ -144,6 +144,11 @@ export class OrderService extends BaseService<Order> {
       const productItem = await this.productItemRepo.findOneBy({
         id: item.productItemId,
       });
+      if (!productItem) {
+        throw new NotFoundException(
+          `There is NO product item with id ${item.productItemId}`,
+        );
+      }
       orderItem.productItem = productItem;
 
       const productItemInv = await this.productItemInventoryRepo.findOneBy({
