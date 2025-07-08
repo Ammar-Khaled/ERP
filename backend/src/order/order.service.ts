@@ -55,7 +55,13 @@ export class OrderService extends BaseService<Order> {
     super(orderRepo);
   }
 
-  async create(createOrderDto: CreateOrderDto) {
+  async create(createOrderDto: CreateOrderDto, userBranchId: number) {
+    if (userBranchId !== createOrderDto.branchId) {
+      throw new ConflictException(
+        'Can not create an order outside your branch',
+      );
+    }
+
     const newOrder = new Order();
     newOrder.date = createOrderDto.date || new Date();
 
@@ -196,6 +202,9 @@ export class OrderService extends BaseService<Order> {
       where: { id },
       relations: ['items', 'status', 'coupon'],
     });
+    if (!order) {
+      throw new NotFoundException('Order not found!');
+    }
 
     // verify the order status is pending
     if (order.status.name !== 'order_pending') {
@@ -310,13 +319,13 @@ export class OrderService extends BaseService<Order> {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number, userBranchId: number) {
     const order = await this.orderRepo.findOne({
-      where: { id },
+      where: { id, branchId: userBranchId },
       relations: ['items', 'status'],
     });
     if (!order) {
-      throw new NotFoundException('Order Not Found !');
+      throw new NotFoundException('Order not found in your branch!');
     }
 
     // ensure status is completed or canceled
@@ -341,13 +350,13 @@ export class OrderService extends BaseService<Order> {
     return order;
   }
 
-  async applyOrderFromInventory(id: number) {
+  async applyOrderFromInventory(id: number, userBranchId: number) {
     const order = await this.orderRepo.findOne({
-      where: { id },
+      where: { id, branchId: userBranchId },
       relations: ['items', 'status'],
     });
     if (!order) {
-      throw new NotFoundException('Order Not Found !');
+      throw new NotFoundException('Order not found in your branch!');
     }
 
     if (order.status.name !== 'order_pending') {
@@ -428,13 +437,13 @@ export class OrderService extends BaseService<Order> {
     );
   }
 
-  async cancelOrder(id: number) {
+  async cancelOrder(id: number, userBranchId: number) {
     const order = await this.orderRepo.findOne({
-      where: { id },
+      where: { id, branchId: userBranchId },
       relations: ['status'],
     });
     if (!order) {
-      throw new NotFoundException('Order Not Found !');
+      throw new NotFoundException('Order not found in your branch!');
     }
 
     // ensure status is pending
