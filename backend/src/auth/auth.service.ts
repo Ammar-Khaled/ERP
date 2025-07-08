@@ -41,6 +41,7 @@ export class AuthService {
       username: user.username,
       email: user.email,
       roleIds: user.roles.map((role) => role.id),
+      branchId: user.branchId,
     };
 
     delete user.password;

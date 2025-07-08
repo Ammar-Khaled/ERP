@@ -3,7 +3,7 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from 'src/common/entities/address.entity';
@@ -13,13 +13,12 @@ export class Client {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ type: 'varchar', nullable: false })
   name: string;
 
   // Arabic name
   @Column({
     type: 'varchar',
-    length: 20,
     nullable: true,
     default: 'اسم العميل',
   })
@@ -28,7 +27,7 @@ export class Client {
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+  @Column({ type: 'varchar', nullable: true, unique: true })
   phone_number: string;
 
   @DeleteDateColumn()
@@ -37,7 +36,7 @@ export class Client {
   @Column({ nullable: true })
   addressId: number;
 
-  @OneToOne(() => Address, { cascade: true, eager: false, nullable: true })
+  @ManyToOne(() => Address, { cascade: true, eager: false, nullable: true })
   @JoinColumn()
   address: Address;
 }

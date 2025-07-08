@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Currency } from './entities/currency.entity';
@@ -13,11 +14,16 @@ import { UpdateCurrencyDto } from './dto/update-currency.dto';
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
-export class CurrencyService {
+export class CurrencyService implements OnModuleInit {
   constructor(
     @Inject('CURRENCY_REPOSITORY')
     private currencyRepository: Repository<Currency>, // Inject the Currency repository
   ) {}
+
+  onModuleInit() {
+    console.log('Seeding EGP currency...');
+    this.create({ name: 'EGP', nameAr: 'جنيه مصري', symbol: 'LE' });
+  }
 
   // Create a new currency
   async create(createCurrencyDto: CreateCurrencyDto) {

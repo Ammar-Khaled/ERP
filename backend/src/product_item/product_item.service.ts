@@ -188,6 +188,61 @@ export class ProductItemService {
     };
   }
 
+  async searchByName(
+    searchName: string,
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult<any>> {
+    if (!searchName || searchName.trim() === '') {
+      throw new BadRequestException('Search name is required');
+    }
+
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    // Create query builder for complex search
+    const queryBuilder = this.productItemRepository
+      .createQueryBuilder('productItem')
+      .leftJoinAndSelect('productItem.variationOptions', 'variationOptions')
+      .leftJoinAndSelect('variationOptions.variation', 'variation')
+      .leftJoinAndSelect('productItem.product', 'product')
+      .where('productItem.deletedAt IS NULL') // Exclude soft deleted items
+      .andWhere(
+        '(LOWER(productItem.name) LIKE LOWER(:searchName) OR ' +
+          'LOWER(productItem.nameAr) LIKE LOWER(:searchName) OR ' +
+          'LOWER(product.name) LIKE LOWER(:searchName) OR ' +
+          'LOWER(product.nameAr) LIKE LOWER(:searchName))',
+        { searchName: `%${searchName.trim()}%` },
+      )
+      .skip(skip)
+      .take(limit);
+
+    const [productItems, total] = await queryBuilder.getManyAndCount();
+
+    const totalPages = Math.ceil(total / limit);
+
+    const returnedProductItems = [];
+    productItems.forEach((productItem) => {
+      delete productItem.product.id;
+      delete productItem.product.name;
+      delete productItem.product.nameAr;
+      const productDate = productItem.product;
+      delete productItem.product;
+      returnedProductItems.push({ ...productItem, ...productDate });
+    });
+
+    return {
+      data: returnedProductItems,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  }
+
   async findOne(id: number) {
     const productItem = await this.findProductItemByCondition(
       { id },

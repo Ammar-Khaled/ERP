@@ -11,6 +11,7 @@ import { CreatePermissionDto } from './dto/create-permission.dto';
 import { Role } from '../roles/entities/role.entity';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { PermissionsSeeder } from './permissions.seeder';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class PermissionService implements OnModuleInit {
@@ -19,6 +20,8 @@ export class PermissionService implements OnModuleInit {
     private readonly permissionRepository: Repository<Permission>,
     @Inject('ROLE_REPOSITORY')
     private readonly roleRepository: Repository<Role>,
+    @Inject('USER_REPOSITORY')
+    private readonly userRepository: Repository<User>,
     private permissionsSeeder: PermissionsSeeder,
   ) {}
 
@@ -31,6 +34,13 @@ export class PermissionService implements OnModuleInit {
       this.permissionRepository,
     );
     await rolesSeeder.seed();
+
+    // Seed the admin user after roles are created
+    await this.userRepository.save({
+      username: 'admin',
+      password: 'admin',
+      roleIds: [1],
+    });
   }
 
   findAll(): Promise<Permission[]> {

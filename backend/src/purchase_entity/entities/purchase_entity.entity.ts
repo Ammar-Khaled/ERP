@@ -3,22 +3,24 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Branch } from '../../branches/entities/branch.entity';
 
 @Entity('purchase_entities')
 export class PurchaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 20, nullable: false, unique: true })
+  @Column({ type: 'varchar', nullable: false, unique: true })
   name: string;
 
   // Arabic name
   @Column({
     type: 'varchar',
-    length: 20,
     nullable: true,
     default: 'اسم العنصر',
   })
@@ -52,4 +54,11 @@ export class PurchaseEntity {
 
   @Column({ type: 'int', default: 0 })
   totalAmount: number = 0;
+
+  @Column()
+  branchId: number;
+
+  @ManyToOne(() => Branch)
+  @JoinColumn({ name: 'branchId' })
+  branch: Branch;
 }

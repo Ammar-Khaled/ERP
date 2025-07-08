@@ -35,6 +35,14 @@ export class ProductItemsController {
     return await this.productItemService.findAll(paginationDto);
   }
 
+  @Get('/search')
+  async searchByName(
+    @Query('name') name: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return await this.productItemService.searchByName(name, paginationDto);
+  }
+
   @Get('/damaged')
   getDamaged() {
     return this.productItemService.getDamaged();

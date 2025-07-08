@@ -3,8 +3,8 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
@@ -36,7 +36,7 @@ export class Branch {
   @Column({ type: 'text', nullable: true })
   descriptionAr: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+  @Column({ type: 'varchar', nullable: true, unique: true })
   phone: string;
 
   @Column({ type: 'boolean', default: true })
@@ -48,7 +48,7 @@ export class Branch {
   @Column({ nullable: true })
   addressId: number;
 
-  @OneToOne(() => Address, { cascade: true })
+  @ManyToOne(() => Address, { cascade: true })
   @JoinColumn({ name: 'addressId' })
   address: Address;
 

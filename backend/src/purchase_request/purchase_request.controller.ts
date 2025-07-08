@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   Res,
   UseInterceptors,
 } from '@nestjs/common';
@@ -29,13 +30,19 @@ export class PurchaseRequestsController {
 
   @Post('create')
   @UseInterceptors(LoggingInterceptor)
-  create(@Body() createPurchaseRequestDto: CreatePurchaseRequestDto) {
-    return this.purchaseRequestService.create(createPurchaseRequestDto);
+  create(
+    @Body() createPurchaseRequestDto: CreatePurchaseRequestDto,
+    @Req() req,
+  ) {
+    return this.purchaseRequestService.create(
+      createPurchaseRequestDto,
+      req.user,
+    );
   }
 
   @Patch('/cancel/:id')
-  cancelRequest(@Param('id') id: string) {
-    return this.purchaseRequestService.cancelRequest(+id);
+  cancelRequest(@Param('id') id: string, @Req() req) {
+    return this.purchaseRequestService.cancelRequest(+id, req.user.branchId);
   }
 
   @Patch('review/:id')
@@ -54,18 +61,21 @@ export class PurchaseRequestsController {
   }
 
   @Patch('add-to-inventory/:id')
-  addToInventory(@Param('id') id: string) {
-    return this.purchaseRequestService.addToInventory(+id);
+  addToInventory(@Param('id') id: string, @Req() req) {
+    return this.purchaseRequestService.addToInventory(+id, req.user.branchId);
   }
 
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
-    return await this.purchaseRequestService.findAll(paginationDto);
+  async findAll(@Query() paginationDto: PaginationDto, @Req() req) {
+    return await this.purchaseRequestService.findAll(
+      paginationDto,
+      req.user.branchId,
+    );
   }
 
   @Get('find-by-id/:id')
-  findOne(@Param('id') id: string) {
-    return this.purchaseRequestService.findOne(+id);
+  findOne(@Param('id') id: string, @Req() req) {
+    return this.purchaseRequestService.findOne(+id, req.user.branchId);
   }
 
   @Patch('update/:id')
@@ -79,18 +89,20 @@ export class PurchaseRequestsController {
 
   @Delete('delete/:id')
   @UseInterceptors(LoggingInterceptor)
-  removeRequest(@Param('id') id: string) {
-    return this.purchaseRequestService.remove(+id);
+  removeRequest(@Param('id') id: string, @Req() req) {
+    return this.purchaseRequestService.remove(+id, req.user.branchId);
   }
 
   @Get(':id/pdf')
-  async generatePdf(@Param('id') id: string, @Res() res: Response) {
+  async generatePdf(@Param('id') id: string, @Res() res: Response, @Req() req) {
     try {
       // Fetch the purchase request
-      const purchaseRequest = await this.purchaseRequestService.findOne(
-        +id,
-        true,
-      );
+      const purchaseRequest =
+        await this.purchaseRequestService.findOneWithRelations(
+          +id,
+          req.user.branchId,
+          true,
+        );
 
       // Generate the PDF
       const pdfBuffer = await this.pdfService.generatePdf(

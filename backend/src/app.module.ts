@@ -30,6 +30,8 @@ import { ConfigModule } from '@nestjs/config';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReturnPurchaseModule } from './return_purchase/return_purchase.module';
 import { ReportsModule } from './reports/reports.module';
+import { SeederModule } from './common/seeder.module';
+
 
 @Module({
   imports: [
@@ -62,10 +64,10 @@ import { ReportsModule } from './reports/reports.module';
     CouponModule,
     ReturnModule,
     LoggingModule,
-    LoggingModule,
     NotificationsModule,
     ReturnPurchaseModule,
     ReportsModule,
+    SeederModule,
   ],
   controllers: [AppController],
   providers: [AppService],

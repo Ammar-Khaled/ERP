@@ -7,7 +7,6 @@ import {
   ManyToMany,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
@@ -41,7 +40,7 @@ export class User {
   })
   nameAr: string;
 
-  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+  @Column({ type: 'varchar', nullable: true, unique: true })
   phone: string;
 
   @Column({ type: 'boolean', default: true })
@@ -56,7 +55,7 @@ export class User {
   @Column({ nullable: true })
   addressId: number;
 
-  @OneToOne(() => Address, {
+  @ManyToOne(() => Address, {
     eager: false,
     cascade: true,
     nullable: true,
@@ -80,7 +79,7 @@ export class User {
   branchId: number;
 
   @ManyToOne(() => Branch, (branch) => branch.users, {
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'branchId' })
   branch: Branch;
@@ -89,6 +88,4 @@ export class User {
 
   @OneToMany(() => PurchaseRequest, (purchaseRequests) => purchaseRequests.user)
   purchaseRequests: PurchaseRequest[];
-
-  // TODO: add disabling time
 }

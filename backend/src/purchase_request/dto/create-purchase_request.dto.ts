@@ -1,24 +1,25 @@
-import { Transform, Type } from 'class-transformer';
-import { IsDate, IsNotEmpty, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsDate,
+  IsNotEmpty,
+  IsOptional,
+  ValidateNested,
+} from 'class-validator';
 import { CreatePurchaseItemDto } from 'src/purchase_request/dto/create-purchase_item.dto';
 
 export class CreatePurchaseRequestDto {
-  @Transform(({ value }) => (value !== undefined ? value : new Date()))
-  @Type(() => Date) // converts input to date
   @IsDate()
+  @IsOptional()
   date: Date;
-
-  @IsNotEmpty()
-  userId: number;
-
-  @IsNotEmpty()
-  branchId: number;
 
   @IsNotEmpty()
   supplierId: number;
 
   @IsNotEmpty()
   currencyId: number;
+
+  @IsOptional()
+  inventoryId: number = 1;
 
   @IsNotEmpty()
   inventoryId: number;

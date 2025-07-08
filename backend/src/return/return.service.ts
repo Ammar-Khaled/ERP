@@ -153,7 +153,7 @@ export class ReturnService {
         message: `No status with ID of (${createReturnDto.statusId})!`,
       });
     }
-    newReturn.status = status;
+    // newReturn.status = status;
 
     return await this.returnRepository.save(newReturn);
   }
@@ -314,7 +314,7 @@ export class ReturnService {
           message: `No status with ID of (${updateReturnDto.statusId})!`,
         });
       }
-      returnObj.status = status;
+      // returnObj.status = status;
     }
 
     return await this.returnRepository.save(returnObj);

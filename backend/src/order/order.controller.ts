@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   Res,
   UseInterceptors,
 } from '@nestjs/common';
@@ -28,18 +29,19 @@ export class OrdersController {
 
   @Post('/create')
   @UseInterceptors(LoggingInterceptor)
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  create(@Body() createOrderDto: CreateOrderDto, @Req() req) {
+    return this.orderService.create(createOrderDto, req.user.branchId);
   }
 
   @Get('/findAll')
-  async findAll(@Query() paginationDto: PaginationDto) {
-    return await this.orderService.findAll(paginationDto);
+  async findAll(@Query() paginationDto: PaginationDto, @Req() req) {
+    return await this.orderService.findAll(paginationDto, req.user.branchId);
   }
 
   @Get('/findOne/:id')
-  findOne(@Param('id') id: number) {
-    return this.orderService.findOne(+id, []);
+  findOne(@Param('id') id: number, @Req() req) {
+    return this.orderService.findOne(+id, req.user.branchId);
+
   }
 
   @Patch('/update/:id')
@@ -50,15 +52,19 @@ export class OrdersController {
 
   @Delete('/delete/:id')
   @UseInterceptors(LoggingInterceptor)
-  remove(@Param('id') id: number) {
-    return this.orderService.remove(+id);
+  remove(@Param('id') id: number, @Req() req) {
+    return this.orderService.remove(+id, req.user.branchId);
   }
 
   @Get(':id/pdf')
-  async generateOrderPdf(@Param('id') id: number, @Res() res: Response) {
+  async generateOrderPdf(
+    @Param('id') id: number,
+    @Req() req,
+    @Res() res: Response,
+  ) {
     try {
       // 1. Fetch order data from your database
-      const orderData = await this.orderService.findOne(+id);
+      const orderData = await this.orderService.findOne(+id, req.user.branchId);
 
       // 2. Generate PDF
       const pdfBuffer = await this.pdfService.generatePdf('order', orderData);
@@ -77,13 +83,13 @@ export class OrdersController {
 
   @Patch('/apply-from-inventory/:id')
   @UseInterceptors(LoggingInterceptor)
-  applyOrderFromInventory(@Param('id') id: number) {
-    return this.orderService.applyOrderFromInventory(+id);
+  applyOrderFromInventory(@Param('id') id: number, @Req() req) {
+    return this.orderService.applyOrderFromInventory(+id, req.user.branchId);
   }
 
   @Patch('/cancel/:id')
   @UseInterceptors(LoggingInterceptor)
-  cancelOrder(@Param('id') id: number) {
-    return this.orderService.cancelOrder(+id);
+  cancelOrder(@Param('id') id: number, @Req() req) {
+    return this.orderService.cancelOrder(+id, req.user.branchId);
   }
 }

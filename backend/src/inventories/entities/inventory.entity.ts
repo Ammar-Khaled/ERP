@@ -5,7 +5,6 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
@@ -45,7 +44,7 @@ export class Inventory {
   @Column({ nullable: true })
   addressId: number;
 
-  @OneToOne(() => Address, {
+  @ManyToOne(() => Address, {
     eager: false,
     cascade: true,
     nullable: true,

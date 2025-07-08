@@ -11,7 +11,6 @@ export class Variation {
 
   @Column({
     type: 'varchar',
-    length: 20,
     nullable: true,
     default: 'اسم المتغير',
   })
