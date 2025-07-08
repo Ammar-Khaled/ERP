@@ -5,6 +5,7 @@ import { DatabaseModule } from '../common/database.module';
 import { permissionProviders } from './permissions.providers';
 import { rolesProviders } from '../roles/roles.providers';
 import { PermissionsSeeder } from './permissions.seeder';
+import { userProviders } from '../users/users.providers';
 
 @Module({
   imports: [DatabaseModule],
@@ -12,6 +13,7 @@ import { PermissionsSeeder } from './permissions.seeder';
     PermissionService,
     ...permissionProviders,
     ...rolesProviders,
+    ...userProviders,
     PermissionsSeeder,
   ],
   controllers: [PermissionController],

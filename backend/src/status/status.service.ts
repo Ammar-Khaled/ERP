@@ -18,7 +18,7 @@ export class StatusService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // await this.statusSeeder.seed();
+    await this.statusSeeder.seed();
   }
 
   async create(createStatusDto: CreateStatusDto) {
