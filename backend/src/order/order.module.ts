@@ -9,7 +9,6 @@ import { clientsProviders } from 'src/clients/clients.providers';
 import { couponProviders } from 'src/coupon/coupon.providers';
 import { currencyProviders } from 'src/currency/currency.providers';
 import { productItemProviders } from 'src/product_item/product_item.providers';
-import { OrderItemService } from 'src/order/order_item.service';
 import { orderItemProviders } from 'src/order/order_item.providers';
 import { ProductItemModule } from 'src/product_item/product_item.module';
 import { statusProviders } from 'src/status/status.providers';
@@ -38,7 +37,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     ...statusProviders,
     ...productItemInventoryProviders,
     ...inventoriesProviders,
-    OrderItemService,
     PdfService,
     DatabaseLoggerService,
     logRepositoryProvider,

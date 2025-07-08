@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   HttpException,
   HttpStatus,
   Inject,
@@ -8,7 +9,7 @@ import {
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
 import { Coupon } from './entities/coupon.entity';
-import { Repository } from 'typeorm';
+import { LessThanOrEqual, Repository } from 'typeorm';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
@@ -19,7 +20,10 @@ export class CouponService {
   ) {}
 
   async create(createCouponDto: CreateCouponDto) {
-    // TODO: make sure that start_date not bigger than end_date.
+    if (createCouponDto.endDate < createCouponDto.startDate) {
+      throw new ConflictException('end date is less than start date !!');
+    }
+
     const coupon = this.couponRepo.create(createCouponDto);
 
     try {
@@ -93,5 +97,36 @@ export class CouponService {
       throw new NotFoundException(errorMessage);
     }
     return coupon;
+  }
+
+  async checkExpiredCoupons() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const expiredCoupons = await this.couponRepo.find({
+      where: {
+        endDate: LessThanOrEqual(today),
+      },
+    });
+
+    if (!expiredCoupons.length) {
+      return { message: 'No expired coupons found' };
+    }
+
+    const res = [];
+    for (const coupon of expiredCoupons) {
+      coupon.isActive = false;
+      const updatedCoupon = await this.couponRepo.update(coupon.id, coupon);
+      res.push(updatedCoupon);
+    }
+
+    return {
+      message: `${res.length} coupons updated due to expiration`,
+      details: res,
+    };
+  }
+
+  findByCode(code: string) {
+    return this.couponRepo.findOneBy({ code });
   }
 }

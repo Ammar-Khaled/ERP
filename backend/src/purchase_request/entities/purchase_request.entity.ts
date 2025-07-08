@@ -16,6 +16,7 @@ import {
 } from 'typeorm';
 import { PurchaseItem } from 'src/purchase_request/entities/purchase_item.entity';
 import { ReturnPurchase } from 'src/return_purchase/entities/return_purchase.entity';
+import { Inventory } from '../../inventories/entities/inventory.entity';
 
 @Entity('purchase_requests')
 export class PurchaseRequest {
@@ -96,4 +97,11 @@ export class PurchaseRequest {
 
   @Column({ nullable: true })
   reviewNotes: string;
+
+  @Column({ type: 'int', nullable: false })
+  inventoryId: number;
+
+  @ManyToOne(() => Inventory, (inventory) => inventory.purchaseRequests)
+  @JoinColumn({ name: 'inventoryId' })
+  inventory: Inventory;
 }

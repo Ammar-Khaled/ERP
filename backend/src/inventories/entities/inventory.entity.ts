@@ -11,6 +11,7 @@ import {
 import { Address } from '../../common/entities/address.entity';
 import { Branch } from '../../branches/entities/branch.entity';
 import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity';
+import { PurchaseRequest } from '../../purchase_request/entities/purchase_request.entity';
 
 @Entity('inventories')
 export class Inventory {
@@ -64,4 +65,13 @@ export class Inventory {
     (productItemToInventory) => productItemToInventory.inventory,
   )
   productItemToInventories: ProductItemToInventory[];
+
+  @OneToMany(
+    () => PurchaseRequest,
+    (purchaseRequest) => purchaseRequest.inventory,
+  )
+  purchaseRequests: PurchaseRequest[];
+
+  @Column({ type: 'int', default: 0 })
+  totalNumberOfPurchaseEntities: number;
 }

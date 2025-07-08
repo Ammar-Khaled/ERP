@@ -14,9 +14,16 @@ import { DatabaseLoggerService } from 'src/logging/database-logger.service';
 import { logRepositoryProvider } from 'src/logging/log.repository';
 import { PurchaseEntityModule } from '../purchase_entity/purchase_entity.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { inventoriesProviders } from 'src/inventories/inventories.providers';
+import { PurchaseInventoryModule } from 'src/purchase_inventory/purchase_inventory.module';
 
 @Module({
-  imports: [DatabaseModule, PurchaseEntityModule, NotificationsModule],
+  imports: [
+    DatabaseModule,
+    PurchaseEntityModule,
+    NotificationsModule,
+    PurchaseInventoryModule,
+  ],
   controllers: [PurchaseRequestsController],
   providers: [
     PurchaseRequestService,
@@ -27,6 +34,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ...statusProviders,
     ...currencyProviders,
     ...purchaseEntityProviders,
+    ...inventoriesProviders,
     PdfService,
     DatabaseLoggerService,
     logRepositoryProvider,

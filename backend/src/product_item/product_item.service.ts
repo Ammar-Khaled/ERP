@@ -348,6 +348,7 @@ export class ProductItemService {
     });
     return damagedItems;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async uploadImage(id: number, file: Express.Multer.File, field: 'main') {
     const productItem = await this.findProductItemByCondition(
       { id },

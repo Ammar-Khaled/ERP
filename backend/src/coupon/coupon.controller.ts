@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -32,6 +33,11 @@ export class CouponsController {
     return this.couponService.findOne(+id);
   }
 
+  @Get('/findByCode/:code')
+  findByCode(@Param('code') code: string) {
+    return this.couponService.findByCode(code);
+  }
+
   @Patch('/update/:id')
   update(@Param('id') id: number, @Body() updateCouponDto: UpdateCouponDto) {
     return this.couponService.update(+id, updateCouponDto);
@@ -40,5 +46,11 @@ export class CouponsController {
   @Delete('/delete/:id')
   remove(@Param('id') id: number) {
     return this.couponService.remove(+id);
+  }
+
+  @Post('/checkExpiration')
+  @HttpCode(200)
+  checkExpiredCoupons() {
+    return this.couponService.checkExpiredCoupons();
   }
 }
