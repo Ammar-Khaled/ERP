@@ -32,7 +32,6 @@ import { ReturnPurchaseModule } from './return_purchase/return_purchase.module';
 import { ReportsModule } from './reports/reports.module';
 import { SeederModule } from './common/seeder.module';
 
-
 @Module({
   imports: [
     ScheduleModule.forRoot(),

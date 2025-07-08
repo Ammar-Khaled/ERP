@@ -8,12 +8,11 @@ import { returnProviders } from 'src/return/return.providers';
 import { returnItemProviders } from 'src/return/return_item.provider';
 import { productItemProviders } from 'src/product_item/product_item.providers';
 import { orderItemProviders } from 'src/order/order_item.providers';
-import { ClientsModule } from 'src/clients/clients.module';  // Import ClientsModule
 import { clientsProviders } from 'src/clients/clients.providers';
 import { supplierProviders } from 'src/suppliers/suppliers.providers';
 
 @Module({
-  imports: [DatabaseModule],  // Add ClientsModule to imports
+  imports: [DatabaseModule], // Add ClientsModule to imports
   controllers: [ReportsController],
   providers: [
     ReportsService,

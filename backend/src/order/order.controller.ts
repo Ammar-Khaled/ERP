@@ -41,7 +41,6 @@ export class OrdersController {
   @Get('/findOne/:id')
   findOne(@Param('id') id: number, @Req() req) {
     return this.orderService.findOne(+id, req.user.branchId);
-
   }
 
   @Patch('/update/:id')

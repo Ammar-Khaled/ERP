@@ -18,9 +18,6 @@ export class CreatePurchaseRequestDto {
   @IsNotEmpty()
   currencyId: number;
 
-  @IsOptional()
-  inventoryId: number = 1;
-
   @IsNotEmpty()
   inventoryId: number;
 
