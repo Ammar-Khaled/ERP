@@ -147,48 +147,22 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
     return purchaseItem;
   }
 
-  async create(
-    createPurchaseRequestDto: CreatePurchaseRequestDto,
-    userBranchId: number,
-  ) {
-    if (userBranchId !== createPurchaseRequestDto.branchId) {
-      throw new ConflictException(
-        'Can not create a purchase request outside your branch',
-      );
-    }
-
+  async create(createPurchaseRequestDto: CreatePurchaseRequestDto, user: User) {
     const newPurchaseRequest = new PurchaseRequest();
-    newPurchaseRequest.date = createPurchaseRequestDto.date;
+    newPurchaseRequest.date = createPurchaseRequestDto.date || new Date();
 
     // Handle the inventory
     const inventory = await this.inventoryRepository.findOneBy({
       id: createPurchaseRequestDto.inventoryId,
     });
-    if (!inventory) {
-      throw new NotFoundException({
-        message: `This inventory is not found!`,
-      });
-    }
+    if (!inventory) throw new NotFoundException('This inventory is not found!');
+
     newPurchaseRequest.inventory = inventory;
 
-    // Handle the user
-    const user = await this.userRepository.findOneBy({
-      id: createPurchaseRequestDto.userId,
-    });
-    if (!user) {
-      throw new NotFoundException({ message: `This user is not found!` });
-    }
     newPurchaseRequest.user = user;
 
-    // Handle the branch
-    const branch = await this.branchRepository.findOneBy({
-      id: createPurchaseRequestDto.branchId,
-    });
-    if (!branch) {
-      throw new NotFoundException({
-        message: `This branch is not found!`,
-      });
-    }
+    const branch = await this.branchRepository.findOneBy({ id: user.branchId });
+    if (!branch) throw new NotFoundException('Branch not found!');
     newPurchaseRequest.branch = branch;
 
     // Handle the supplier
@@ -274,7 +248,7 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
 
     return this.findOneWithRelations(
       savedPurchaseRequest.id,
-      userBranchId,
+      user.branchId,
       false,
     );
   }
@@ -388,6 +362,13 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
       throw new NotFoundException(`No purchase request with ID of (${id})!`);
     }
 
+    // check if the request is pending
+    if (purchaseRequest.status.name !== 'purchase_request_pending') {
+      throw new ConflictException(
+        'This request cannot be updated as it is not pending.',
+      );
+    }
+
     // Update related entities if necessary
     if (updatePurchaseRequestDto.inventoryId) {
       const inventory = await this.inventoryRepository.findOneBy({
@@ -398,14 +379,6 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
           message: `This inventory is not found!`,
         });
       purchaseRequest.inventory = inventory;
-    }
-
-    if (updatePurchaseRequestDto.userId) {
-      const user = await this.userRepository.findOneBy({
-        id: updatePurchaseRequestDto.userId,
-      });
-      if (!user) throw new NotFoundException(`This username is not found!`);
-      purchaseRequest.user = user;
     }
 
     if (updatePurchaseRequestDto.supplierId) {

@@ -5,7 +5,7 @@ import { Type } from 'class-transformer';
 import { UpdatePurchaseItemDto } from './update-purchase_item.dto';
 
 export class UpdatePurchaseRequestDto extends PartialType(
-  OmitType(CreatePurchaseRequestDto, ['purchaseItemsDtos', 'branchId']), // Exclude purchaseItemsDtos and branchId from the base DTO,
+  OmitType(CreatePurchaseRequestDto, ['purchaseItemsDtos']), // Exclude purchaseItemsDtos and branchId from the base DTO,
 ) {
   @IsNotEmpty()
   @ValidateNested({ each: true }) // Validates each element in the array

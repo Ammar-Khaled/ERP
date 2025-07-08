@@ -36,7 +36,7 @@ export class PurchaseRequestsController {
   ) {
     return this.purchaseRequestService.create(
       createPurchaseRequestDto,
-      req.user.branchId,
+      req.user,
     );
   }
 

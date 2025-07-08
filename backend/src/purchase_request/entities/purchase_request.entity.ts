@@ -104,4 +104,7 @@ export class PurchaseRequest {
   @ManyToOne(() => Inventory, (inventory) => inventory.purchaseRequests)
   @JoinColumn({ name: 'inventoryId' })
   inventory: Inventory;
+
+  @Column({ nullable: true })
+  invoiceNo: number;
 }
