@@ -512,6 +512,7 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
     return purchaseRequest;
   }
 
+
   async addToInventory(id: number, userBranchId: number) {
     const purchaseRequest = await this.purchaseRequestRepository.findOne({
       where: { id, branchId: userBranchId },

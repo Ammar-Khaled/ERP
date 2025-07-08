@@ -55,6 +55,7 @@ export class OrderService extends BaseService<Order> {
     super(orderRepo);
   }
 
+
   async create(createOrderDto: CreateOrderDto, userBranchId: number) {
     if (userBranchId !== createOrderDto.branchId) {
       throw new ConflictException(
@@ -207,6 +208,7 @@ export class OrderService extends BaseService<Order> {
       where: { id },
       relations: ['items', 'status', 'coupon'],
     });
+
     if (!order) {
       throw new NotFoundException('Order not found!');
     }
@@ -324,6 +326,7 @@ export class OrderService extends BaseService<Order> {
     }
   }
 
+
   async remove(id: number, userBranchId: number) {
     const order = await this.orderRepo.findOne({
       where: { id, branchId: userBranchId },
@@ -369,7 +372,6 @@ export class OrderService extends BaseService<Order> {
         'Order status must be pending to apply it from inventory',
       );
     }
-
     // validating the number of items in the order and stock
     for (const orderItem of order.items) {
       const productItemInv = await this.productItemInventoryRepo.findOneBy({
@@ -441,6 +443,7 @@ export class OrderService extends BaseService<Order> {
       },
     );
   }
+
 
   async cancelOrder(id: number, userBranchId: number) {
     const order = await this.orderRepo.findOne({

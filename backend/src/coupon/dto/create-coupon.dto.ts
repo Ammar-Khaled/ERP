@@ -35,6 +35,9 @@ export class CreateCouponDto {
   @IsNotEmpty()
   minInvoiceTotal: number;
 
+  @IsNotEmpty({ message: 'Coupon code is required' })
+  code: string;
+
   @IsBoolean()
   isActive: boolean;
 }

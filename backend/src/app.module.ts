@@ -29,7 +29,9 @@ import { LoggingModule } from './logging/logging.module';
 import { ConfigModule } from '@nestjs/config';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ReturnPurchaseModule } from './return_purchase/return_purchase.module';
+import { ReportsModule } from './reports/reports.module';
 import { SeederModule } from './common/seeder.module';
+
 
 @Module({
   imports: [
@@ -48,6 +50,7 @@ import { SeederModule } from './common/seeder.module';
     InventoriesModule,
     ProductsModule,
     CategoriesModule,
+
     ProductItemModule,
     ProductItemInventoryModule,
     UnitsModule,
@@ -63,6 +66,7 @@ import { SeederModule } from './common/seeder.module';
     LoggingModule,
     NotificationsModule,
     ReturnPurchaseModule,
+    ReportsModule,
     SeederModule,
   ],
   controllers: [AppController],

@@ -22,6 +22,9 @@ export class CreatePurchaseRequestDto {
   inventoryId: number = 1;
 
   @IsNotEmpty()
+  inventoryId: number;
+
+  @IsNotEmpty()
   @ValidateNested({ each: true }) // Validates each element in the array
   @Type(() => CreatePurchaseItemDto) // Transforms each element to CreatePurchaseItemDto
   purchaseItemsDtos: CreatePurchaseItemDto[];
