@@ -16,9 +16,10 @@ import { Unit } from 'src/units/entities/unit.entity';
 import { Currency } from 'src/currency/entities/currency.entity';
 import { ProductItemService } from 'src/product_item/product_item.service';
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { BaseService } from '../common/services/base.service';
 
 @Injectable()
-export class ProductsService {
+export class ProductsService extends BaseService<Product> {
   constructor(
     @Inject('PRODUCT_REPOSITORY')
     private productRepository: Repository<Product>,
@@ -31,9 +32,17 @@ export class ProductsService {
     @Inject('CURRENCY_REPOSITORY')
     private currencyRepository: Repository<Currency>,
     private productItemService: ProductItemService,
-  ) {}
+  ) {
+    super(productRepository);
+  }
 
-  async create(createProductDto: CreateProductDto) {
+  async create(createProductDto: CreateProductDto, userBranchId: number) {
+    if (userBranchId != createProductDto.branchId) {
+      throw new ConflictException(
+        'You cannot create a product for a different branch.',
+      );
+    }
+
     const existingProduct = await this.productRepository.findOne({
       where: { name: createProductDto.name },
     });
@@ -104,36 +113,13 @@ export class ProductsService {
 
   async findAll(
     paginationDto: PaginationDto,
+    userBranchId: number,
   ): Promise<PaginatedResult<Product>> {
-    const { page = 1, limit = 10 } = paginationDto;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await this.productRepository.findAndCount({
-      skip,
-      take: limit,
-    });
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
-    };
+    return super.findAll(paginationDto, userBranchId);
   }
 
-  async findOne(id: number) {
-    const product = await this.findProductByCondition(
-      { id },
-      'Product not found',
-    );
-    return product;
+  async findOne(id: number, userBranchId: number) {
+    return super.findOne(id, userBranchId);
   }
 
   async update(id: number, updateProductDto: UpdateProductDto) {
@@ -142,18 +128,6 @@ export class ProductsService {
       { id },
       'Product not found',
     );
-
-    // Validate and link branchId if provided
-    if (updateProductDto.branchId) {
-      const branch = await this.branchRepository.findOne({
-        where: { id: updateProductDto.branchId },
-      });
-      if (!branch) {
-        throw new NotFoundException('Branch not found.');
-      }
-      product.branch = branch; // Associate the Branch entity
-      delete updateProductDto.branchId;
-    }
 
     // Validate and link categoryId if provided
     if (updateProductDto.categoryId) {
@@ -198,11 +172,23 @@ export class ProductsService {
     return product;
   }
 
-  async remove(id: number) {
+  async remove(id: number, userBranchId: number) {
     const product = await this.findProductByCondition(
       { id },
       'Product not found',
     );
+
+    if (product.branch.id !== userBranchId) {
+      throw new ConflictException(
+        'You cannot delete a product from a different branch.',
+      );
+    }
+
+    // delete product items associated with the product
+    if (product.productItems && product.productItems.length > 0) {
+      await this.productItemService.remove(id);
+    }
+
     await this.productRepository.softDelete({ id });
     return product;
   }
