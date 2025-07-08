@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { PurchaseEntityService } from './purchase_entity.service';
 import { CreatePurchaseEntityDto } from './dto/create-purchase_entity.dto';
@@ -18,23 +19,29 @@ export class PurchaseEntitiesController {
   constructor(private readonly purchaseEntityService: PurchaseEntityService) {}
 
   @Post('create')
-  create(@Body() createPurchaseEntityDto: CreatePurchaseEntityDto) {
-    return this.purchaseEntityService.create(createPurchaseEntityDto);
+  create(@Body() createPurchaseEntityDto: CreatePurchaseEntityDto, @Req() req) {
+    return this.purchaseEntityService.create(
+      createPurchaseEntityDto,
+      req.user.branchId,
+    );
   }
 
   @Get('find-all')
-  async findAll(@Query() paginationDto: PaginationDto) {
-    return await this.purchaseEntityService.findAll(paginationDto);
+  async findAll(@Query() paginationDto: PaginationDto, @Req() req) {
+    return await this.purchaseEntityService.findAll(
+      paginationDto,
+      req.user.branchId,
+    );
   }
 
   @Get('find-by-id/:id')
-  findOne(@Param('id') id: string) {
-    return this.purchaseEntityService.findOne(+id);
+  findOne(@Param('id') id: string, @Req() req) {
+    return this.purchaseEntityService.findOne(+id, req.user.branchId);
   }
 
   @Get('find-by-name/:name')
-  findOneByName(@Param('name') name: string) {
-    return this.purchaseEntityService.findOneByName(name);
+  findOneByName(@Param('name') name: string, @Req() req) {
+    return this.purchaseEntityService.findOneByName(name, req.user.branchId);
   }
 
   @Patch('update/:id')
@@ -46,7 +53,7 @@ export class PurchaseEntitiesController {
   }
 
   @Delete('delete/:id')
-  remove(@Param('id') id: string) {
-    return this.purchaseEntityService.remove(+id);
+  remove(@Param('id') id: string, @Req() req) {
+    return this.purchaseEntityService.remove(+id, req.user.branchId);
   }
 }

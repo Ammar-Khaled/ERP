@@ -3,9 +3,12 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Branch } from '../../branches/entities/branch.entity';
 
 @Entity('purchase_entities')
 export class PurchaseEntity {
@@ -51,4 +54,11 @@ export class PurchaseEntity {
 
   @Column({ type: 'int', default: 0 })
   totalAmount: number = 0;
+
+  @Column()
+  branchId: number;
+
+  @ManyToOne(() => Branch)
+  @JoinColumn({ name: 'branchId' })
+  branch: Branch;
 }

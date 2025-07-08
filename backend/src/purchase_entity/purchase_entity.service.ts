@@ -8,25 +8,51 @@ import { Repository } from 'typeorm';
 import { CreatePurchaseEntityDto } from './dto/create-purchase_entity.dto';
 import { UpdatePurchaseEntityDto } from './dto/update-purchase_entity.dto';
 import { PurchaseEntity } from './entities/purchase_entity.entity';
+import { Branch } from 'src/branches/entities/branch.entity';
 import { config } from 'dotenv';
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { BaseService } from '../common/services/base.service';
 
 config();
 
 @Injectable()
-export class PurchaseEntityService {
+export class PurchaseEntityService extends BaseService<PurchaseEntity> {
   constructor(
     @Inject('PURCHASE_ENTITY_REPOSITORY')
     private purchaseEntityRepository: Repository<PurchaseEntity>,
-  ) {}
+    @Inject('BRANCH_REPOSITORY')
+    private branchRepository: Repository<Branch>,
+  ) {
+    super(purchaseEntityRepository);
+  }
 
-  async create(createPurchaseEntityDto: CreatePurchaseEntityDto) {
-    const existedEntity = await this.purchaseEntityRepository.findOneBy({
-      name: createPurchaseEntityDto.name,
+  async create(
+    createPurchaseEntityDto: CreatePurchaseEntityDto,
+    userBranchId: number,
+  ) {
+    if (userBranchId !== createPurchaseEntityDto.branchId) {
+      throw new ConflictException(
+        'Can not create a purchase entity outside your branch',
+      );
+    }
+
+    // Check if the branchId exists in the Branch table
+    const branch = await this.branchRepository.findOne({
+      where: { id: createPurchaseEntityDto.branchId },
+    });
+    if (!branch) {
+      throw new NotFoundException('Branch not found.');
+    }
+
+    const existedEntity = await this.purchaseEntityRepository.findOne({
+      where: {
+        name: createPurchaseEntityDto.name,
+        branchId: createPurchaseEntityDto.branchId,
+      },
     });
     if (existedEntity)
       throw new ConflictException(
-        `Purchase entity with name "${createPurchaseEntityDto.name}" already existed.`,
+        `Purchase entity with name "${createPurchaseEntityDto.name}" already existed in this branch.`,
       );
 
     const newPurchase = this.purchaseEntityRepository.create(
@@ -37,61 +63,69 @@ export class PurchaseEntityService {
 
   async findAll(
     paginationDto: PaginationDto,
+    branchId: number,
   ): Promise<PaginatedResult<PurchaseEntity>> {
-    const { page = 1, limit = 10 } = paginationDto;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await this.purchaseEntityRepository.findAndCount({
-      skip,
-      take: limit,
-    });
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
-    };
+    return super.findAll(paginationDto, branchId);
   }
 
-  async findOne(id: number) {
-    const purchaseEntity = await this.purchaseEntityRepository.findOneBy({
-      id,
-    });
-    if (!purchaseEntity)
-      throw new NotFoundException(
-        `There is no purchase entity with id of ${id}!`,
-      );
-    return purchaseEntity;
+  async findOne(id: number, branchId: number) {
+    return super.findOne(id, branchId);
   }
 
-  async findOneByName(name: string) {
+  async findOneByName(name: string, branchId: number) {
     const purchaseEntity = await this.purchaseEntityRepository.findOne({
-      where: { name },
+      where: { name, branchId },
     });
     if (!purchaseEntity)
       throw new NotFoundException(
-        `There is no purchase entity named "${name}"!`,
+        `There is no purchase entity named "${name}" in your branch!`,
       );
     return purchaseEntity;
   }
 
   async update(id: number, updatePurchaseEntityDto: UpdatePurchaseEntityDto) {
-    const purchaseEntity = await this.findOne(id);
-    Object.assign(purchaseEntity, updatePurchaseEntityDto);
-    return await this.purchaseEntityRepository.save(purchaseEntity);
+    // Retrieve the purchase entity by ID
+    const purchaseEntity = await this.findPurchaseEntityByCondition(
+      { id },
+      'Purchase entity not found',
+    );
+
+    // If there are updates, assign them to the purchase entity
+    if (Object.keys(updatePurchaseEntityDto).length > 0) {
+      Object.assign(purchaseEntity, updatePurchaseEntityDto);
+    }
+
+    await this.purchaseEntityRepository.save(purchaseEntity);
+    return purchaseEntity;
   }
 
-  async remove(id: number) {
-    const purchaseEntity = await this.findOne(id);
-    await this.purchaseEntityRepository.softDelete({ id });
+  async remove(id: number, userBranchId: number) {
+    const purchaseEntity = await this.findPurchaseEntityByCondition(
+      { id },
+      'Purchase entity not found',
+    );
+
+    if (userBranchId !== purchaseEntity.branch.id) {
+      throw new ConflictException(
+        'Can not delete a purchase entity outside your branch',
+      );
+    }
+
+    await this.purchaseEntityRepository.softRemove(purchaseEntity);
+    return purchaseEntity;
+  }
+
+  private async findPurchaseEntityByCondition(
+    condition: object,
+    errorMessage: string,
+  ) {
+    const purchaseEntity = await this.purchaseEntityRepository.findOne({
+      where: condition,
+      relations: ['branch'],
+    });
+    if (!purchaseEntity) {
+      throw new NotFoundException(errorMessage);
+    }
     return purchaseEntity;
   }
 }
