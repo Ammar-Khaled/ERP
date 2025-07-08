@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,18 +23,18 @@ export class UsersController {
   @Public()
   @Post()
   @HttpCode(201)
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  create(@Body() createUserDto: CreateUserDto, @Req() req) {
+    return this.usersService.create(createUserDto, req.user?.branchId);
   }
 
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
-    return await this.usersService.findAll(paginationDto);
+  async findAll(@Query() paginationDto: PaginationDto, @Req() req) {
+    return await this.usersService.findAll(paginationDto, req.user.branchId);
   }
 
   @Get(':id')
-  async findOneById(@Param('id') id: number) {
-    return await this.usersService.findOne(id);
+  async findOneById(@Param('id') id: number, @Req() req) {
+    return await this.usersService.findOne(id, req.user.branchId);
   }
 
   @Patch(':id')
@@ -42,7 +43,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  remove(@Param('id') id: string, @Req() req) {
+    return this.usersService.remove(+id, req.user.branchId);
   }
 }

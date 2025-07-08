@@ -79,7 +79,7 @@ export class User {
   branchId: number;
 
   @ManyToOne(() => Branch, (branch) => branch.users, {
-    nullable: true,
+    nullable: false,
   })
   @JoinColumn({ name: 'branchId' })
   branch: Branch;
@@ -88,6 +88,4 @@ export class User {
 
   @OneToMany(() => PurchaseRequest, (purchaseRequests) => purchaseRequests.user)
   purchaseRequests: PurchaseRequest[];
-
-  // TODO: add disabling time
 }

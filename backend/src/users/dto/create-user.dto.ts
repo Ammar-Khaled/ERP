@@ -56,9 +56,9 @@ export class CreateUserDto {
   @IsInt({ each: true })
   roleIds?: number[];
 
-  @IsOptional()
+  @IsNotEmpty()
   @IsInt()
-  branchId?: number;
+  branchId: number;
 
   @IsOptional()
   @ValidateNested()
