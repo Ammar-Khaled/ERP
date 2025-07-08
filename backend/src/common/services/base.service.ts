@@ -59,7 +59,7 @@ export class BaseService<T> {
       relations,
     };
 
-    this.addBranchFilter(options, branchId);
+    if (branchId !== 1) this.addBranchFilter(options, branchId);
 
     const entity = await this.repository.findOne(options);
     if (!entity) {
