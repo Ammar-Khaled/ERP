@@ -24,11 +24,12 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { Inventory } from 'src/inventories/entities/inventory.entity';
 import { PurchaseInventoryService } from 'src/purchase_inventory/purchase_inventory.service';
+import { BaseService } from '../common/services/base.service';
 
 config();
 
 @Injectable()
-export class PurchaseRequestService {
+export class PurchaseRequestService extends BaseService<PurchaseRequest> {
   constructor(
     @Inject('PURCHASE_REQUEST_REPOSITORY')
     private purchaseRequestRepository: Repository<PurchaseRequest>,
@@ -50,7 +51,9 @@ export class PurchaseRequestService {
     private inventoryRepository: Repository<Inventory>,
     private purchaseInventoryService: PurchaseInventoryService,
     private readonly notificationsService: NotificationsService,
-  ) {}
+  ) {
+    super(purchaseRequestRepository);
+  }
 
   async createPurchaseItem(createPurchaseItemDto: CreatePurchaseItemDto) {
     const existedEntity = await this.purchaseEntityRepository.findOne({
@@ -144,7 +147,16 @@ export class PurchaseRequestService {
     return purchaseItem;
   }
 
-  async create(createPurchaseRequestDto: CreatePurchaseRequestDto) {
+  async create(
+    createPurchaseRequestDto: CreatePurchaseRequestDto,
+    userBranchId: number,
+  ) {
+    if (userBranchId !== createPurchaseRequestDto.branchId) {
+      throw new ConflictException(
+        'Can not create a purchase request outside your branch',
+      );
+    }
+
     const newPurchaseRequest = new PurchaseRequest();
     newPurchaseRequest.date = createPurchaseRequestDto.date;
 
@@ -260,7 +272,11 @@ export class PurchaseRequestService {
       });
     }
 
-    return this.findOne(savedPurchaseRequest.id, false);
+    return this.findOneWithRelations(
+      savedPurchaseRequest.id,
+      userBranchId,
+      false,
+    );
   }
 
   async review(
@@ -321,31 +337,16 @@ export class PurchaseRequestService {
 
   async findAll(
     paginationDto: PaginationDto,
+    userBranchId: number,
   ): Promise<PaginatedResult<PurchaseRequest>> {
-    const { page = 1, limit = 10 } = paginationDto;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await this.purchaseRequestRepository.findAndCount({
-      skip,
-      take: limit,
-    });
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
-    };
+    return super.findAll(paginationDto, userBranchId);
   }
 
-  async findOne(id: number, withRelations: boolean = false) {
+  async findOneWithRelations(
+    id: number,
+    userBranchId: number,
+    withRelations: boolean = false,
+  ) {
     const purchaseRelations = ['purchaseItems'];
 
     if (withRelations) {
@@ -360,14 +361,20 @@ export class PurchaseRequestService {
     }
 
     const purchaseRequest = await this.purchaseRequestRepository.findOne({
-      where: { id },
+      where: { id, branchId: userBranchId },
       relations: purchaseRelations,
     });
 
     if (!purchaseRequest)
-      throw new NotFoundException(`No purchase request with ID of (${id})!`);
+      throw new NotFoundException(
+        `No purchase request with ID of (${id}) in your branch!`,
+      );
 
     return purchaseRequest;
+  }
+
+  async findOne(id: number, userBranchId: number) {
+    return super.findOne(id, userBranchId);
   }
 
   async update(id: number, updatePurchaseRequestDto: UpdatePurchaseRequestDto) {
@@ -399,17 +406,6 @@ export class PurchaseRequestService {
       });
       if (!user) throw new NotFoundException(`This username is not found!`);
       purchaseRequest.user = user;
-    }
-
-    if (updatePurchaseRequestDto.branchId) {
-      const branch = await this.branchRepository.findOneBy({
-        id: updatePurchaseRequestDto.branchId,
-      });
-      if (!branch)
-        throw new NotFoundException({
-          message: `This branch name is not found!`,
-        });
-      purchaseRequest.branch = branch;
     }
 
     if (updatePurchaseRequestDto.supplierId) {
@@ -493,19 +489,40 @@ export class PurchaseRequestService {
     );
     await this.purchaseRequestRepository.save(purchaseRequest);
 
-    return this.findOne(purchaseRequest.id, false);
+    return purchaseRequest;
   }
 
-  async remove(id: number) {
-    const purchaseRequest = await this.findOne(id);
+  async remove(id: number, userBranchId: number) {
+    const purchaseRequest = await this.purchaseRequestRepository.findOne({
+      where: { id, branchId: userBranchId },
+      relations: ['purchaseItems'],
+    });
+
+    if (!purchaseRequest) {
+      throw new NotFoundException(
+        `No purchase request with ID of (${id}) in your branch!`,
+      );
+    }
+
+    // remove all purchase items associated with this request
+    for (const item of purchaseRequest.purchaseItems) {
+      await this.removeItem(item.id);
+    }
+
     await this.purchaseRequestRepository.softDelete({ id });
     return purchaseRequest;
   }
 
-  async cancelRequest(id: number) {
-    const purchaseRequest = await this.findOne(id);
+  async cancelRequest(id: number, userBranchId: number) {
+    const purchaseRequest = await this.purchaseRequestRepository.findOne({
+      where: { id, branchId: userBranchId },
+      relations: ['status'],
+    });
+
     if (!purchaseRequest) {
-      throw new NotFoundException(`No purchase request with ID of (${id})!`);
+      throw new NotFoundException(
+        `No purchase request with ID of (${id}) in your branch!`,
+      );
     }
 
     if (purchaseRequest.status.name !== 'purchase_request_pending') {
@@ -522,13 +539,16 @@ export class PurchaseRequestService {
     return purchaseRequest;
   }
 
-  async addToInventory(id: number) {
+  async addToInventory(id: number, userBranchId: number) {
     const purchaseRequest = await this.purchaseRequestRepository.findOne({
-      where: { id },
-      relations: ['purchaseItems', 'status'],
+      where: { id, branchId: userBranchId },
+      relations: ['status', 'purchaseItems', 'purchaseItems.purchaseEntity'],
     });
+
     if (!purchaseRequest) {
-      throw new NotFoundException(`No purchase request with ID of (${id})!`);
+      throw new NotFoundException(
+        `No purchase request with ID of (${id}) in your branch!`,
+      );
     }
 
     // verify the status is approved
@@ -552,6 +572,6 @@ export class PurchaseRequestService {
       name: 'purchase_request_completed',
     });
 
-    return this.purchaseRequestRepository.save(purchaseRequest);
+    return await this.purchaseRequestRepository.save(purchaseRequest);
   }
 }
