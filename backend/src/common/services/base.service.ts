@@ -22,13 +22,15 @@ export class BaseService<T> {
   async findAll(
     paginationDto: PaginationDto,
     branchId?: number,
-  ): Promise<PaginatedResult<T>> {
+    relations?: string[],
+  ): Promise<PaginatedResult> {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
 
     const options: FindManyOptions<T> = {
       skip,
       take: limit,
+      relations,
     };
 
     if (branchId !== 1) this.addBranchFilter(options, branchId);
@@ -36,8 +38,29 @@ export class BaseService<T> {
     const [data, total] = await this.repository.findAndCount(options);
     const totalPages = Math.ceil(total / limit);
 
+    const relationMappings = [];
+    for (const relation of relations || []) {
+      relationMappings.push({
+        relation: relation,
+        nameField: relation + 'Name',
+      });
+    }
+
+    const newData = data.map((entity) => {
+      const result = { ...entity };
+      relationMappings.forEach(({ relation, nameField }) => {
+        if (entity[relation]) {
+          result[nameField] = entity[relation].name || null;
+          delete result[relation];
+        } else {
+          result[nameField] = null;
+        }
+      });
+      return result;
+    });
+
     return {
-      data,
+      data: newData,
       pagination: {
         page,
         limit,

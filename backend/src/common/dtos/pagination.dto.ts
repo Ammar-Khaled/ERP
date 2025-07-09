@@ -15,8 +15,8 @@ export class PaginationDto {
   limit?: number = 10;
 }
 
-export interface PaginatedResult<T> {
-  data: T[];
+export interface PaginatedResult {
+  data: any[];
   pagination: {
     page: number;
     limit: number;

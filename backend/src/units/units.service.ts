@@ -41,7 +41,7 @@ export class UnitsService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<Unit>> {
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult> {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
 

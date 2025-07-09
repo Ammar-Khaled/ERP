@@ -29,9 +29,7 @@ export class BranchesService
     // });
   }
 
-  async findAll(
-    paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<Branch>> {
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult> {
     return super.findAll(paginationDto);
   }
 

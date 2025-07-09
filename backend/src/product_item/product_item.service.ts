@@ -147,7 +147,7 @@ export class ProductItemService {
     );
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult<any>> {
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult> {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
 
@@ -191,7 +191,7 @@ export class ProductItemService {
   async searchByName(
     searchName: string,
     paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<any>> {
+  ): Promise<PaginatedResult> {
     if (!searchName || searchName.trim() === '') {
       throw new BadRequestException('Search name is required');
     }

@@ -114,8 +114,13 @@ export class ProductsService extends BaseService<Product> {
   async findAll(
     paginationDto: PaginationDto,
     userBranchId: number,
-  ): Promise<PaginatedResult<Product>> {
-    return super.findAll(paginationDto, userBranchId);
+  ): Promise<PaginatedResult> {
+    return await super.findAll(paginationDto, userBranchId, [
+      'branch',
+      'category',
+      'unit',
+      'currency',
+    ]);
   }
 
   async findOne(id: number, userBranchId: number) {

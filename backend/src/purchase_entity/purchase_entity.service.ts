@@ -64,7 +64,7 @@ export class PurchaseEntityService extends BaseService<PurchaseEntity> {
   async findAll(
     paginationDto: PaginationDto,
     branchId: number,
-  ): Promise<PaginatedResult<PurchaseEntity>> {
+  ): Promise<PaginatedResult> {
     return super.findAll(paginationDto, branchId);
   }
 

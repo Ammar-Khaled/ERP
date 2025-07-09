@@ -31,7 +31,7 @@ export class UsersService extends BaseService<User> {
   async findAll(
     paginationDto: PaginationDto,
     branchId: number,
-  ): Promise<PaginatedResult<any>> {
+  ): Promise<PaginatedResult> {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
 

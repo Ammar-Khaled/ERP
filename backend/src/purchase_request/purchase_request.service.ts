@@ -312,7 +312,7 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
   async findAll(
     paginationDto: PaginationDto,
     userBranchId: number,
-  ): Promise<PaginatedResult<PurchaseRequest>> {
+  ): Promise<PaginatedResult> {
     return super.findAll(paginationDto, userBranchId);
   }
 

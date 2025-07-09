@@ -48,9 +48,7 @@ export class CurrencyService implements OnModuleInit {
   }
 
   // Get all currencies
-  async findAll(
-    paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<Currency>> {
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult> {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
 

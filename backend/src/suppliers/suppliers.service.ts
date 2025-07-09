@@ -17,9 +17,7 @@ export class SuppliersService {
     return await this.supplierRepository.save(supplier);
   }
 
-  async findAll(
-    paginationDto: PaginationDto,
-  ): Promise<PaginatedResult<Supplier>> {
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult> {
     const { page = 1, limit = 10 } = paginationDto;
     const skip = (page - 1) * limit;
 

@@ -177,7 +177,7 @@ export class OrderService extends BaseService<Order> {
   async findAll(
     paginationDto: PaginationDto,
     branchId: number,
-  ): Promise<PaginatedResult<Order>> {
+  ): Promise<PaginatedResult> {
     return await super.findAll(paginationDto, branchId);
   }
 

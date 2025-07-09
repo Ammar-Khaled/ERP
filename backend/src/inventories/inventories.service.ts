@@ -40,7 +40,7 @@ export class InventoriesService
   async findAll(
     paginationDto: PaginationDto,
     branchId: number,
-  ): Promise<PaginatedResult<Inventory>> {
+  ): Promise<PaginatedResult> {
     return super.findAll(paginationDto, branchId);
   }
 

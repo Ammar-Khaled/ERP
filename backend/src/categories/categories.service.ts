@@ -71,7 +71,7 @@ export class CategoriesService extends BaseService<Category> {
   async findAll(
     paginationDto: PaginationDto,
     branchId: number,
-  ): Promise<PaginatedResult<Category>> {
+  ): Promise<PaginatedResult> {
     return super.findAll(paginationDto, branchId);
   }
 
