@@ -23,10 +23,10 @@ export class BranchesService
   }
 
   async onModuleInit() {
-    await this.branchRepository.save({
-      name: 'Main Branch',
-      nameAr: 'الفرع الرئيسي',
-    });
+    // await this.branchRepository.save({
+    //   name: 'Main Branch',
+    //   nameAr: 'الفرع الرئيسي',
+    // });
   }
 
   async findAll(

@@ -55,7 +55,6 @@ export class OrderService extends BaseService<Order> {
     super(orderRepo);
   }
 
-
   async create(createOrderDto: CreateOrderDto, userBranchId: number) {
     if (userBranchId !== createOrderDto.branchId) {
       throw new ConflictException(
@@ -326,7 +325,6 @@ export class OrderService extends BaseService<Order> {
     }
   }
 
-
   async remove(id: number, userBranchId: number) {
     const order = await this.orderRepo.findOne({
       where: { id, branchId: userBranchId },
@@ -443,7 +441,6 @@ export class OrderService extends BaseService<Order> {
       },
     );
   }
-
 
   async cancelOrder(id: number, userBranchId: number) {
     const order = await this.orderRepo.findOne({

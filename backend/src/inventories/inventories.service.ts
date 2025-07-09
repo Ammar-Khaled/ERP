@@ -28,13 +28,13 @@ export class InventoriesService
   }
 
   async onModuleInit() {
-    await this.inventoryRepository.save({
-      name: 'Main Inventory',
-      nameAr: 'المخزن الرئيسي',
-      description: 'Main inventory for the main branch',
-      descriptionAr: 'المخزن الرئيسي للفرع الرئيسي',
-      branchId: 1,
-    });
+    // await this.inventoryRepository.save({
+    //   name: 'Main Inventory',
+    //   nameAr: 'المخزن الرئيسي',
+    //   description: 'Main inventory for the main branch',
+    //   descriptionAr: 'المخزن الرئيسي للفرع الرئيسي',
+    //   branchId: 1,
+    // });
   }
 
   async findAll(

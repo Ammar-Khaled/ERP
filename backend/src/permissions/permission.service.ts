@@ -36,11 +36,15 @@ export class PermissionService implements OnModuleInit {
     await rolesSeeder.seed();
 
     // Seed the admin user after roles are created
-    await this.userRepository.save({
-      username: 'admin',
-      password: 'admin',
-      roleIds: [1],
-    });
+    // await this.userRepository.save({
+    //   username: 'admin',
+    //   password: 'admin',
+    //   email: 'ammar.khaled.in@gmail.com',
+    //   name: 'admin',
+    //   nameAr: 'المشرف',
+    //   branchId: 1,
+    //   roleIds: [1],
+    // });
   }
 
   findAll(): Promise<Permission[]> {

@@ -21,8 +21,8 @@ export class CurrencyService implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    console.log('Seeding EGP currency...');
-    this.create({ name: 'EGP', nameAr: 'جنيه مصري', symbol: 'LE' });
+    // console.log('Seeding EGP currency...');
+    // this.create({ name: 'EGP', nameAr: 'جنيه مصري', symbol: 'LE' });
   }
 
   // Create a new currency
