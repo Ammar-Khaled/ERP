@@ -55,14 +55,15 @@ export class OrderService extends BaseService<Order> {
     super(orderRepo);
   }
 
-  async create(createOrderDto: CreateOrderDto, userBranchId: number) {
-    if (userBranchId !== createOrderDto.branchId) {
-      throw new ConflictException(
-        'Can not create an order outside your branch',
-      );
-    }
-
+  async create(
+    createOrderDto: CreateOrderDto,
+    tokenPayload: { id: any; branchId: any },
+  ) {
     const newOrder = new Order();
+    newOrder.user = await this.userRepo.findOneBy({ id: tokenPayload.id });
+    newOrder.branch = await this.branchRepo.findOneBy({
+      id: tokenPayload.branchId,
+    });
     newOrder.date = createOrderDto.date || new Date();
 
     // Verify the existence of the inventory
@@ -73,24 +74,6 @@ export class OrderService extends BaseService<Order> {
       throw new NotFoundException('There is NO inventory with that id !!');
     }
     newOrder.inventory = inventory;
-
-    // Verify the existence of the branch
-    const branch = await this.branchRepo.findOne({
-      where: { id: createOrderDto.branchId },
-    });
-    if (!branch) {
-      throw new NotFoundException('There is NO branch with that id !!');
-    }
-    newOrder.branch = branch;
-
-    // Verify the existence of the user
-    const user = await this.userRepo.findOne({
-      where: { id: createOrderDto.userId },
-    });
-    if (!user) {
-      throw new NotFoundException('There is NO user with that id !!');
-    }
-    newOrder.user = user;
 
     // Verify the existence of the client
     const client = await this.clientRepo.findOne({

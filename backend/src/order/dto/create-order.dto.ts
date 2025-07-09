@@ -16,15 +16,7 @@ export class CreateOrderDto {
 
   @IsNotEmpty()
   @IsNumber()
-  branchId: number;
-
-  @IsNotEmpty()
-  @IsNumber()
   inventoryId: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  userId: number;
 
   @IsNotEmpty()
   @IsNumber()

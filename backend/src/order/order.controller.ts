@@ -30,7 +30,7 @@ export class OrdersController {
   @Post('/create')
   @UseInterceptors(LoggingInterceptor)
   create(@Body() createOrderDto: CreateOrderDto, @Req() req) {
-    return this.orderService.create(createOrderDto, req.user.branchId);
+    return this.orderService.create(createOrderDto, req.user);
   }
 
   @Get('/findAll')
