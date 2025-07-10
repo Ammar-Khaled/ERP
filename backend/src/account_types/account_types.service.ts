@@ -29,6 +29,7 @@ export class AccountTypesService {
   async update(id: number, dto: UpdateAccountTypeDto) {
     const type = await this.findOne(id);
     Object.assign(type, dto);
+
     return this.accountTypeRepo.save(type);
   }
 

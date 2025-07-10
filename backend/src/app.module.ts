@@ -29,6 +29,9 @@ import { LoggingModule } from './logging/logging.module';
 import { ConfigModule } from '@nestjs/config';
 import { AccountType } from './account_types/entities/account_type.entity';
 import { AccountTypesModule } from './account_types/account_types.module';
+import { AccountModule } from './accounts/account.module';
+import { TreasuryModule } from './treasury/treasury.module';
+import { TransactionModule } from './transaction/transaction.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -60,6 +63,9 @@ import { AccountTypesModule } from './account_types/account_types.module';
     CouponModule,
     ReturnModule,
     LoggingModule,
+    AccountModule,
+    TreasuryModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
