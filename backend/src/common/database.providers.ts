@@ -37,7 +37,6 @@ export const databaseProviders = [
             }
           : undefined,
         connectTimeout: isTestEnvironment ? 60000 : undefined,
-        acquireTimeout: isTestEnvironment ? 60000 : undefined,
       });
 
       return dataSource.initialize();
