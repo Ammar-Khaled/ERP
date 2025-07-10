@@ -17,6 +17,12 @@ export class AuthService {
     usernameOrEmail: string,
     password: string,
   ): Promise<{ token: string; user: User }> {
+    if (!usernameOrEmail || !password) {
+      throw new UnauthorizedException(
+        'Username/email and password are required',
+      );
+    }
+
     const condition = usernameOrEmail.includes('@')
       ? { email: usernameOrEmail }
       : { username: usernameOrEmail };
