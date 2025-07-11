@@ -1,14 +1,25 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CreateStatusDto } from './dto/create-status.dto';
 import { UpdateStatusDto } from './dto/update-status.dto';
 import { Status } from './entities/status.entity';
 import { Repository } from 'typeorm';
+import { StatusSeeder } from './status.seeder';
 
 @Injectable()
-export class StatusService {
+export class StatusService implements OnModuleInit {
   constructor(
     @Inject('STATUS_REPOSITORY') private statusRepository: Repository<Status>,
+    private statusSeeder: StatusSeeder,
   ) {}
+
+  async onModuleInit() {
+    // await this.statusSeeder.seed();
+  }
 
   async create(createStatusDto: CreateStatusDto) {
     const newStatus = this.statusRepository.create(createStatusDto);

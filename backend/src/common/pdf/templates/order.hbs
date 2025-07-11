@@ -79,21 +79,21 @@
         <table style="width: 300px; margin-left: auto;">
             <tr>
                 <th>Subtotal:</th>
-                <td class="text-right">{{formatCurrency totalAmount currency.symbol}}</td>
+                <td class="text-right">{{formatCurrency totalPrice currency.symbol}}</td>
             </tr>
             {{#if coupon}}
             <tr>
                 <th>Discount ({{coupon.discountPercentage}}%):</th>
-                <td class="text-right">-{{formatCurrency (multiply totalAmount (divide coupon.discountPercentage 100)) currency.symbol}}</td>
+                <td class="text-right">-{{formatCurrency (multiply totalPrice (divide coupon.discountPercentage 100)) currency.symbol}}</td>
             </tr>
             {{/if}}
             <tr style="font-weight: bold; border-top: 1px solid #333;">
                 <th>Grand Total:</th>
                 <td class="text-right">
                     {{#if coupon}}
-                        {{formatCurrency (subtract totalAmount (multiply totalAmount (divide coupon.discountPercentage 100))) currency.symbol}}
+                        {{formatCurrency (subtract totalPrice (multiply totalPrice (divide coupon.discountPercentage 100))) currency.symbol}}
                     {{else}}
-                        {{formatCurrency totalAmount currency.symbol}}
+                        {{formatCurrency totalPrice currency.symbol}}
                     {{/if}}
                 </td>
             </tr>

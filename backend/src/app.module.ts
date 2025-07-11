@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SuppliersModule } from './suppliers/suppliers.module';
@@ -17,7 +18,6 @@ import { ProductItemInventoryModule } from './product_item_inventory/product_ite
 import { UnitsModule } from './units/units.module';
 import { CurrencyModule } from './currency/currency.module';
 import { PurchaseEntityModule } from './purchase_entity/purchase_entity.module';
-import { PurchaseItemModule } from './purchase_item/purchase_item.module';
 import { PurchaseRequestModule } from './purchase_request/purchase_request.module';
 import { StatusModule } from './status/status.module';
 import { VariationModule } from './variation/variation.module';
@@ -27,15 +27,21 @@ import { CouponModule } from './coupon/coupon.module';
 import { ReturnModule } from './return/return.module';
 import { LoggingModule } from './logging/logging.module';
 import { ConfigModule } from '@nestjs/config';
+import { NotificationsModule } from './notifications/notifications.module';
+import { ReturnPurchaseModule } from './return_purchase/return_purchase.module';
+import { ReportsModule } from './reports/reports.module';
+import { SeederModule } from './common/seeder.module';
 import { AccountType } from './account_types/entities/account_type.entity';
 import { AccountTypesModule } from './account_types/account_types.module';
 import { AccountModule } from './accounts/account.module';
 import { TreasuryModule } from './treasury/treasury.module';
 import { TransactionModule } from './transaction/transaction.module';
+
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
-      isGlobal: true, // 👈 this line is crucial
+      isGlobal: true,
     }),
     DatabaseModule,
     SuppliersModule,
@@ -48,12 +54,12 @@ import { TransactionModule } from './transaction/transaction.module';
     InventoriesModule,
     ProductsModule,
     CategoriesModule,
+
     ProductItemModule,
     ProductItemInventoryModule,
     UnitsModule,
     CurrencyModule,
     PurchaseEntityModule,
-    PurchaseItemModule,
     PurchaseRequestModule,
     StatusModule,
     VariationModule,
@@ -63,6 +69,10 @@ import { TransactionModule } from './transaction/transaction.module';
     CouponModule,
     ReturnModule,
     LoggingModule,
+    NotificationsModule,
+    ReturnPurchaseModule,
+    ReportsModule,
+    SeederModule,
     AccountModule,
     TreasuryModule,
     TransactionModule,

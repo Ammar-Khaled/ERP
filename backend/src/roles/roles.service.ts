@@ -10,6 +10,7 @@ import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { User } from '../users/entities/user.entity';
 import { Permission } from '../permissions/entities/permission.entity';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class RolesService {
@@ -22,8 +23,28 @@ export class RolesService {
     private readonly permissionRepository: Repository<Permission>,
   ) {}
 
-  findAll(): Promise<Role[]> {
-    return this.roleRepository.find();
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.roleRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   findOneByCondition(condition: object, relations?: string[]): Promise<Role> {
@@ -34,8 +55,15 @@ export class RolesService {
   }
 
   async create(createRoleDto: CreateRoleDto): Promise<Role> {
-    const { name, nameAr, description, descriptionAr, isActive, userIds, permissionIds } =
-      createRoleDto;
+    const {
+      name,
+      nameAr,
+      description,
+      descriptionAr,
+      isActive,
+      userIds,
+      permissionIds,
+    } = createRoleDto;
 
     // check name uniqueness
     const existingRole = await this.findOneByCondition({

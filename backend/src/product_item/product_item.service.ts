@@ -7,12 +7,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { MoreThan, Repository } from 'typeorm';
+import { LessThanOrEqual, MoreThan, Repository } from 'typeorm';
 import { ProductItem } from './entities/product_item.entity';
 import { Product } from '../products/entities/product.entity';
 import { CreateProductItemDto } from './dto/create-product_item.dto';
 import { UpdateProductItemDto } from './dto/update-product_item.dto';
 import { UpdateDamagedDto } from './dto/update-damaged.dto';
+import { UpdateExpiredDto } from './dto/update-expired.dto';
 import { VariationOption } from 'src/variation_option/entities/variation_option.entity'; // Import the VariationOption entity
 import { Variation } from 'src/variation/entities/variation.entity'; // Import the Variation entity
 import { Currency } from 'src/currency/entities/currency.entity';
@@ -21,6 +22,8 @@ import { Category } from 'src/categories/entities/category.entity';
 import { Unit } from 'src/units/entities/unit.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { ProductItemToInventory } from '../product_item_inventory/entities/product_item_inventory.entity';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class ProductItemService {
@@ -41,6 +44,8 @@ export class ProductItemService {
     private currencyRepository: Repository<Currency>,
     private productItemInventoryService: ProductItemInventoryService,
     private cloudinaryService: CloudinaryService,
+    @Inject('PRODUCT_ITEM_INVENTORY_REPOSITORY')
+    private productItemInventoryRepository: Repository<ProductItemToInventory>,
   ) {}
 
   async create(createProductItemDto: CreateProductItemDto) {
@@ -142,21 +147,100 @@ export class ProductItemService {
     );
   }
 
-  async findAll() {
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [productItems, total] = await this.productItemRepository.findAndCount(
+      {
+        skip,
+        take: limit,
+        relations: [
+          'variationOptions',
+          'variationOptions.variation',
+          'product',
+        ],
+      },
+    );
+
+    const totalPages = Math.ceil(total / limit);
+
     const returnedProductItems = [];
-
-    const productItems = await this.productItemRepository.find({
-      relations: ['variationOptions', 'variationOptions.variation', 'product'], // Include the variation relation
-    });
-
     productItems.forEach((productItem) => {
       delete productItem.product.id;
+      delete productItem.product.name;
+      delete productItem.product.nameAr;
       const productDate = productItem.product;
       delete productItem.product;
       returnedProductItems.push({ ...productItem, ...productDate });
     });
 
-    return returnedProductItems;
+    return {
+      data: returnedProductItems,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  }
+
+  async searchByName(
+    searchName: string,
+    paginationDto: PaginationDto,
+  ): Promise<PaginatedResult> {
+    if (!searchName || searchName.trim() === '') {
+      throw new BadRequestException('Search name is required');
+    }
+
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    // Create query builder for complex search
+    const queryBuilder = this.productItemRepository
+      .createQueryBuilder('productItem')
+      .leftJoinAndSelect('productItem.variationOptions', 'variationOptions')
+      .leftJoinAndSelect('variationOptions.variation', 'variation')
+      .leftJoinAndSelect('productItem.product', 'product')
+      .where('productItem.deletedAt IS NULL') // Exclude soft deleted items
+      .andWhere(
+        '(LOWER(productItem.name) LIKE LOWER(:searchName) OR ' +
+          'LOWER(productItem.nameAr) LIKE LOWER(:searchName) OR ' +
+          'LOWER(product.name) LIKE LOWER(:searchName) OR ' +
+          'LOWER(product.nameAr) LIKE LOWER(:searchName))',
+        { searchName: `%${searchName.trim()}%` },
+      )
+      .skip(skip)
+      .take(limit);
+
+    const [productItems, total] = await queryBuilder.getManyAndCount();
+
+    const totalPages = Math.ceil(total / limit);
+
+    const returnedProductItems = [];
+    productItems.forEach((productItem) => {
+      delete productItem.product.id;
+      delete productItem.product.name;
+      delete productItem.product.nameAr;
+      const productDate = productItem.product;
+      delete productItem.product;
+      returnedProductItems.push({ ...productItem, ...productDate });
+    });
+
+    return {
+      data: returnedProductItems,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {
@@ -165,6 +249,8 @@ export class ProductItemService {
       'Product item not found',
     );
     delete productItem.product.id;
+    delete productItem.product.name;
+    delete productItem.product.nameAr;
     const productDate = productItem.product;
     delete productItem.product;
     return { ...productItem, ...productDate };
@@ -317,6 +403,7 @@ export class ProductItemService {
     });
     return damagedItems;
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async uploadImage(id: number, file: Express.Multer.File, field: 'main') {
     const productItem = await this.findProductItemByCondition(
       { id },
@@ -340,5 +427,87 @@ export class ProductItemService {
 
     productItem.photos = imageUrls;
     return await this.productItemRepository.save(productItem);
+  }
+
+  async checkExpiredProducts() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find all product items with expiry date less than or equal to today
+    const expiredProducts = await this.productItemRepository.find({
+      where: {
+        expiryDate: LessThanOrEqual(today),
+      },
+      relations: ['productItemToInventories'],
+    });
+
+    if (!expiredProducts.length) {
+      return { message: 'No expired products found' };
+    }
+
+    const results = [];
+
+    // Update each expired product's inventory
+    for (const product of expiredProducts) {
+      for (const inventory of product.productItemToInventories) {
+        if (inventory.numberOfValid > 0) {
+          // Only process inventories with valid items
+          const updateResult = await this.markProductsAsExpired({
+            productItemId: product.id,
+            inventoryId: inventory.inventoryId,
+            quantity: inventory.numberOfValid, // Move all valid items to damaged
+          });
+
+          results.push({
+            productName: product.name,
+            inventoryId: inventory.inventoryId,
+            expiredQuantity: inventory.numberOfValid,
+            result: updateResult,
+          });
+        }
+      }
+    }
+
+    return {
+      message: `${results.length} product inventories updated due to expiration`,
+      details: results,
+    };
+  }
+
+  async markProductsAsExpired(updateExpiredDto: UpdateExpiredDto) {
+    const { productItemId, inventoryId, quantity } = updateExpiredDto;
+
+    // Find the pii record
+    let pii = await this.productItemInventoryRepository.findOne({
+      where: {
+        productItemId,
+        inventoryId,
+      },
+    });
+
+    if (!pii) {
+      throw new NotFoundException(
+        `No inventory record found for product item ${productItemId} in inventory ${inventoryId}`,
+      );
+    }
+
+    // Calculate how many items to mark as expired
+    const itemsToExpire = quantity
+      ? Math.min(quantity, pii.numberOfValid)
+      : pii.numberOfValid;
+
+    if (itemsToExpire <= 0) {
+      return { message: 'No valid items to mark as expired' };
+    }
+
+    pii = await this.productItemInventoryService.update(pii.id, {
+      numberOfDamaged: pii.numberOfDamaged + itemsToExpire,
+      numberOfValid: pii.numberOfValid - itemsToExpire,
+    });
+
+    return {
+      message: `${itemsToExpire} items marked as expired`,
+      inventoryRecord: pii,
+    };
   }
 }

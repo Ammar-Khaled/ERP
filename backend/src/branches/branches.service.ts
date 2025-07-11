@@ -1,17 +1,36 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Branch } from './entities/branch.entity';
 import { CreateBranchDto } from './dto/create-branch.dto';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { BaseService } from '../common/services/base.service';
 
 @Injectable()
-export class BranchesService {
+export class BranchesService
+  extends BaseService<Branch>
+  implements OnModuleInit
+{
   constructor(
     @Inject('BRANCH_REPOSITORY')
     private readonly branchRepository: Repository<Branch>,
-  ) {}
+  ) {
+    super(branchRepository);
+  }
 
-  async findAll(): Promise<Branch[]> {
-    return this.branchRepository.find();
+  async onModuleInit() {
+    // await this.branchRepository.save({
+    //   name: 'Main Branch',
+    //   nameAr: 'الفرع الرئيسي',
+    // });
+  }
+
+  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult> {
+    return super.findAll(paginationDto);
   }
 
   async findOne(id: number) {
@@ -49,9 +68,7 @@ export class BranchesService {
   }
 
   async create(createBranchDto: CreateBranchDto) {
-    console.log(createBranchDto);
     const branch = this.branchRepository.create(createBranchDto);
-    console.log(branch);
     return await this.branchRepository.save(branch);
   }
 

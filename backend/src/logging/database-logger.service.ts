@@ -33,4 +33,17 @@ export class DatabaseLoggerService implements LoggerService {
     log.level = 'verbose';
     await this.logRepository.save(log);
   }
+
+  async getLogs(userId?: number): Promise<Log[]> {
+    if (userId) {
+      return this.logRepository.find({
+        where: { userId },
+        order: { timestamp: 'DESC' },
+      });
+    } else {
+      return this.logRepository.find({
+        order: { timestamp: 'DESC' },
+      });
+    }
+  }
 }

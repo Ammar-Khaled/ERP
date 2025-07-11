@@ -16,23 +16,11 @@ export class CreateOrderDto {
 
   @IsNotEmpty()
   @IsNumber()
-  branchId: number;
-
-  @IsNotEmpty()
-  @IsNumber()
   inventoryId: number;
 
   @IsNotEmpty()
   @IsNumber()
-  userId: number;
-
-  @IsNotEmpty()
-  @IsNumber()
   clientId: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  statusId: number;
 
   @IsOptional()
   @IsNumber()

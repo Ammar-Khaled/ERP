@@ -18,6 +18,7 @@ import { Status } from 'src/status/entities/status.entity';
 import { ProductItemToInventory } from 'src/product_item_inventory/entities/product_item_inventory.entity';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
 import { UpdateProductItemInventoryDto } from 'src/product_item_inventory/dto/update-product_item_inventory.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Injectable()
 export class ReturnService {
@@ -152,13 +153,33 @@ export class ReturnService {
         message: `No status with ID of (${createReturnDto.statusId})!`,
       });
     }
-    newReturn.status = status;
+    // newReturn.status = status;
 
     return await this.returnRepository.save(newReturn);
   }
 
-  async findAll() {
-    return await this.returnRepository.find();
+  async findAll(paginationDto: PaginationDto) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.returnRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number, relations: string[] = []) {
@@ -268,35 +289,35 @@ export class ReturnService {
         const returnItem = await this.returnItemService.create(returnItemDto);
         returnObj.returnItems.push(returnItem);
       }
-
-      // Update the order //
-      if (updateReturnDto.orderId) {
-        const order = await this.orderRepository.findOneBy({
-          id: updateReturnDto.orderId,
-        });
-        if (!order) {
-          throw new NotFoundException({
-            message: `No order with ID of (${updateReturnDto.orderId})!`,
-          });
-        }
-        returnObj.order = order;
-      }
-
-      // Update the status //
-      if (updateReturnDto.statusId) {
-        const status = await this.statusRepository.findOneBy({
-          id: updateReturnDto.statusId,
-        });
-        if (!status) {
-          throw new NotFoundException({
-            message: `No status with ID of (${updateReturnDto.statusId})!`,
-          });
-        }
-        returnObj.status = status;
-      }
-
-      return await this.returnRepository.save(returnObj);
     }
+
+    // Update the order //
+    if (updateReturnDto.orderId) {
+      const order = await this.orderRepository.findOneBy({
+        id: updateReturnDto.orderId,
+      });
+      if (!order) {
+        throw new NotFoundException({
+          message: `No order with ID of (${updateReturnDto.orderId})!`,
+        });
+      }
+      returnObj.order = order;
+    }
+
+    // Update the status //
+    if (updateReturnDto.statusId) {
+      const status = await this.statusRepository.findOneBy({
+        id: updateReturnDto.statusId,
+      });
+      if (!status) {
+        throw new NotFoundException({
+          message: `No status with ID of (${updateReturnDto.statusId})!`,
+        });
+      }
+      // returnObj.status = status;
+    }
+
+    return await this.returnRepository.save(returnObj);
   }
 
   async remove(id: number) {

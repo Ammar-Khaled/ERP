@@ -5,28 +5,21 @@ import {
   IsOptional,
   ValidateNested,
 } from 'class-validator';
-import { CreatePurchaseItemDto } from 'src/purchase_item/dto/create-purchase_item.dto';
+import { CreatePurchaseItemDto } from 'src/purchase_request/dto/create-purchase_item.dto';
 
 export class CreatePurchaseRequestDto {
-  @IsOptional() // if not provided, use the current date as a default
-  @Type(() => Date) // converts input to date
   @IsDate()
-  date?: Date;
-
-  @IsNotEmpty()
-  userId: number;
-
-  @IsNotEmpty()
-  branchId: number;
+  @IsOptional()
+  date: Date;
 
   @IsNotEmpty()
   supplierId: number;
 
   @IsNotEmpty()
-  statusId: number;
+  currencyId: number;
 
   @IsNotEmpty()
-  currencyId: number;
+  inventoryId: number;
 
   @IsNotEmpty()
   @ValidateNested({ each: true }) // Validates each element in the array

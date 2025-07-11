@@ -22,7 +22,11 @@ export class Product {
   name: string;
 
   // Arabic name
-  @Column({ type: 'varchar', length: 50, nullable: true, default: "اسم المنتج" })
+  @Column({
+    type: 'varchar',
+    nullable: true,
+    default: 'اسم المنتج',
+  })
   nameAr?: string;
 
   @Column()

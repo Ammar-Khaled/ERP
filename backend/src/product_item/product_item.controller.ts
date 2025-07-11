@@ -3,21 +3,26 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
+  Query,
+  UploadedFile,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
-import { UseInterceptors, UploadedFiles, UploadedFile } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 
 import { ProductItemService } from './product_item.service';
 import { CreateProductItemDto } from './dto/create-product_item.dto';
 import { UpdateProductItemDto } from './dto/update-product_item.dto';
 import { UpdateDamagedDto } from './dto/update-damaged.dto';
+import { UpdateExpiredDto } from './dto/update-expired.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('product-item')
-export class ProductItemController {
+export class ProductItemsController {
   constructor(private readonly productItemService: ProductItemService) {}
 
   @Post()
@@ -26,13 +31,32 @@ export class ProductItemController {
   }
 
   @Get()
-  findAll() {
-    return this.productItemService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return await this.productItemService.findAll(paginationDto);
+  }
+
+  @Get('/search')
+  async searchByName(
+    @Query('name') name: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return await this.productItemService.searchByName(name, paginationDto);
   }
 
   @Get('/damaged')
   getDamaged() {
     return this.productItemService.getDamaged();
+  }
+
+  @Post('/check-expired')
+  @HttpCode(200)
+  checkExpiredProducts() {
+    return this.productItemService.checkExpiredProducts();
+  }
+
+  @Patch('/mark-expired')
+  markProductsAsExpired(@Body() updateExpiredDto: UpdateExpiredDto) {
+    return this.productItemService.markProductsAsExpired(updateExpiredDto);
   }
 
   @Get(':id')

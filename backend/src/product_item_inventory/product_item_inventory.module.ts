@@ -4,10 +4,11 @@ import { ProductItemInventoryController } from './product_item_inventory.control
 import { productItemInventoryProviders } from './product_item_inventory.providers';
 import { DatabaseModule } from '../common/database.module'; // Import DatabaseModule
 import { productItemProviders } from '../product_item/product_item.providers'; // Import ProductItem providers
-import { inventoriesProviders } from '../inventories/inventories.providers'; // Import Inventory providers
+import { inventoriesProviders } from '../inventories/inventories.providers';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [DatabaseModule], // Include the DatabaseModule for DataSource injection
+  imports: [DatabaseModule, NotificationsModule], // Include the DatabaseModule for DataSource injection
   controllers: [ProductItemInventoryController],
   providers: [
     ...productItemInventoryProviders,

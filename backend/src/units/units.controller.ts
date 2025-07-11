@@ -6,10 +6,12 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { UnitsService } from './units.service';
 import { CreateUnitDto } from './dto/create-unit.dto';
 import { UpdateUnitDto } from './dto/update-unit.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('units')
 export class UnitsController {
@@ -21,8 +23,8 @@ export class UnitsController {
   }
 
   @Get()
-  findAll() {
-    return this.unitsService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return await this.unitsService.findAll(paginationDto);
   }
 
   @Get(':id')

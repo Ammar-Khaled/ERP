@@ -1,15 +1,24 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { Branch } from './entities/branch.entity';
 import { CreateBranchDto } from './dto/create-branch.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('branches')
 export class BranchesController {
   constructor(private readonly branchesService: BranchesService) {}
 
   @Get()
-  findAll() {
-    return this.branchesService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return await this.branchesService.findAll(paginationDto);
   }
 
   @Get(':id')

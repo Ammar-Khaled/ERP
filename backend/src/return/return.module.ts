@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ReturnService } from './return.service';
-import { ReturnController } from './return.controller';
+import { ReturnsController } from './return.controller';
 import { DatabaseModule } from 'src/common/database.module';
 import { returnProviders } from './return.providers';
 import { orderItemProviders } from 'src/order/order_item.providers';
@@ -13,10 +13,11 @@ import { ReturnItemController } from './return_item.controller';
 import { productItemInventoryProviders } from 'src/product_item_inventory/product_item_inventory.providers';
 import { ProductItemInventoryService } from 'src/product_item_inventory/product_item_inventory.service';
 import { inventoriesProviders } from 'src/inventories/inventories.providers';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [DatabaseModule],
-  controllers: [ReturnController, ReturnItemController],
+  imports: [DatabaseModule, NotificationsModule],
+  controllers: [ReturnsController, ReturnItemController],
   providers: [
     ReturnService,
     ...returnProviders,

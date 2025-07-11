@@ -18,7 +18,12 @@ export class Role {
   name: string;
 
   // Arabic name
-  @Column({ type: 'varchar', length: 255, nullable: true, default: 'اسم الدور' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    default: 'اسم الدور',
+  })
   nameAr: string;
 
   @Column({ type: 'text', nullable: true, default: null })

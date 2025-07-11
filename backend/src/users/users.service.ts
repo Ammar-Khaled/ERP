@@ -13,50 +13,70 @@ import { Role } from '../roles/entities/role.entity';
 import { Branch } from '../branches/entities/branch.entity';
 import { config } from 'dotenv';
 import * as process from 'node:process';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { BaseService } from '../common/services/base.service';
 
 config();
 
 @Injectable()
-export class UsersService {
+export class UsersService extends BaseService<User> {
   constructor(
     @Inject('USER_REPOSITORY') private userRepository: Repository<User>,
     @Inject('ROLE_REPOSITORY') private roleRepository: Repository<Role>,
     @Inject('BRANCH_REPOSITORY') private branchRepository: Repository<Branch>,
-  ) {}
+  ) {
+    super(userRepository);
+  }
 
-  async findAll() {
-    const users = await this.userRepository.find({
-      relations: ['roles', 'purchaseRequests'],
+  async findAll(
+    paginationDto: PaginationDto,
+    branchId: number,
+  ): Promise<PaginatedResult> {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await this.userRepository.findAndCount({
+      where: { branchId },
+      relations: ['roles'],
+      skip,
+      take: limit,
     });
+
     users.forEach((user) => delete user.password);
     users.forEach((user) => {
       user.roleIds = user.roles.map((role) => role.id);
       delete user.roles;
-      user.purchaseRequestIds = user.purchaseRequests.map(
-        (purchaseRequest) => purchaseRequest.id,
-      );
-      delete user.purchaseRequests;
     });
 
-    return users;
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: users,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, userBranchId: number) {
     const user = await this.userRepository.findOne({
-      where: { id },
-      relations: ['roles', 'purchaseRequests'],
+      where: { id, branchId: userBranchId },
+      relations: ['roles'],
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException(
+        userBranchId ? 'User not found in your branch' : 'User not found',
+      );
+    }
 
     delete user.password;
-
     user.roleIds = user.roles.map((role) => role.id);
     delete user.roles;
-
-    user.purchaseRequestIds = user.purchaseRequests.map(
-      (purchaseRequest) => purchaseRequest.id,
-    );
-    delete user.purchaseRequests;
 
     return user;
   }
@@ -68,7 +88,12 @@ export class UsersService {
     });
   }
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, userBranchId?: number) {
+    // If branchId is provided in DTO and user has a branch, validate they match
+    if (userBranchId && userBranchId !== createUserDto.branchId) {
+      throw new ConflictException('Cannot create a user outside your branch');
+    }
+
     const existingUser =
       (await this.userRepository.findOneBy({ email: createUserDto.email })) ||
       (await this.userRepository.findOneBy({
@@ -85,16 +110,13 @@ export class UsersService {
       roles.push(role);
     }
 
-    let branch = null;
-    if (createUserDto.branchId) {
-      branch = await this.branchRepository.findOneBy({
-        id: createUserDto.branchId,
-      });
-      if (!branch) {
-        throw new NotFoundException(
-          'Branch not found with id: ' + createUserDto.branchId,
-        );
-      }
+    const branch = await this.branchRepository.findOneBy({
+      id: createUserDto.branchId,
+    });
+    if (!branch) {
+      throw new NotFoundException(
+        'Branch not found with id: ' + createUserDto.branchId,
+      );
     }
 
     createUserDto.password = await hash(
@@ -108,7 +130,8 @@ export class UsersService {
       branch,
     });
     await this.userRepository.save(newUser);
-    return await this.findOne(newUser.id);
+    delete newUser.password;
+    return newUser;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -120,7 +143,7 @@ export class UsersService {
     if (updateUserDto.password) {
       updateUserDto.password = await hash(
         updateUserDto.password,
-        process.env.BYCRYPT_SALT_ROUNDS,
+        Number(process.env.BCRYPT_SALT_ROUNDS),
       );
     }
 
@@ -136,18 +159,6 @@ export class UsersService {
       user.roles = roles;
     }
 
-    if (updateUserDto.branchId) {
-      const branch = await this.branchRepository.findOneBy({
-        id: updateUserDto.branchId,
-      });
-      if (!branch) {
-        throw new NotFoundException(
-          'Branch not found with id: ' + updateUserDto.branchId,
-        );
-      }
-      user.branch = branch;
-    }
-
     if (updateUserDto.address) {
       if (user.address?.id) {
         updateUserDto.address.id = user.address.id;
@@ -156,16 +167,19 @@ export class UsersService {
 
     Object.assign(user, updateUserDto);
     await this.userRepository.save(user);
-    return await this.findOne(user.id);
+    delete user.password;
+    return user;
   }
 
-  async remove(id: number) {
-    const user = await this.findOneByCondition({ id });
+  async remove(id: number, userBranchId: number) {
+    const user = await this.findOneByCondition({ id, branchId: userBranchId });
+
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('User not found in your branch');
     }
 
     await this.userRepository.softRemove(user);
-    return await this.findOne(user.id);
+    delete user.password;
+    return user;
   }
 }

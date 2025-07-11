@@ -7,18 +7,21 @@ import {
   Param,
   Patch,
   Post,
+  Query,
+  Req,
   Res,
   UseInterceptors,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { PdfService } from '../common/pdf/pdf.service';
+import { PdfService } from 'src/common/pdf/pdf.service';
 import { Response } from 'express';
 import { LoggingInterceptor } from 'src/logging/logging.interceptor';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
-@Controller('order')
-export class OrderController {
+@Controller('orders')
+export class OrdersController {
   constructor(
     private readonly orderService: OrderService,
     private readonly pdfService: PdfService,
@@ -26,18 +29,18 @@ export class OrderController {
 
   @Post('/create')
   @UseInterceptors(LoggingInterceptor)
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.orderService.create(createOrderDto);
+  create(@Body() createOrderDto: CreateOrderDto, @Req() req) {
+    return this.orderService.create(createOrderDto, req.user);
   }
 
   @Get('/findAll')
-  findAll() {
-    return this.orderService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto, @Req() req) {
+    return await this.orderService.findAll(paginationDto, req.user.branchId);
   }
 
   @Get('/findOne/:id')
-  findOne(@Param('id') id: number) {
-    return this.orderService.findOne(+id);
+  findOne(@Param('id') id: number, @Req() req) {
+    return this.orderService.findOne(+id, req.user.branchId);
   }
 
   @Patch('/update/:id')
@@ -48,15 +51,19 @@ export class OrderController {
 
   @Delete('/delete/:id')
   @UseInterceptors(LoggingInterceptor)
-  remove(@Param('id') id: number) {
-    return this.orderService.remove(+id);
+  remove(@Param('id') id: number, @Req() req) {
+    return this.orderService.remove(+id, req.user.branchId);
   }
 
   @Get(':id/pdf')
-  async generateOrderPdf(@Param('id') id: string, @Res() res: Response) {
+  async generateOrderPdf(
+    @Param('id') id: number,
+    @Req() req,
+    @Res() res: Response,
+  ) {
     try {
       // 1. Fetch order data from your database
-      const orderData = await this.orderService.findOne(+id, true);
+      const orderData = await this.orderService.findOne(+id, req.user.branchId);
 
       // 2. Generate PDF
       const pdfBuffer = await this.pdfService.generatePdf('order', orderData);
@@ -71,5 +78,17 @@ export class OrderController {
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);
     }
+  }
+
+  @Patch('/apply-from-inventory/:id')
+  @UseInterceptors(LoggingInterceptor)
+  applyOrderFromInventory(@Param('id') id: number, @Req() req) {
+    return this.orderService.applyOrderFromInventory(+id, req.user.branchId);
+  }
+
+  @Patch('/cancel/:id')
+  @UseInterceptors(LoggingInterceptor)
+  cancelOrder(@Param('id') id: number, @Req() req) {
+    return this.orderService.cancelOrder(+id, req.user.branchId);
   }
 }

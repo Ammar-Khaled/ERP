@@ -1,20 +1,35 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
-import { Branch } from 'src/branches/entities/branch.entity'; // Assuming you have a Branch entity
+import { Branch } from 'src/branches/entities/branch.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { BaseService } from '../common/services/base.service';
 
 @Injectable()
-export class CategoriesService {
+export class CategoriesService extends BaseService<Category> {
   constructor(
     @Inject('CATEGORY_REPOSITORY')
     private categoryRepository: Repository<Category>,
     @Inject('BRANCH_REPOSITORY')
     private branchRepository: Repository<Branch>,
-  ) {}
+  ) {
+    super(categoryRepository);
+  }
 
-  async create(createCategoryDto: CreateCategoryDto) {
+  async create(createCategoryDto: CreateCategoryDto, userBranchId: number) {
+    if (userBranchId !== createCategoryDto.branchId) {
+      throw new ConflictException(
+        'Can not create a category outside your branch',
+      );
+    }
+
     // Check if the branchId exists in the Branch table
     const branch = await this.branchRepository.findOne({
       where: { id: createCategoryDto.branchId },
@@ -34,15 +49,15 @@ export class CategoriesService {
     );
 
     // Check if the branchId exists in the Branch table
-    if (updateCategoryDto.branchId) {
-      const branch = await this.branchRepository.findOne({
-        where: { id: updateCategoryDto.branchId },
-      });
-      if (!branch) {
-        throw new NotFoundException('Branch not found.');
-      }
-      category.branch = branch;
-    }
+    // if (updateCategoryDto.branchId) {
+    //   const branch = await this.branchRepository.findOne({
+    //     where: { id: updateCategoryDto.branchId },
+    //   });
+    //   if (!branch) {
+    //     throw new NotFoundException('Branch not found.');
+    //   }
+    //   category.branch = branch;
+    // }
 
     // If there are updates, assign them to the category
     if (Object.keys(updateCategoryDto).length > 0) {
@@ -53,19 +68,29 @@ export class CategoriesService {
     return category;
   }
 
-  async findAll() {
-    return await this.categoryRepository.find();
+  async findAll(
+    paginationDto: PaginationDto,
+    branchId: number,
+  ): Promise<PaginatedResult> {
+    return super.findAll(paginationDto, branchId);
   }
 
-  async findOne(id: number) {
-    return await this.findCategoryByCondition({ id }, 'Category not found');
+  async findOne(id: number, branchId: number) {
+    return super.findOne(id, branchId);
   }
 
-  async remove(id: number) {
+  async remove(id: number, userBranchId: number) {
     const category = await this.findCategoryByCondition(
       { id },
       'Category not found',
     );
+
+    if (userBranchId !== category.branch.id) {
+      throw new ConflictException(
+        'Can not delete a category outside your branch',
+      );
+    }
+
     await this.categoryRepository.softRemove(category);
     return category;
   }

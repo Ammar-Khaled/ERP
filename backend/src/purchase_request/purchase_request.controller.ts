@@ -3,10 +3,13 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpException,
   Param,
   Patch,
   Post,
+  Query,
+  Req,
   Res,
   UseInterceptors,
 } from '@nestjs/common';
@@ -16,9 +19,10 @@ import { UpdatePurchaseRequestDto } from './dto/update-purchase_request.dto';
 import { PdfService } from 'src/common/pdf/pdf.service';
 import { Response } from 'express';
 import { LoggingInterceptor } from 'src/logging/logging.interceptor';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('purchase-requests')
-export class PurchaseRequestController {
+export class PurchaseRequestsController {
   constructor(
     private readonly purchaseRequestService: PurchaseRequestService,
     private readonly pdfService: PdfService,
@@ -26,18 +30,52 @@ export class PurchaseRequestController {
 
   @Post('create')
   @UseInterceptors(LoggingInterceptor)
-  create(@Body() createPurchaseRequestDto: CreatePurchaseRequestDto) {
-    return this.purchaseRequestService.create(createPurchaseRequestDto);
+  create(
+    @Body() createPurchaseRequestDto: CreatePurchaseRequestDto,
+    @Req() req,
+  ) {
+    return this.purchaseRequestService.create(
+      createPurchaseRequestDto,
+      req.user,
+    );
   }
 
-  @Get('find-all')
-  findAll() {
-    return this.purchaseRequestService.findAll();
+  @Patch('/cancel/:id')
+  cancelRequest(@Param('id') id: string, @Req() req) {
+    return this.purchaseRequestService.cancelRequest(+id, req.user.branchId);
+  }
+
+  @Patch('review/:id')
+  review(
+    @Param('id') id: string,
+    @Headers('userId') userId: string,
+    @Body('reviewNotes') reviewNotes: string,
+    @Body('approved') approved: boolean,
+  ) {
+    return this.purchaseRequestService.review(
+      +id,
+      +userId,
+      reviewNotes,
+      approved,
+    );
+  }
+
+  @Patch('add-to-inventory/:id')
+  addToInventory(@Param('id') id: string, @Req() req) {
+    return this.purchaseRequestService.addToInventory(+id, req.user.branchId);
+  }
+
+  @Get()
+  async findAll(@Query() paginationDto: PaginationDto, @Req() req) {
+    return await this.purchaseRequestService.findAll(
+      paginationDto,
+      req.user.branchId,
+    );
   }
 
   @Get('find-by-id/:id')
-  findOne(@Param('id') id: string) {
-    return this.purchaseRequestService.findOne(+id);
+  findOne(@Param('id') id: string, @Req() req) {
+    return this.purchaseRequestService.findOne(+id, req.user.branchId);
   }
 
   @Patch('update/:id')
@@ -51,18 +89,20 @@ export class PurchaseRequestController {
 
   @Delete('delete/:id')
   @UseInterceptors(LoggingInterceptor)
-  remove(@Param('id') id: string) {
-    return this.purchaseRequestService.remove(+id);
+  removeRequest(@Param('id') id: string, @Req() req) {
+    return this.purchaseRequestService.remove(+id, req.user.branchId);
   }
 
   @Get(':id/pdf')
-  async generatePdf(@Param('id') id: string, @Res() res: Response) {
+  async generatePdf(@Param('id') id: string, @Res() res: Response, @Req() req) {
     try {
       // Fetch the purchase request
-      const purchaseRequest = await this.purchaseRequestService.findOne(
-        +id,
-        true,
-      );
+      const purchaseRequest =
+        await this.purchaseRequestService.findOneWithRelations(
+          +id,
+          req.user.branchId,
+          true,
+        );
 
       // Generate the PDF
       const pdfBuffer = await this.pdfService.generatePdf(

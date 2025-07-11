@@ -1,6 +1,14 @@
-import { PartialType } from '@nestjs/swagger';
+import { OmitType, PartialType } from '@nestjs/swagger';
 import { CreatePurchaseRequestDto } from './create-purchase_request.dto';
+import { IsNotEmpty, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { UpdatePurchaseItemDto } from './update-purchase_item.dto';
 
 export class UpdatePurchaseRequestDto extends PartialType(
-  CreatePurchaseRequestDto,
-) {}
+  OmitType(CreatePurchaseRequestDto, ['purchaseItemsDtos']), // Exclude purchaseItemsDtos and branchId from the base DTO,
+) {
+  @IsNotEmpty()
+  @ValidateNested({ each: true }) // Validates each element in the array
+  @Type(() => UpdatePurchaseItemDto) // Transforms each element to CreatePurchaseItemDto
+  purchaseItemsDtos: UpdatePurchaseItemDto[]; // the new items list of the purchase request
+}

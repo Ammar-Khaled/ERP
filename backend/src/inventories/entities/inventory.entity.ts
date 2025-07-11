@@ -5,12 +5,12 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
 import { Branch } from '../../branches/entities/branch.entity';
 import { ProductItemToInventory } from '../../product_item_inventory/entities/product_item_inventory.entity';
+import { PurchaseRequest } from '../../purchase_request/entities/purchase_request.entity';
 
 @Entity('inventories')
 export class Inventory {
@@ -21,7 +21,12 @@ export class Inventory {
   name: string;
 
   // Arabic name
-  @Column({ type: 'varchar', length: 255, nullable: true, default: "اسم المخزن" })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    default: 'اسم المخزن',
+  })
   nameAr: string;
 
   @Column({ type: 'bool', default: true })
@@ -39,7 +44,7 @@ export class Inventory {
   @Column({ nullable: true })
   addressId: number;
 
-  @OneToOne(() => Address, {
+  @ManyToOne(() => Address, {
     eager: false,
     cascade: true,
     nullable: true,
@@ -59,4 +64,13 @@ export class Inventory {
     (productItemToInventory) => productItemToInventory.inventory,
   )
   productItemToInventories: ProductItemToInventory[];
+
+  @OneToMany(
+    () => PurchaseRequest,
+    (purchaseRequest) => purchaseRequest.inventory,
+  )
+  purchaseRequests: PurchaseRequest[];
+
+  @Column({ type: 'int', default: 0 })
+  totalNumberOfPurchaseEntities: number;
 }

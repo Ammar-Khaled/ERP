@@ -7,50 +7,43 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
+  Query,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PermissionsGuard } from '../auth/permissions.guard';
-import { AuthGuard, Public } from '../auth/auth.guard';
-
-// import { Permissions } from '../decorators/permissions.decorator';
+import { Public } from '../auth/auth.guard';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 
 @Controller('users')
-@UseGuards(AuthGuard, PermissionsGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Public()
-  // @Permissions(['UsersController:create'])
   @Post()
   @HttpCode(201)
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  create(@Body() createUserDto: CreateUserDto, @Req() req) {
+    return this.usersService.create(createUserDto, req.user?.branchId);
   }
 
-  // @Permissions(['UsersController:findAll'])
   @Get()
-  async findAll() {
-    return await this.usersService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto, @Req() req) {
+    return await this.usersService.findAll(paginationDto, req.user.branchId);
   }
 
-  // @Permissions(['UsersController:findOneById'])
   @Get(':id')
-  async findOneById(@Param('id') id: number) {
-    return await this.usersService.findOne(id);
+  async findOneById(@Param('id') id: number, @Req() req) {
+    return await this.usersService.findOne(id, req.user.branchId);
   }
 
-  // @Permissions(['UsersController:update'])
   @Patch(':id')
   update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
-  // @Permissions(['UsersController:remove'])
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  remove(@Param('id') id: string, @Req() req) {
+    return this.usersService.remove(+id, req.user.branchId);
   }
 }
