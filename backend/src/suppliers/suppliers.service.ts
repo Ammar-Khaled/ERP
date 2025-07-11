@@ -4,46 +4,40 @@ import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
 import { Supplier } from './entities/supplier.entity';
 import { PaginatedResult, PaginationDto } from '../common/dtos/pagination.dto';
+import { Branch } from '../branches/entities/branch.entity';
+import { BaseService } from '../common/services/base.service';
 
 @Injectable()
-export class SuppliersService {
+export class SuppliersService extends BaseService<Supplier> {
   constructor(
     @Inject('SUPPLIER_REPOSITORY')
     private supplierRepository: Repository<Supplier>,
-  ) {}
+    @Inject('BRANCH_REPOSITORY')
+    private branchRepository: Repository<Branch>,
+  ) {
+    super(supplierRepository);
+  }
 
-  async create(createSupplierDto: CreateSupplierDto) {
-    const supplier = this.supplierRepository.create(createSupplierDto);
+  async create(createSupplierDto: CreateSupplierDto, tokenPayload) {
+    const supplier = this.supplierRepository.create({
+      ...createSupplierDto,
+      branch: await this.branchRepository.findOneBy({
+        id: tokenPayload.branchId,
+      }),
+    });
     return await this.supplierRepository.save(supplier);
   }
 
-  async findAll(paginationDto: PaginationDto): Promise<PaginatedResult> {
-    const { page = 1, limit = 10 } = paginationDto;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await this.supplierRepository.findAndCount({
-      skip,
-      take: limit,
-    });
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
-    };
+  async findAll(
+    paginationDto: PaginationDto,
+    tokenPayload,
+  ): Promise<PaginatedResult> {
+    return await super.findAll(paginationDto, tokenPayload.branchId);
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, tokenPayload): Promise<any> {
     const supplier = await this.supplierRepository.findOne({
-      where: { id },
+      where: { id, branchId: tokenPayload.branchId },
       relations: ['purchaseRequests'],
     });
 
@@ -56,8 +50,8 @@ export class SuppliersService {
     return { ...supplier, purchaseRequestIds };
   }
 
-  async update(id: number, updateSupplierDto: UpdateSupplierDto) {
-    const supplier = await this.findOne(id);
+  async update(id: number, updateSupplierDto: UpdateSupplierDto, tokenPayload) {
+    const supplier = await this.findOne(id, tokenPayload);
     if (!supplier) throw new NotFoundException('This supplier is not found');
 
     if (updateSupplierDto.address) {
@@ -70,8 +64,9 @@ export class SuppliersService {
     return await this.supplierRepository.save(supplier);
   }
 
-  async remove(id: number) {
-    const supplier = await this.findOne(id);
+  async remove(id: number, tokenPayload): Promise<Supplier> {
+    const supplier = await this.findOne(id, tokenPayload);
+    if (!supplier) throw new NotFoundException('This supplier is not found');
     await this.supplierRepository.softRemove(supplier);
     return supplier;
   }

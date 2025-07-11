@@ -11,6 +11,7 @@ import { User } from '../../users/entities/user.entity';
 import { Address } from '../../common/entities/address.entity';
 import { Inventory } from '../../inventories/entities/inventory.entity';
 import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
+import { Supplier } from '../../suppliers/entities/supplier.entity';
 
 @Entity('branches')
 export class Branch {
@@ -63,4 +64,7 @@ export class Branch {
     (purchaseRequests) => purchaseRequests.branch,
   )
   purchaseRequests: PurchaseRequest[];
+
+  @OneToMany(() => Supplier, (supplier) => supplier.branch)
+  suppliers: Supplier[];
 }

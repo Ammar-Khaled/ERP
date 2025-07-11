@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Address } from '../../common/entities/address.entity';
 import { PurchaseRequest } from 'src/purchase_request/entities/purchase_request.entity';
+import { Branch } from '../../branches/entities/branch.entity';
 
 @Entity('suppliers')
 export class Supplier {
@@ -52,4 +53,11 @@ export class Supplier {
     (purchaseRequest) => purchaseRequest.supplier,
   )
   purchaseRequests: PurchaseRequest[];
+
+  @Column({ nullable: false })
+  branchId: number;
+
+  @ManyToOne(() => Branch, (branch) => branch.suppliers)
+  @JoinColumn({ name: 'branchId' })
+  branch: Branch;
 }
