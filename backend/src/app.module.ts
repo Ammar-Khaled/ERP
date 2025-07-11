@@ -31,6 +31,11 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ReturnPurchaseModule } from './return_purchase/return_purchase.module';
 import { ReportsModule } from './reports/reports.module';
 import { SeederModule } from './common/seeder.module';
+import { AccountType } from './account_types/entities/account_type.entity';
+import { AccountTypesModule } from './account_types/account_types.module';
+import { AccountModule } from './accounts/account.module';
+import { TreasuryModule } from './treasury/treasury.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -60,6 +65,7 @@ import { SeederModule } from './common/seeder.module';
     VariationModule,
     VariationOptionModule,
     OrderModule,
+    AccountTypesModule,
     CouponModule,
     ReturnModule,
     LoggingModule,
@@ -67,6 +73,9 @@ import { SeederModule } from './common/seeder.module';
     ReturnPurchaseModule,
     ReportsModule,
     SeederModule,
+    AccountModule,
+    TreasuryModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
