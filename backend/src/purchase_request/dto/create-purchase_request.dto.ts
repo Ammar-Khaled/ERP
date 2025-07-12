@@ -6,10 +6,11 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { CreatePurchaseItemDto } from 'src/purchase_request/dto/create-purchase_item.dto';
-
+import { Transform } from 'class-transformer';
 export class CreatePurchaseRequestDto {
+  @Transform(({ value }) => (value !== undefined ? value : new Date()))
+  @Type(() => Date) 
   @IsDate()
-  @IsOptional()
   date: Date;
 
   @IsNotEmpty()
