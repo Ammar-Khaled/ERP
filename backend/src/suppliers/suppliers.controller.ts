@@ -20,20 +20,17 @@ export class SuppliersController {
 
   @Post()
   async create(@Body() createSupplierDto: CreateSupplierDto, @Req() req) {
-    return await this.supplierService.create(
-      createSupplierDto,
-      req.tokenPayload,
-    );
+    return await this.supplierService.create(createSupplierDto, req.user);
   }
 
   @Get()
   async findAll(@Query() paginationDto: PaginationDto, @Req() req) {
-    return await this.supplierService.findAll(paginationDto, req.tokenPayload);
+    return await this.supplierService.findAll(paginationDto, req.user);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req) {
-    return await this.supplierService.findOne(+id, req.tokenPayload);
+    return await this.supplierService.findOne(+id, req.user);
   }
 
   @Patch(':id')
@@ -42,15 +39,11 @@ export class SuppliersController {
     @Body() updateSupplierDto: UpdateSupplierDto,
     @Req() req,
   ) {
-    return await this.supplierService.update(
-      +id,
-      updateSupplierDto,
-      req.tokenPayload,
-    );
+    return await this.supplierService.update(+id, updateSupplierDto, req.user);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req) {
-    return await this.supplierService.remove(+id, req.tokenPayload);
+    return await this.supplierService.remove(+id, req.user);
   }
 }
