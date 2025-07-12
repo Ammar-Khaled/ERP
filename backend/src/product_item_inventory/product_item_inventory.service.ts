@@ -94,6 +94,19 @@ export class ProductItemInventoryService {
     return productItemInventory;
   }
 
+  async findOneByFK(productItemId: number, inventoryId: number) {
+    const productItemInventory =
+      await this.productItemInventoryRepository.findOne({
+        where: { productItemId, inventoryId },
+      });
+
+    if (!productItemInventory) {
+      throw new NotFoundException('ProductItem is not found in this inventory');
+    }
+
+    return productItemInventory;
+  }
+
   async update(
     id: number,
     updateProductItemInventoryDto: UpdateProductItemInventoryDto,
