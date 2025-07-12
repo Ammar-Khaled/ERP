@@ -362,37 +362,42 @@ export class ProductItemService {
   }
 
   async updateDamaged(updateDamagedDto: UpdateDamagedDto) {
-    const { productItemId, inventoryId, numberOfDamaged } = updateDamagedDto;
+    const piis = [];
+    for (const item of updateDamagedDto.items) {
+      const { productItemId, inventoryId, numberOfDamaged } = item;
 
-    // Validate inputs
-    if (!productItemId || isNaN(productItemId)) {
-      throw new BadRequestException('Invalid productItemId.');
-    }
+      // Validate inputs
+      if (!productItemId || isNaN(productItemId)) {
+        throw new BadRequestException('Invalid productItemId.');
+      }
 
-    if (!inventoryId || isNaN(inventoryId)) {
-      throw new BadRequestException('Invalid inventoryId.');
-    }
+      if (!inventoryId || isNaN(inventoryId)) {
+        throw new BadRequestException('Invalid inventoryId.');
+      }
 
-    if (!numberOfDamaged || isNaN(numberOfDamaged)) {
-      throw new BadRequestException('Invalid totalNumberOfDamaged.');
-    }
+      if (!numberOfDamaged || isNaN(numberOfDamaged)) {
+        throw new BadRequestException('Invalid totalNumberOfDamaged.');
+      }
 
-    // Find the product item by ID
-    const pii = await this.productItemInventoryService.findOneByFK(
-      productItemId,
-      inventoryId,
-    );
-    if (!pii) {
-      throw new NotFoundException(
-        `Product item with ID ${productItemId} not found in inventory ${inventoryId}.`,
+      // Find the product item by ID
+      const pii = await this.productItemInventoryService.findOneByFK(
+        productItemId,
+        inventoryId,
       );
-    }
+      if (!pii) {
+        throw new NotFoundException(
+          `Product item with ID ${productItemId} not found in inventory ${inventoryId}.`,
+        );
+      }
 
-    // Update the number_of_damaged
-    return await this.productItemInventoryService.update(pii.id, {
-      numberOfDamaged: pii.numberOfDamaged + numberOfDamaged,
-      numberOfValid: pii.numberOfValid - numberOfDamaged,
-    });
+      // Update the number_of_damaged
+      await this.productItemInventoryService.update(pii.id, {
+        numberOfDamaged: pii.numberOfDamaged + numberOfDamaged,
+        numberOfValid: pii.numberOfValid - numberOfDamaged,
+      });
+      piis.push(await this.productItemInventoryService.findOne(pii.id));
+    }
+    return piis;
   }
 
   async getDamaged() {

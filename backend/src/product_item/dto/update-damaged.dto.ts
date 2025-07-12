@@ -1,6 +1,8 @@
-import { IsInt, IsNotEmpty } from 'class-validator';
+import { IsArray, IsInt, IsNotEmpty, ValidateNested } from 'class-validator';
 
-export class UpdateDamagedDto {
+import { Type } from 'class-transformer';
+
+class UpdateDamagedItemDto {
   @IsInt()
   @IsNotEmpty()
   productItemId: number;
@@ -12,4 +14,11 @@ export class UpdateDamagedDto {
   @IsInt()
   @IsNotEmpty()
   numberOfDamaged: number; // added number of damaged items
+}
+
+export class UpdateDamagedDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => UpdateDamagedItemDto)
+  items: UpdateDamagedItemDto[];
 }
