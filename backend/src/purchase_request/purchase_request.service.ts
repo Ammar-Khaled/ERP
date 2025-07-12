@@ -147,7 +147,10 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
     return purchaseItem;
   }
 
-  async create(createPurchaseRequestDto: CreatePurchaseRequestDto, user: User) {
+  async create(
+    createPurchaseRequestDto: CreatePurchaseRequestDto,
+    tokenPayload: any,
+  ) {
     const newPurchaseRequest = new PurchaseRequest();
     newPurchaseRequest.date = createPurchaseRequestDto.date || new Date();
 
@@ -159,9 +162,13 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
 
     newPurchaseRequest.inventory = inventory;
 
-    newPurchaseRequest.user = user;
+    newPurchaseRequest.user = await this.userRepository.findOneBy({
+      id: tokenPayload.sub,
+    });
 
-    const branch = await this.branchRepository.findOneBy({ id: user.branchId });
+    const branch = await this.branchRepository.findOneBy({
+      id: tokenPayload.branchId,
+    });
     if (!branch) throw new NotFoundException('Branch not found!');
     newPurchaseRequest.branch = branch;
 
@@ -238,7 +245,7 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
     for (const reviewer of reviewers) {
       await this.notificationsService.create({
         title: 'New Purchase Request',
-        message: `A new purchase request has been created by ${user.username}. Please review it.`,
+        message: `A new purchase request has been created by ${tokenPayload.username}. Please review it.`,
         type: NotificationType.PURCHASE_REQUEST_REJECTED,
         userId: reviewer.id,
         relatedEntityId: savedPurchaseRequest.id,
@@ -248,7 +255,7 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
 
     return this.findOneWithRelations(
       savedPurchaseRequest.id,
-      user.branchId,
+      tokenPayload.branchId,
       false,
     );
   }
