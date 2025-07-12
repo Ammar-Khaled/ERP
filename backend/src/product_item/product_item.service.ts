@@ -362,11 +362,15 @@ export class ProductItemService {
   }
 
   async updateDamaged(updateDamagedDto: UpdateDamagedDto) {
-    const { productItemId, numberOfDamaged } = updateDamagedDto;
+    const { productItemId, inventoryId, numberOfDamaged } = updateDamagedDto;
 
     // Validate inputs
     if (!productItemId || isNaN(productItemId)) {
       throw new BadRequestException('Invalid productItemId.');
+    }
+
+    if (!inventoryId || isNaN(inventoryId)) {
+      throw new BadRequestException('Invalid inventoryId.');
     }
 
     if (!numberOfDamaged || isNaN(numberOfDamaged)) {
@@ -374,26 +378,21 @@ export class ProductItemService {
     }
 
     // Find the product item by ID
-    const productItem = await this.findProductItemByCondition(
-      { id: productItemId },
-      'Product item not found.',
+    const pii = await this.productItemInventoryService.findOneByFK(
+      productItemId,
+      inventoryId,
     );
-
-    // Update the number_of_damaged
-    productItem.totalNumberOfDamaged =
-      (productItem.totalNumberOfDamaged || 0) + Number(numberOfDamaged);
-
-    try {
-      // Save the updated product item
-      const updatedProductItem =
-        await this.productItemRepository.save(productItem);
-      return updatedProductItem;
-    } catch (err) {
-      throw new HttpException(
-        err.message,
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+    if (!pii) {
+      throw new NotFoundException(
+        `Product item with ID ${productItemId} not found in inventory ${inventoryId}.`,
       );
     }
+
+    // Update the number_of_damaged
+    return await this.productItemInventoryService.update(pii.id, {
+      numberOfDamaged: pii.numberOfDamaged + numberOfDamaged,
+      numberOfValid: pii.numberOfValid - numberOfDamaged,
+    });
   }
 
   async getDamaged() {
