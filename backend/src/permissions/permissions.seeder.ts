@@ -112,6 +112,10 @@ export class PermissionsSeeder {
       { name: 'ProductsController:create', description: 'Create product' },
       { name: 'ProductsController:update', description: 'Update product' },
       { name: 'ProductsController:remove', description: 'Remove product' },
+      {
+        name: 'ProductsController:findByCategory',
+        description: 'Find products by category',
+      },
       { name: 'ProductsController:*', description: 'All products permissions' },
 
       // ProductItemsController permissions
@@ -162,6 +166,10 @@ export class PermissionsSeeder {
       {
         name: 'ProductItemsController:uploadImages',
         description: 'Upload images for product item',
+      },
+      {
+        name: 'ProductItemsController:searchByName',
+        description: 'Search product items by name',
       },
 
       // ProductItemInventoryController
