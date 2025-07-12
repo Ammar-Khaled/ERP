@@ -351,6 +351,110 @@ export class PermissionsSeeder {
         name: 'PurchaseInventoryController:*',
         description: 'All purchase inventories permissions',
       },
+
+      // Units Controller
+      {
+        name: 'UnitsController:findAll',
+        description: 'Find all units',
+      },
+      {
+        name: 'UnitsController:findOne',
+        description: 'Find one unit',
+      },
+      {
+        name: 'UnitsController:create',
+        description: 'Create unit',
+      },
+      {
+        name: 'UnitsController:update',
+        description: 'Update unit',
+      },
+      {
+        name: 'UnitsController:remove',
+        description: 'Remove unit',
+      },
+      {
+        name: 'UnitsController:*',
+        description: 'All units permissions',
+      },
+
+      // AccountTypesController
+      {
+        name: 'AccountTypesController:findAll',
+        description: 'Find all account types',
+      },
+      {
+        name: 'AccountTypesController:findOne',
+        description: 'Find one account type',
+      },
+      {
+        name: 'AccountTypesController:create',
+        description: 'Create account type',
+      },
+      {
+        name: 'AccountTypesController:update',
+        description: 'Update account type',
+      },
+      {
+        name: 'AccountTypesController:remove',
+        description: 'Remove account type',
+      },
+      {
+        name: 'AccountTypesController:*',
+        description: 'All account types permissions',
+      },
+
+      // AccountController
+      {
+        name: 'AccountController:findAll',
+        description: 'Find all accounts',
+      },
+      {
+        name: 'AccountController:findOne',
+        description: 'Find one account',
+      },
+      {
+        name: 'AccountController:create',
+        description: 'Create account',
+      },
+      {
+        name: 'AccountController:update',
+        description: 'Update account',
+      },
+      {
+        name: 'AccountController:findByAccountNumber',
+        description: 'Find account by account number',
+      },
+      {
+        name: 'AccountController:*',
+        description: 'All accounts permissions',
+      },
+
+      // ReportsController
+      {
+        name: 'ReportsController:getDailyOrders',
+      },
+      {
+        name: 'ReportsController:getMonthlyOrders',
+      },
+      {
+        name: 'ReportsController:getDailyPurchases',
+      },
+      {
+        name: 'ReportsController:getMonthlyPurchases',
+      },
+      {
+        name: 'ReportsController:getTopClients',
+      },
+      {
+        name: 'ReportsController:getTopSuppliers',
+      },
+      {
+        name: 'ReportsController:getMonthlyRevenue',
+      },
+      {
+        name: 'ReportsController:getTopProducts',
+      },
     ];
 
     console.log('Seeding permissions...');

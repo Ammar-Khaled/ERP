@@ -5,8 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
-import { RolesService } from '../roles/roles.service'; // Add this import
+import { RolesService } from '../roles/roles.service';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -18,15 +17,6 @@ export class PermissionsGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // If using the @Public decorator, skip permission checks
     if (this.reflector.get<boolean>('isPublic', context.getHandler())) {
-      return true;
-    }
-
-    const requiredPermissions = this.reflector.get<string[]>(
-      PERMISSIONS_KEY,
-      context.getHandler(),
-    );
-
-    if (!requiredPermissions || requiredPermissions.length === 0) {
       return true;
     }
 
@@ -44,6 +34,10 @@ export class PermissionsGuard implements CanActivate {
     // Get user roles by their IDs
     user.roles = [];
     for (const roleId of user.roleIds) {
+      if (roleId === 1) {
+        // If admin role, skip permission checks
+        return true;
+      }
       const role = await this.roleService.findOneByCondition({ id: roleId });
       user.roles.push(role);
     }
@@ -55,16 +49,20 @@ export class PermissionsGuard implements CanActivate {
       .filter((permission) => permission.isActive)
       .map((permission) => permission.name);
 
-    // Check if user has any of the required permissions
-    const hasPermission = requiredPermissions.some((requiredPermission) =>
-      this.checkPermission(userPermissions, requiredPermission),
-    );
+    const handler = context.getHandler();
+    const controller = context.getClass();
+    const controllerName = controller.name;
+    const methodName = handler.name;
+    const requiredPermission = `${controllerName}:${methodName}`;
 
+    // Check if user has any of the required permissions
+    const hasPermission = this.checkPermission(
+      userPermissions,
+      requiredPermission,
+    );
     if (!hasPermission) {
       throw new ForbiddenException(
-        `Insufficient permissions. Required: ${requiredPermissions.join(
-          ' or ',
-        )}`,
+        `Insufficient permissions. Required: ${requiredPermission}`,
       );
     }
 

@@ -35,7 +35,7 @@ export class RolesSeeder {
       console.log('Admin role created with all permissions');
     }
 
-    // Create default User role
+    // Create default Reader role
     const readerRoleExists = await this.roleRepository.findOne({
       where: { name: 'Reader' },
     });
@@ -58,6 +58,32 @@ export class RolesSeeder {
 
       await this.roleRepository.save(readerRole);
       console.log('Reader role created with read permissions');
+    }
+
+    // Create default Reporter role
+    const reporterRole = await this.roleRepository.findOne({
+      where: { name: 'Reporter' },
+    });
+    if (!reporterRole) {
+      // Get read and create permissions
+      const reportPermissions = await this.permissionRepository
+        .createQueryBuilder('permission')
+        .where('permission.name LIKE :pattern', {
+          pattern: 'ReportsController%',
+        })
+        .getMany();
+
+      const reporterRole = this.roleRepository.create({
+        name: 'Reporter',
+        nameAr: 'مراسل',
+        description: 'User with read and create access',
+        descriptionAr: 'مستخدم مع صلاحيات قراءة وإنشاء',
+        isActive: true,
+        permissions: reportPermissions,
+      });
+
+      await this.roleRepository.save(reporterRole);
+      console.log('Reporter role created with ReportsController permissions');
     }
 
     console.log('Roles seeded successfully');
