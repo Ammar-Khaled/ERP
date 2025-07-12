@@ -19,17 +19,17 @@ export class CreateTransactionDto {
   @IsString()
   payment_method: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
-  treasury_id: number;
+  treasury_id?: number;
 
   @IsNotEmpty()
   @IsNumber()
   added_by: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
-  account_id: number;
+  account_id?: number;
 
   @IsOptional()
   @IsNumber()

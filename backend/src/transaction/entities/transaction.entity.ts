@@ -25,12 +25,12 @@ export class Transaction {
   @Column()
   payment_method: string;
 
-  @Column()
-  treasury_id: number;
+  @Column({ nullable: true }) // ✅ treasury_id now optional
+  treasury_id?: number;
 
-  @ManyToOne(() => Treasury)
+  @ManyToOne(() => Treasury, { nullable: true })
   @JoinColumn({ name: 'treasury_id' })
-  treasury: Treasury;
+  treasury?: Treasury;
 
   @Column()
   added_by: number;
@@ -39,18 +39,18 @@ export class Transaction {
   @JoinColumn({ name: 'added_by' })
   addedBy: User;
 
-  @Column()
-  account_id: number;
+  @Column({ nullable: true }) // ✅ account_id now optional
+  account_id?: number;
 
-  @ManyToOne(() => Account)
+  @ManyToOne(() => Account, { nullable: true })
   @JoinColumn({ name: 'account_id' })
-  account: Account;
+  account?: Account;
 
   @Column({ nullable: true })
-  purchase_id: number;
+  purchase_id?: number;
 
   @Column({ nullable: true })
-  order_id: number;
+  order_id?: number;
 
   @DeleteDateColumn()
   deletedAt: Date;
