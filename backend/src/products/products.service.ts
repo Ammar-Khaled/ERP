@@ -211,4 +211,37 @@ export class ProductsService extends BaseService<Product> {
     }
     return product;
   }
+
+  async getByCategory(categoryId: number, paginationDto: PaginationDto) {
+    const { page = 1, limit = 10 } = paginationDto;
+    const skip = (page - 1) * limit;
+
+    // Find the category
+    const category = await this.categoryRepository.findOne({
+      where: { id: categoryId },
+    });
+    if (!category) throw new NotFoundException('Category not found');
+
+    // Query product items by category
+    const [productItems, total] = await this.productRepository.findAndCount({
+      where: { category },
+      skip,
+      take: limit,
+      relations: ['category', 'unit', 'currency'],
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: productItems,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
+  }
 }

@@ -42,4 +42,12 @@ export class ProductsController {
   remove(@Param('id') id: string, @Req() req) {
     return this.productsService.remove(+id, req.user.branchId);
   }
+
+  @Get('get-by-category/:categoryId')
+  async getByCategory(
+    @Param('categoryId') categoryId: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    return await this.productsService.getByCategory(+categoryId, paginationDto);
+  }
 }
