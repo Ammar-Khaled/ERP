@@ -37,82 +37,80 @@ export class ReportsService {
     private supplierRepo: Repository<Supplier>,
   ) {}
 
-  // Get Total Orders Grouped By Day
+  // ✅ Get Total Orders Grouped By Day or Month
   async getOrdersGroupedBy(
     period: 'day' | 'month',
     branchId: number,
   ): Promise<any> {
-    // Use DATE_FORMAT for daily grouping or monthly grouping
     const dateGrouping =
       period === 'day'
-        ? 'DATE_FORMAT(order.date, "%Y-%m-%d")' // Ensure we get the exact day
-        : 'DATE_FORMAT(order.date, "%Y-%m")'; // Group by month
+        ? `DATE_FORMAT(order.date, '%Y-%m-%d')`
+        : `DATE_FORMAT(order.date, '%Y-%m')`;
 
     const query = this.orderRepo
       .createQueryBuilder('order')
-      .select(
-        `${dateGrouping} AS period, SUM(order.totalPrice) AS total_sales`, // Aggregating the total sales
-      )
+      .select(`${dateGrouping}`, 'period')
+      .addSelect('SUM(order.totalPrice)', 'total_sales')
       .where('order.branchId = :branchId', { branchId })
-      .andWhere('order.date IS NOT NULL') // Ensure that we exclude null date values
+      .andWhere('order.date IS NOT NULL')
+      .andWhere('order.deletedAt IS NULL')
       .groupBy('period')
-      .orderBy('period', 'ASC'); // Ordering by the period
+      .orderBy('period', 'ASC');
 
-    const result = await query.getRawMany();
-    return result;
+    return await query.getRawMany();
   }
-  // Get Total Purchases Grouped By Day
+
+  // ✅ Get Total Purchases Grouped By Day or Month
   async getPurchasesGroupedBy(
     period: 'day' | 'month',
     branchId: number,
   ): Promise<any> {
     const dateGrouping =
       period === 'day'
-        ? 'DATE_FORMAT(purchase_request.date, "%Y-%m-%d")' // Ensure we get the exact day
-        : 'DATE_FORMAT(purchase_request.date, "%Y-%m")'; // Group by month
+        ? `DATE_FORMAT(purchase_request.date, '%Y-%m-%d')`
+        : `DATE_FORMAT(purchase_request.date, '%Y-%m')`;
 
     const query = this.purchaseRepo
       .createQueryBuilder('purchase_request')
-      .select(
-        `${dateGrouping} AS period, SUM(purchase_request.totalPrice) AS total_purchases`,
-      )
+      .select(`${dateGrouping}`, 'period')
+      .addSelect('SUM(purchase_request.totalPrice)', 'total_purchases')
       .where('purchase_request.branchId = :branchId', { branchId })
+      .andWhere('purchase_request.date IS NOT NULL')
       .groupBy('period')
       .orderBy('period', 'ASC');
 
-    const result = await query.getRawMany();
-    return result;
+    return await query.getRawMany();
   }
 
-  // Get Top Clients (Grouped by Month) and Metric (totalAmount | count)
+  // ✅ Get Top Clients by Total Amount or Count
   async getTopClients(
     metric: 'totalAmount' | 'count',
     branchId: number,
   ): Promise<any> {
     const metricColumn =
       metric === 'totalAmount' ? 'SUM(order.totalPrice)' : 'COUNT(order.id)';
+
     const query = this.clientRepo
       .createQueryBuilder('client')
       .select('client.id', 'client_id')
       .addSelect('client.name', 'client_name')
-      .addSelect(`${metricColumn} as metric_value`)
+      .addSelect(`${metricColumn}`, 'metric_value')
       .innerJoin('order', 'order', 'order.clientId = client.id')
       .where('order.branchId = :branchId', { branchId })
       .groupBy('client.id')
       .orderBy('metric_value', 'DESC')
       .limit(5);
 
-    const result = await query.getRawMany();
-    return result;
+    return await query.getRawMany();
   }
 
-  // Get Top Suppliers (Grouped by Month)
+  // ✅ Get Top Suppliers by Purchase Amount
   async getTopSuppliers(branchId: number): Promise<any> {
     const query = this.supplierRepo
       .createQueryBuilder('supplier')
       .select('supplier.id', 'supplier_id')
       .addSelect('supplier.name', 'supplier_name')
-      .addSelect('SUM(purchase_requests.totalPrice) as total_purchase_amount') // Use totalPrice here
+      .addSelect('SUM(purchase_requests.totalPrice)', 'total_purchase_amount')
       .innerJoin(
         'purchase_requests',
         'purchase_requests',
@@ -120,36 +118,37 @@ export class ReportsService {
       )
       .where('purchase_requests.branchId = :branchId', { branchId })
       .groupBy('supplier.id')
-      .orderBy('total_purchase_amount', 'DESC') // Update the alias to match the select statement
+      .orderBy('total_purchase_amount', 'DESC')
       .limit(5);
 
-    const result = await query.getRawMany();
-    return result;
+    return await query.getRawMany();
   }
 
-  // Get Monthly Revenue
+  // ✅ Get Monthly Revenue
   async getRevenueGroupedByMonth(branchId: number): Promise<any> {
     const query = this.orderItemRepo
       .createQueryBuilder('order_item')
-      .select('DATE_FORMAT(order.date, "%Y-%m") as month') // Use order.date for grouping
+      .select(`DATE_FORMAT(order.date, '%Y-%m')`, 'period')
       .addSelect(
-        'SUM((order_item.unitPrice - product_item.cost) * order_item.numberOfItems) as revenue',
-      ) // Join with product_item and use its cost column
+        'SUM((order_item.unitPrice - product_item.cost) * order_item.numberOfItems)',
+        'revenue',
+      )
       .innerJoin('order', 'order', 'order.id = order_item.orderId')
       .innerJoin(
         'product_item',
         'product_item',
-        'product_item.id = order_item.productItemId', // Join ProductItem to get the cost
+        'product_item.id = order_item.productItemId',
       )
       .where('order.branchId = :branchId', { branchId })
-      .groupBy('month')
-      .orderBy('month', 'ASC');
+      .andWhere('order.date IS NOT NULL')
+      .andWhere('order.deletedAt IS NULL')
+      .groupBy('period')
+      .orderBy('period', 'ASC');
 
-    const result = await query.getRawMany();
-    return result;
+    return await query.getRawMany();
   }
 
-  // Get Top Products Sold (Grouped by Month) and Metric (quantity | revenue)
+  // ✅ Get Top Sold Products by Quantity or Revenue
   async getTopSoldProducts(
     metric: 'quantity' | 'revenue',
     branchId: number,
@@ -158,11 +157,12 @@ export class ReportsService {
       metric === 'quantity'
         ? 'SUM(order_item.numberOfItems)'
         : 'SUM((order_item.unitPrice - product_item.cost) * order_item.numberOfItems)';
+
     const query = this.productItemRepo
       .createQueryBuilder('product_item')
       .select('product_item.id', 'product_id')
       .addSelect('product_item.name', 'product_name')
-      .addSelect(`${metricColumn} as metric_value`)
+      .addSelect(`${metricColumn}`, 'metric_value')
       .innerJoin(
         'order_item',
         'order_item',
@@ -174,7 +174,6 @@ export class ReportsService {
       .orderBy('metric_value', 'DESC')
       .limit(5);
 
-    const result = await query.getRawMany();
-    return result;
+    return await query.getRawMany();
   }
 }
