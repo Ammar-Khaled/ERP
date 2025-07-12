@@ -37,7 +37,6 @@ export class ReportsService {
     private supplierRepo: Repository<Supplier>,
   ) {}
 
-  // ✅ Get Total Orders Grouped By Day or Month
   async getOrdersGroupedBy(
     period: 'day' | 'month',
     branchId: number,
@@ -49,9 +48,11 @@ export class ReportsService {
 
     const query = this.orderRepo
       .createQueryBuilder('order')
+      .innerJoin('order.status', 'status')
       .select(`${dateGrouping}`, 'period')
       .addSelect('SUM(order.totalPrice)', 'total_sales')
       .where('order.branchId = :branchId', { branchId })
+      .andWhere('status.name = :statusName', { statusName: 'order_completed' })
       .andWhere('order.date IS NOT NULL')
       .andWhere('order.deletedAt IS NULL')
       .groupBy('period')
@@ -60,7 +61,6 @@ export class ReportsService {
     return await query.getRawMany();
   }
 
-  // ✅ Get Total Purchases Grouped By Day or Month
   async getPurchasesGroupedBy(
     period: 'day' | 'month',
     branchId: number,
@@ -76,13 +76,15 @@ export class ReportsService {
       .addSelect('SUM(purchase_request.totalPrice)', 'total_purchases')
       .where('purchase_request.branchId = :branchId', { branchId })
       .andWhere('purchase_request.date IS NOT NULL')
+      .andWhere('purchase_request.status = :status', {
+        status: 'purchase_request_completed',
+      })
       .groupBy('period')
       .orderBy('period', 'ASC');
 
     return await query.getRawMany();
   }
 
-  // ✅ Get Top Clients by Total Amount or Count
   async getTopClients(
     metric: 'totalAmount' | 'count',
     branchId: number,
@@ -96,7 +98,9 @@ export class ReportsService {
       .addSelect('client.name', 'client_name')
       .addSelect(`${metricColumn}`, 'metric_value')
       .innerJoin('order', 'order', 'order.clientId = client.id')
+      .innerJoin('order.status', 'status')
       .where('order.branchId = :branchId', { branchId })
+      .andWhere('status.name = :statusName', { statusName: 'order_completed' })
       .groupBy('client.id')
       .orderBy('metric_value', 'DESC')
       .limit(5);
@@ -104,7 +108,6 @@ export class ReportsService {
     return await query.getRawMany();
   }
 
-  // ✅ Get Top Suppliers by Purchase Amount
   async getTopSuppliers(branchId: number): Promise<any> {
     const query = this.supplierRepo
       .createQueryBuilder('supplier')
@@ -117,6 +120,9 @@ export class ReportsService {
         'purchase_requests.supplierId = supplier.id',
       )
       .where('purchase_requests.branchId = :branchId', { branchId })
+      .andWhere('purchase_requests.status = :status', {
+        status: 'purchase_request_completed',
+      })
       .groupBy('supplier.id')
       .orderBy('total_purchase_amount', 'DESC')
       .limit(5);
@@ -124,7 +130,6 @@ export class ReportsService {
     return await query.getRawMany();
   }
 
-  // ✅ Get Monthly Revenue
   async getRevenueGroupedByMonth(branchId: number): Promise<any> {
     const query = this.orderItemRepo
       .createQueryBuilder('order_item')
@@ -134,6 +139,7 @@ export class ReportsService {
         'revenue',
       )
       .innerJoin('order', 'order', 'order.id = order_item.orderId')
+      .innerJoin('order.status', 'status')
       .innerJoin(
         'product_item',
         'product_item',
@@ -142,13 +148,13 @@ export class ReportsService {
       .where('order.branchId = :branchId', { branchId })
       .andWhere('order.date IS NOT NULL')
       .andWhere('order.deletedAt IS NULL')
+      .andWhere('status.name = :statusName', { statusName: 'order_completed' })
       .groupBy('period')
       .orderBy('period', 'ASC');
 
     return await query.getRawMany();
   }
 
-  // ✅ Get Top Sold Products by Quantity or Revenue
   async getTopSoldProducts(
     metric: 'quantity' | 'revenue',
     branchId: number,
@@ -169,7 +175,9 @@ export class ReportsService {
         'order_item.ProductItemId = product_item.id',
       )
       .innerJoin('order', 'order', 'order.id = order_item.orderId')
+      .innerJoin('order.status', 'status')
       .where('order.branchId = :branchId', { branchId })
+      .andWhere('status.name = :statusName', { statusName: 'order_completed' })
       .groupBy('product_item.id')
       .orderBy('metric_value', 'DESC')
       .limit(5);
