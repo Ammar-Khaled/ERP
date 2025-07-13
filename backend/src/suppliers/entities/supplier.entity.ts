@@ -28,7 +28,12 @@ export class Supplier {
   })
   nameAr: string;
 
-  @Column({ type: 'varchar', length: 255, nullable: false, default: 'example@gmail.com' })
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: false,
+    default: 'example@gmail.com',
+  })
   email: string;
 
   @Column({ type: 'varchar', nullable: true, unique: true })
