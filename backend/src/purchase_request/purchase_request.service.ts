@@ -284,14 +284,16 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
     if (!branch) throw new NotFoundException('Branch not found!');
     newPurchaseRequest.branch = branch;
 
-    // Handle the supplier
-    const supplier = await this.supplierRepository.findOneBy({
+    // Handle the supplier: Search => Set or Create
+    let supplier = await this.supplierRepository.findOneBy({
       name: createPurchaseRequestDto.supplierName,
     });
     if (!supplier) {
-      throw new NotFoundException({
-        message: `This supplier is not found!`,
+      supplier = this.supplierRepository.create({
+        name: createPurchaseRequestDto.supplierName,
+        branchId: tokenPayload.branchId,
       });
+      await this.supplierRepository.save(supplier);
     }
     newPurchaseRequest.supplier = supplier;
 

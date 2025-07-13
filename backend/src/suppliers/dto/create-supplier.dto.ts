@@ -19,9 +19,9 @@ export class CreateSupplierDto {
   @IsString()
   nameAr?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsEmail()
-  email: string;
+  email?: string;
 
   @IsOptional()
   @IsString()
