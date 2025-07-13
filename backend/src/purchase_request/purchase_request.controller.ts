@@ -20,6 +20,7 @@ import { PdfService } from 'src/common/pdf/pdf.service';
 import { Response } from 'express';
 import { LoggingInterceptor } from 'src/logging/logging.interceptor';
 import { PaginationDto } from '../common/dtos/pagination.dto';
+import { CreatePurchaseRequestOCRDto } from './dto/create-ocr_purchase_request.dto';
 
 @Controller('purchase-requests')
 export class PurchaseRequestsController {
@@ -35,6 +36,18 @@ export class PurchaseRequestsController {
     @Req() req,
   ) {
     return this.purchaseRequestService.create(
+      createPurchaseRequestDto,
+      req.user,
+    );
+  }
+
+  @Post('ocr-create')
+  @UseInterceptors(LoggingInterceptor)
+  createByOCR(
+    @Body() createPurchaseRequestDto: CreatePurchaseRequestOCRDto,
+    @Req() req,
+  ) {
+    return this.purchaseRequestService.createByOCR(
       createPurchaseRequestDto,
       req.user,
     );

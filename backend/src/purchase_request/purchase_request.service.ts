@@ -25,6 +25,7 @@ import { NotificationType } from '../notifications/entities/notification.entity'
 import { Inventory } from 'src/inventories/entities/inventory.entity';
 import { PurchaseInventoryService } from 'src/purchase_inventory/purchase_inventory.service';
 import { BaseService } from '../common/services/base.service';
+import { CreatePurchaseRequestOCRDto } from './dto/create-ocr_purchase_request.dto';
 
 config();
 
@@ -149,7 +150,7 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
 
   async create(
     createPurchaseRequestDto: CreatePurchaseRequestDto,
-    tokenPayload: any,
+    tokenPayload: any, // Contains user and branch info
   ) {
     const newPurchaseRequest = new PurchaseRequest();
     newPurchaseRequest.date = createPurchaseRequestDto.date || new Date();
@@ -196,6 +197,120 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
       throw new NotFoundException({
         message: `This currency is not found!`,
       });
+    }
+    newPurchaseRequest.currency = currency;
+
+    // Handle the array of purchase items
+    // Ensuring the items are unique based on the name of the purchase entity in the final result
+    // by incrementing the quantity if found duplicated items
+    const purchaseItemsDtos = createPurchaseRequestDto.purchaseItemsDtos;
+    const uniquePurchaseItemsDtos = purchaseItemsDtos.reduce(
+      (visited, item) => {
+        const existingItem = visited.find(
+          (i) => i.purchaseEntityName === item.purchaseEntityName,
+        );
+        if (existingItem) existingItem.numberOfItems += item.numberOfItems;
+        else visited.push(item);
+
+        return visited;
+      },
+      [] as CreatePurchaseItemDto[],
+    );
+
+    // link between purchase item and purchase request
+    const purchaseItems = [];
+    for (const itemDto of uniquePurchaseItemsDtos) {
+      try {
+        const purchaseItem = await this.createPurchaseItem(itemDto);
+        purchaseItems.push(purchaseItem);
+      } catch (error) {
+        throw new HttpException(error.message, error.status || 500);
+      }
+    }
+    newPurchaseRequest.purchaseItems = purchaseItems;
+
+    // Save and log
+    const savedPurchaseRequest =
+      await this.purchaseRequestRepository.save(newPurchaseRequest);
+
+    // Find users with the PurchaseRequestsController:review permission
+    const reviewers = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.roles', 'role')
+      .innerJoin('role.permissions', 'permission')
+      .where('permission.name = :permissionName', {
+        permissionName: 'PurchaseRequestsController:review',
+      })
+      .getMany();
+
+    for (const reviewer of reviewers) {
+      await this.notificationsService.create({
+        title: 'New Purchase Request',
+        message: `A new purchase request has been created by ${tokenPayload.username}. Please review it.`,
+        type: NotificationType.PURCHASE_REQUEST_REJECTED,
+        userId: reviewer.id,
+        relatedEntityId: savedPurchaseRequest.id,
+        relatedEntityType: 'purchase_request',
+      });
+    }
+
+    return this.findOneWithRelations(
+      savedPurchaseRequest.id,
+      tokenPayload.branchId,
+      false,
+    );
+  }
+
+  async createByOCR(
+    createPurchaseRequestDto: CreatePurchaseRequestOCRDto,
+    tokenPayload: any, // Contains user and branch info
+  ) {
+    const newPurchaseRequest = new PurchaseRequest();
+    newPurchaseRequest.date = createPurchaseRequestDto.date || new Date();
+
+    // Handle the inventory = set to ANY inventory
+    const inventory = await this.inventoryRepository.findOne({ where: {} });
+    if (!inventory) throw new NotFoundException('This inventory is not found!');
+    newPurchaseRequest.inventory = inventory;
+
+    // Handle the user and branch using tokey payload
+    newPurchaseRequest.user = await this.userRepository.findOneBy({
+      id: tokenPayload.sub,
+    });
+
+    const branch = await this.branchRepository.findOneBy({
+      id: tokenPayload.branchId,
+    });
+    if (!branch) throw new NotFoundException('Branch not found!');
+    newPurchaseRequest.branch = branch;
+
+    // Handle the supplier: Search => Set or Create
+    let supplier = await this.supplierRepository.findOneBy({
+      name: createPurchaseRequestDto.supplierName,
+    });
+    if (!supplier) {
+      supplier = this.supplierRepository.create({
+        name: createPurchaseRequestDto.supplierName,
+        branchId: tokenPayload.branchId,
+      });
+      await this.supplierRepository.save(supplier);
+    }
+    newPurchaseRequest.supplier = supplier;
+
+    // Handle the status
+    newPurchaseRequest.status = await this.statusRepository.findOneBy({
+      name: 'purchase_request_pending',
+    });
+
+    // Handle the currency: Search => Set or Create
+    let currency = await this.currencyRepository.findOneBy({
+      name: createPurchaseRequestDto.currency,
+    });
+    if (!currency) {
+      currency = this.currencyRepository.create({
+        name: createPurchaseRequestDto.currency,
+      });
+      await this.currencyRepository.save(currency);
     }
     newPurchaseRequest.currency = currency;
 
