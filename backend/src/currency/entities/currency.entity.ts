@@ -16,7 +16,7 @@ export class Currency {
   })
   nameAr?: string;
 
-  @Column()
+  @Column({ default: 'NA' })
   symbol: string; // Symbol of the currency
 
   @OneToMany(

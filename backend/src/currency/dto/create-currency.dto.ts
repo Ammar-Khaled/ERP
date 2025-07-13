@@ -9,7 +9,7 @@ export class CreateCurrencyDto {
   @IsString()
   nameAr?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  symbol: string; // Symbol of the currency
+  symbol?: string; // Symbol of the currency
 }

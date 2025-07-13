@@ -47,12 +47,10 @@ export class PurchaseRequestsController {
     @Body() createPurchaseRequestDto: CreatePurchaseRequestOCRDto,
     @Req() req,
   ) {
-    return "OCR create endpoint is healthy!";
-    
-    // return this.purchaseRequestService.createByOCR(
-    //   createPurchaseRequestDto,
-    //   req.user,
-    // );
+    return this.purchaseRequestService.createByOCR(
+      createPurchaseRequestDto,
+      req.user,
+    );
   }
 
   @Patch('/cancel/:id')
