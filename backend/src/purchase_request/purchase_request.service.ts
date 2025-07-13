@@ -269,7 +269,7 @@ export class PurchaseRequestService extends BaseService<PurchaseRequest> {
     newPurchaseRequest.date = createPurchaseRequestDto.date || new Date();
 
     // Handle the inventory = set to ANY inventory
-    const inventory = await this.inventoryRepository.findOne({ where: {}});
+    const inventory = await this.inventoryRepository.findOne({ where: {} });
     if (!inventory) throw new NotFoundException('This inventory is not found!');
     newPurchaseRequest.inventory = inventory;
 
