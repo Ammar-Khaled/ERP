@@ -1,5 +1,8 @@
-/backend/.env
-/backend/node_modules
-/backend/dist
+.env
+node_modules
+dist
 .idea
 .vscode
+
+.next/
+next-env.d.ts
